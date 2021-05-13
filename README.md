@@ -25,14 +25,12 @@ to package the utilities for Xamarin.Android distribution.
   4. After the build finishes, visit the Actions tab, find the run
      corresponding to commit from `3.` above, download the
      `Xamarin.Android` artifact
-  5. On your local machine, execute the release preparation script:
-     ```shell
+  5. On your local machine, execute the release preparation script (`TAG_NAME` should be created by concatenating the Binutils version
+     with the `-XA.NUM` string, where `NUM` is an integer increasing monotonously each time a new release of the same Binutils version
+     is made):
+```shell
   ./prepare-release.sh PATH_TO_ARTIFACT_FROM_4 TAG_NAME
-     ```
-     `TAG_NAME` should be created by concatenating the Binutils version
-     with the `-XA.NUM` string, where `NUM` is an integer increasing
-     monotonously each time a new release of the same Binutils version
-     is made.
+```
   6. The script will produce a `7-zip` package on your local disk and
      display instructions how to proceed with the release.
-	 
+ 
