@@ -1,0 +1,109 @@
+name: CI
+env:
+  BINUTILS_VERSION: 2.36.1
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+jobs:
+  build_linux:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -f -u install mingw-w64 autoconf gettext texinfo dwz xz-utils zlib1g-dev
+
+      - name: build Linux and Windows
+        run: ./build.sh ${BINUTILS_VERSION}
+
+      - name: package config and build logs
+        if: ${{ always() }}
+        run: find build -name 'config.*' | zip -9 linux-build-logs.zip -@
+
+      - name: upload config and build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-logs
+          path: linux-build-logs.zip
+
+      - name: package artifacts
+        run: tar cjf linux-artifacts.tar.bz2 artifacts
+
+      - name: upload Linux and Windows artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-windows
+          path: linux-artifacts.tar.bz2
+
+  build_macos:
+    runs-on: macos-10.15
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install build dependencies
+        run: |
+          brew update
+          brew install make autoconf gettext xz
+
+      - name: build macOS
+        run: bash -x ./build.sh ${BINUTILS_VERSION}
+
+      - name: package config and build logs
+        if: ${{ always() }}
+        run: find build -name 'config.*' | zip -9 macos-build-logs.zip -@
+
+      - name: upload config and build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-logs
+          path: macos-build-logs.zip
+
+      - name: package artifacts
+        run: tar cjf macos-artifacts.tar.bz2 artifacts
+
+      - name: upload macOS artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: macOS
+          path: macos-artifacts.tar.bz2
+
+  package_binaries:
+    runs-on: ubuntu-18.04
+    needs: [build_linux, build_macos]
+    steps:
+      - name: Download Linux and Windows artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: linux-windows
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: macOS
+
+      - name: Unpack Linux and Windows artifacts
+        run: |
+          tar xf linux-artifacts.tar.bz2
+
+      - name: Unpack macOS artifacts
+        run: |
+          tar xf macos-artifacts.tar.bz2
+
+      - name: Pack Linux, macOS and Windows artifacts
+        run: tar cjf xamarin-android-binutils.tar.bz2 artifacts
+
+      - name: upload Xamarin.Android Binutils
+        uses: actions/upload-artifact@v2
+        with:
+          name: Xamarin.Android
+          path: xamarin-android-binutils.tar.bz2
