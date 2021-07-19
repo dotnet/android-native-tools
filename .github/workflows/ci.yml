@@ -1,6 +1,6 @@
 name: CI
 env:
-  BINUTILS_VERSION: 2.36.1
+  BINUTILS_VERSION: 2.37
 
 on:
   push:

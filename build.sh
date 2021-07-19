@@ -4,6 +4,7 @@ TRUE_PATH=$(readlink "$0" || echo "$0")
 MY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BUILD_DIR="${MY_DIR}/build"
 ARTIFACTS_DIR="${MY_DIR}/artifacts"
+PATCHES_DIR="${MY_DIR}/patches"
 VERSION_INFO_FILE="${ARTIFACTS_DIR}/version.txt"
 CACHE_DIR="${HOME}/android-archives"
 OS=$(uname -s)
@@ -16,6 +17,7 @@ MACOS_TARGET="10.9"
 
 VERSION="${1}"
 BINUTILS_DIR_NAME="binutils-${VERSION}"
+BINUTILS_PATCH_NAME="binutils-${VERSION}.diff"
 
 function die()
 {
@@ -165,6 +167,12 @@ function build()
 
 	tar xf "${TARBALL_DEST}"
 
+	local source_dir="${BUILD_DIR}/${BINUTILS_DIR_NAME}"
+	local binutils_patch="${PATCHES_DIR}/${BINUTILS_PATCH_NAME}"
+	if [ -f "${binutils_patch}" ]; then
+		(cd "${source_dir}"; patch -p1 < "${binutils_patch}")
+	fi
+
 	local configure_host
 
 	case "${host}" in
@@ -179,7 +187,6 @@ function build()
 	install -d -m 755 "${build_tree}"
 
 	local cflags="-O2 -m64 $(detect_mac_arch_flags)"
-	local source_dir="${BUILD_DIR}/${BINUTILS_DIR_NAME}"
 	local enable_gold
 	local other_flags
 
