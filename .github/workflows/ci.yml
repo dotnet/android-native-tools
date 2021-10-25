@@ -1,6 +1,6 @@
 name: CI
 env:
-  BINUTILS_VERSION: 2.35.2
+  BUILD_DIR: xa-build
 
 on:
   push:
@@ -12,21 +12,21 @@ on:
 
 jobs:
   build_linux:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get -f -u install mingw-w64 autoconf gettext texinfo dwz xz-utils zlib1g-dev
+          sudo apt-get -f -u build-dep llvm-10
 
-      - name: build Linux and Windows
-        run: ./build.sh ${BINUTILS_VERSION}
+      - name: build Linux
+        run: ./build.sh
 
       - name: package config and build logs
         if: ${{ always() }}
-        run: find build -name 'config.*' | zip -9 linux-build-logs.zip -@
+        run: find ${BUILD_DIR} -name 'config.*' | zip -9 linux-build-logs.zip -@
 
       - name: upload config and build logs
         if: ${{ always() }}
@@ -38,10 +38,10 @@ jobs:
       - name: package artifacts
         run: tar cjf linux-artifacts.tar.bz2 artifacts
 
-      - name: upload Linux and Windows artifacts
+      - name: upload Linux artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: linux-windows
+          name: linux
           path: linux-artifacts.tar.bz2
 
   build_macos:
@@ -52,14 +52,14 @@ jobs:
       - name: Install build dependencies
         run: |
           brew update
-          brew install make autoconf gettext xz
+          brew install cmake ninja
 
       - name: build macOS
-        run: bash -x ./build.sh ${BINUTILS_VERSION}
+        run: bash -x ./build.sh
 
       - name: package config and build logs
         if: ${{ always() }}
-        run: find build -name 'config.*' | zip -9 macos-build-logs.zip -@
+        run: find ${BUILD_DIR} -name 'config.*' | zip -9 macos-build-logs.zip -@
 
       - name: upload config and build logs
         if: ${{ always() }}
@@ -78,13 +78,13 @@ jobs:
           path: macos-artifacts.tar.bz2
 
   package_binaries:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: [build_linux, build_macos]
     steps:
-      - name: Download Linux and Windows artifacts
+      - name: Download Linux artifacts
         uses: actions/download-artifact@v2
         with:
-          name: linux-windows
+          name: linux
 
       - name: Download macOS artifacts
         uses: actions/download-artifact@v2
@@ -100,10 +100,10 @@ jobs:
           tar xf macos-artifacts.tar.bz2
 
       - name: Pack Linux, macOS and Windows artifacts
-        run: tar cjf xamarin-android-binutils.tar.bz2 artifacts
+        run: tar cjf xamarin-android-llvm.tar.bz2 artifacts
 
-      - name: upload Xamarin.Android Binutils
+      - name: upload Xamarin.Android LLVM Utilities
         uses: actions/upload-artifact@v2
         with:
           name: Xamarin.Android
-          path: xamarin-android-binutils.tar.bz2
+          path: xamarin-android-llvm.tar.bz2

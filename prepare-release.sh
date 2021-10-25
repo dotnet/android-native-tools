@@ -4,7 +4,7 @@ TRUE_PATH=$(readlink "$0" || echo "$0")
 MY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 WORK_DIR="${MY_DIR}/prep"
-TARBALL_BASE_NAME="xamarin-android-binutils"
+TARBALL_BASE_NAME="xamarin-android-llvm"
 ARTIFACT_TARBALL="${TARBALL_BASE_NAME}.tar.bz2"
 ARTIFACTS_DIR="${WORK_DIR}/artifacts"
 
