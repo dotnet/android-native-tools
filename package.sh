@@ -30,7 +30,6 @@ function prepare()
 
 		# We could use --best, but it's way too slow for not enough gain
 		upx -9 "${artifacts_dest}/${b}"
-		upx -t "${artifacts_dest}/${b}"
 	done
 }
 
