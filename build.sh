@@ -94,8 +94,8 @@ create_dir "${HOST_BUILD_DIR}"
 create_dir "${HOST_ARTIFACTS_DIR}"
 
 case "${HOST}" in
-	linux) JOBS=$(($(nproc) - 2)) ;;
-	darwin) JOBS=$(($(sysctl hw.ncpu | cut -d ':' -f 2 | tr -d ' ') - 2)) ;;
+	linux) JOBS=$(nproc) ;;
+	darwin) JOBS=$(sysctl hw.ncpu | cut -d ':' -f 2 | tr -d ' ') ;;
 	*) JOBS=1 ;;
 esac
 

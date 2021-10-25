@@ -25,7 +25,7 @@ jobs:
           lsb-release patchutils diffstat xz-utils python3-dev libedit-dev libncurses5-dev swig
           python3-six python3-sphinx binutils-dev libxml2-dev libjsoncpp-dev pkg-config lcov
           procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
-          python3-setuptools libz3-dev
+          python3-setuptools libz3-dev ccache
 
       - name: build Linux
         run: ./build.sh
@@ -54,14 +54,16 @@ jobs:
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: Install build dependencies
         run: |
           brew update
-          brew install cmake ninja
+          brew install cmake ninja ccache
 
       - name: build macOS
-        run: bash -x ./build.sh
+        run: bash ./build.sh
 
       - name: package config and build logs
         if: ${{ always() }}
