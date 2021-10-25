@@ -4,25 +4,18 @@ MY_NAME="$(basename $0)"
 MY_DIR="$(cd $(dirname $0);pwd)"
 HOST=$(uname | tr A-Z a-z)
 
+source common.sh
+
 PROJECTS="lld"
 TARGETS="X86;ARM;AArch64"
 TOOLS="lld llvm-mc llvm-objcopy"
 
-BUILD_DIR="${MY_DIR}/xa-build"
 HOST_BUILD_DIR="${BUILD_DIR}/${HOST}"
 HOST_BIN_DIR="${HOST_BUILD_DIR}/bin"
-HOST_ARTIFACTS_DIR="${MY_DIR}/artifacts/${HOST}"
+HOST_ARTIFACTS_DIR="${ARTIFACTS_DIR}/${HOST}"
 LLVM_VERSION_FILE="${HOST_ARTIFACTS_DIR}/llvm-version.txt"
 
 SOURCE_DIR="${MY_DIR}/external/llvm/llvm"
-
-BINARIES="lld llvm-mc llvm-objcopy"
-
-function die()
-{
-	echo "$*"
-	exit 1
-}
 
 function configure()
 {
@@ -78,16 +71,6 @@ function build()
 	# for t in ${TOOLS}; do
 	# 	upx -9 -obin/${t}.upx bin/${t}
 	# done
-}
-
-function create_dir()
-{
-	local dir="${1}"
-
-	if [ -d "${dir}" ]; then
-		rm -rf "${dir}"
-	fi
-	install -d -m 755 "${dir}"
 }
 
 create_dir "${HOST_BUILD_DIR}"

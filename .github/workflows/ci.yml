@@ -99,7 +99,7 @@ jobs:
         with:
           name: macOS
 
-      - name: Unpack Linux and Windows artifacts
+      - name: Unpack Linux artifacts
         run: |
           tar xf linux-artifacts.tar.bz2
 
@@ -108,10 +108,11 @@ jobs:
           tar xf macos-artifacts.tar.bz2
 
       - name: Pack Linux, macOS and Windows artifacts
-        run: tar cjf xamarin-android-llvm.tar.bz2 artifacts
+        run:
+          ./package.sh
 
       - name: upload Xamarin.Android LLVM Utilities
         uses: actions/upload-artifact@v2
         with:
           name: Xamarin.Android
-          path: xamarin-android-llvm.tar.bz2
+          path: artifacts/xamarin-android-llvm-*.tar.bz2
