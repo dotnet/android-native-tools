@@ -89,6 +89,8 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [build_linux, build_macos]
     steps:
+      - uses: actions/checkout@v2
+
       - name: Download Linux artifacts
         uses: actions/download-artifact@v2
         with:
@@ -108,8 +110,7 @@ jobs:
           tar xf macos-artifacts.tar.bz2
 
       - name: Pack Linux, macOS and Windows artifacts
-        run:
-          ./package.sh
+        run: ./package.sh
 
       - name: upload Xamarin.Android LLVM Utilities
         uses: actions/upload-artifact@v2
