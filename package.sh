@@ -16,15 +16,21 @@ function prepare()
 	local os="${1}"
 	local artifacts_source="${ARTIFACTS_DIR}/${os}"
 	local artifacts_dest="${PACKAGE_ARTIFACTS_DIR}/${os}"
+	local version_file
 
 	echo
 	echo Preparing binaries for ${os}
 	echo
 
-	if [ -z "${LLVM_VERSION}" ]; then
-		LLVM_VERSION=$(head -1 "${artifacts_source}/llvm-version.txt" | tr -d ' \n\t')
-	fi
 	create_dir "${artifacts_dest}"
+
+	if [ -z "${LLVM_VERSION}" ]; then
+		version_file="${artifacts_source}/llvm-version.txt"
+		LLVM_VERSION=$(head -1 "${version_file}" | tr -d ' \n\t')
+		cp "${version_file}" "${PACKAGE_ARTIFACTS_DIR}"
+
+	fi
+
 	for b in ${BINARIES}; do
 		cp "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
 	done
@@ -38,4 +44,5 @@ if [ -z "${LLVM_VERSION}" ]; then
 	die Unable to detect LLVM version from the artifacts
 fi
 
-(cd "${PACKAGE_TREE_DIR}"; tar cjf "${ARTIFACTS_DIR}/${PACKAGE_NAME_BASE}-${LLVM_VERSION}.tar.bz2" artifacts)
+echo Creating package for LLVM version ${LLVM_VERSION}
+(cd "${PACKAGE_TREE_DIR}"; tar cjf "${ARTIFACTS_DIR}/${PACKAGE_NAME_BASE}.tar.bz2" artifacts)
