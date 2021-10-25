@@ -15,11 +15,12 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        submodules: true
 
       - name: Install build dependencies
         run: >-
           sudo apt-get update;
-          sudo apt-get -f -u install debhelper cmake ninja-build chrpath texinfo sharutils libffi-dev
+          sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
           lsb-release patchutils diffstat xz-utils python3-dev libedit-dev libncurses5-dev swig
           python3-six python3-sphinx binutils-dev libxml2-dev libjsoncpp-dev pkg-config lcov
           procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
