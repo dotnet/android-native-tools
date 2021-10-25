@@ -27,9 +27,6 @@ function prepare()
 	create_dir "${artifacts_dest}"
 	for b in ${BINARIES}; do
 		cp "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
-
-		# We could use --best, but it's way too slow for not enough gain
-		upx -9 "${artifacts_dest}/${b}"
 	done
 }
 
