@@ -52,8 +52,29 @@ function configure()
 		  -DLLVM_BUILD_RUNTIMES=OFF \
 		  -DLLVM_OPTIMIZED_TABLEGEN=ON \
 		  -DLLVM_ENABLE_THREADS=OFF \
+		  "$@" \
 		  "${SOURCE_DIR}"
 	set +x
+}
+
+function configure_linux()
+{
+	configure
+}
+
+function configure_darwin()
+{
+	configure -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET='10.12' \
+              -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64'
+}
+
+function compress_binary()
+{
+	local input="${1}"
+
+	upx -9 -o "${input}.upx" "${input}"
+	upx -t "${input}.upx"
 }
 
 function build()
@@ -66,11 +87,16 @@ function build()
 	for b in ${BINARIES}; do
 		cp "${HOST_BIN_DIR}/${b}" "${HOST_ARTIFACTS_DIR}/${b}"
 		strip "${HOST_ARTIFACTS_DIR}/${b}"
+		if [ "${HOST}" == "darwin" ]; then
+			lipo -extract x86_64 -output "${HOST_ARTIFACTS_DIR}/${b}.x86_64" "${HOST_ARTIFACTS_DIR}/${b}"
+			lipo -extract arm64 -output "${HOST_ARTIFACTS_DIR}/${b}.arm64" "${HOST_ARTIFACTS_DIR}/${b}"
+			rm "${HOST_ARTIFACTS_DIR}/${b}"
+			compress_binary "${HOST_ARTIFACTS_DIR}/${b}.x86_64"
+			compress_binary "${HOST_ARTIFACTS_DIR}/${b}.arm64"
+		else
+			compress_binary "${HOST_ARTIFACTS_DIR}/${b}"
+		fi
 	done
-
-	# for t in ${TOOLS}; do
-	# 	upx -9 -obin/${t}.upx bin/${t}
-	# done
 }
 
 create_dir "${HOST_BUILD_DIR}"
@@ -82,5 +108,5 @@ case "${HOST}" in
 	*) JOBS=1 ;;
 esac
 
-(cd "${HOST_BUILD_DIR}"; configure)
+(cd "${HOST_BUILD_DIR}"; configure_${HOST})
 (cd "${HOST_BUILD_DIR}"; build)

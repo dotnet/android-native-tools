@@ -8,7 +8,6 @@ PACKAGE_TREE_DIR="${ARTIFACTS_DIR}/package"
 PACKAGE_ARTIFACTS_DIR="${PACKAGE_TREE_DIR}/artifacts"
 PACKAGE_NAME_BASE="xamarin-android-llvm"
 
-OPERATING_SYSTEMS="linux darwin" # windows
 LLVM_VERSION=""
 
 function prepare()
