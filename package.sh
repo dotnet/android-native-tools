@@ -31,7 +31,12 @@ function prepare()
 	fi
 
 	for b in ${BINARIES}; do
-		cp "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
+		if [ "${os}" == "darwin" ]; then
+			cp "${artifacts_source}/${b}.arm64.upx" "${artifacts_dest}/${b}"
+			cp "${artifacts_source}/${b}.x86_64.upx" "${artifacts_dest}/${b}"
+		else
+			cp "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
+		fi
 	done
 }
 

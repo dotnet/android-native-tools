@@ -5,6 +5,7 @@ if [ -z "${MY_DIR}" ]; then
 	exit 1
 fi
 
+HOST=$(uname | tr A-Z a-z)
 BUILD_DIR="${MY_DIR}/xa-build"
 ARTIFACTS_DIR="${MY_DIR}/artifacts"
 BINARIES="lld llvm-mc llvm-objcopy"

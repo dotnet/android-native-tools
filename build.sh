@@ -2,7 +2,6 @@
 
 MY_NAME="$(basename $0)"
 MY_DIR="$(cd $(dirname $0);pwd)"
-HOST=$(uname | tr A-Z a-z)
 
 source common.sh
 
