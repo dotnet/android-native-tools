@@ -91,7 +91,6 @@ function build()
 			lipo -extract arm64 -output "${HOST_ARTIFACTS_DIR}/${b}.arm64" "${HOST_ARTIFACTS_DIR}/${b}"
 			rm "${HOST_ARTIFACTS_DIR}/${b}"
 			compress_binary "${HOST_ARTIFACTS_DIR}/${b}.x86_64"
-			compress_binary "${HOST_ARTIFACTS_DIR}/${b}.arm64"
 		else
 			compress_binary "${HOST_ARTIFACTS_DIR}/${b}"
 		fi

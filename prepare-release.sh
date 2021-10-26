@@ -62,15 +62,6 @@ function prepare()
 		die Tag ${tag_name} already exists, please choose a new one
 	fi
 
-	echo Compressing binaries with UPX
-	local os_artifacts_dir
-	for os in ${OPERATING_SYSTEMS}; do
-		os_artifacts_dir="${ARTIFACTS_DIR}/${os}"
-		for b in ${BINARIES}; do
-			upx -9 "${os_artifacts_dir}/${b}"
-		done
-	done
-
 	local dest_archive="${MY_DIR}/${TARBALL_BASE_NAME}-${tag_name}.7z"
 
 	if [ -f "${dest_archive}" ]; then
