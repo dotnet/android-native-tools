@@ -33,7 +33,7 @@ function prepare()
 	for b in ${BINARIES}; do
 		if [ "${os}" == "darwin" ]; then
 			cp "${artifacts_source}/${b}.arm64" "${artifacts_dest}/${b}.arm64"
-			cp "${artifacts_source}/${b}.x86_64.upx" "${artifacts_dest}/${b}.x86_64"
+			cp "${artifacts_source}/${b}.x86_64" "${artifacts_dest}/${b}.x86_64"
 		else
 			cp "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
 		fi
