@@ -22,6 +22,11 @@ function prepare()
 	echo
 
 	create_dir "${artifacts_dest}"
+	local exe
+
+	if [ "${os}" == "windows" ]; then
+		exe=".exe"
+	fi
 
 	if [ -z "${LLVM_VERSION}" ]; then
 		version_file="${artifacts_source}/llvm-version.txt"
@@ -31,11 +36,12 @@ function prepare()
 	fi
 
 	for b in ${BINARIES}; do
+		b="${b}${exe}"
 		if [ "${os}" == "darwin" ]; then
 			cp "${artifacts_source}/${b}.arm64" "${artifacts_dest}/${b}.arm64"
 			cp "${artifacts_source}/${b}.x86_64" "${artifacts_dest}/${b}.x86_64"
 		else
-			cp "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
+			cp "${artifacts_source}/${b}.upx" "${artifacts_dest}/${b}"
 		fi
 	done
 }
