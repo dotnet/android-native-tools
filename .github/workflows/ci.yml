@@ -85,9 +85,35 @@ jobs:
           name: macOS
           path: macos-artifacts.tar.bz2
 
+  build_windows:
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+
+      - name: Just some tests
+        run: |
+          clang++ --version
+
+      - name: build Windows
+        run: ./build.cmd
+
+      - name: package artifacts
+        run: 7z a windows-artifacts.7z artifacts
+
+      - name: upload Windows artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Windows
+          path: windows-artifacts.7z
+
   package_binaries:
     runs-on: ubuntu-20.04
-    needs: [build_linux, build_macos]
+    needs: [build_linux, build_macos, build_windows]
     steps:
       - uses: actions/checkout@v2
 
@@ -101,6 +127,11 @@ jobs:
         with:
           name: macOS
 
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: Windows
+
       - name: Unpack Linux artifacts
         run: |
           tar xf linux-artifacts.tar.bz2
@@ -108,6 +139,10 @@ jobs:
       - name: Unpack macOS artifacts
         run: |
           tar xf macos-artifacts.tar.bz2
+
+      - name: Unpack Windows artifacts
+        run: |
+          7z x macos-artifacts.7z
 
       - name: Pack Linux, macOS and Windows artifacts
         run: ./package.sh

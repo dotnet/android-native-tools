@@ -9,7 +9,7 @@ HOST=$(uname | tr A-Z a-z)
 BUILD_DIR="${MY_DIR}/xa-build"
 ARTIFACTS_DIR="${MY_DIR}/artifacts"
 BINARIES="lld llvm-mc llvm-objcopy"
-OPERATING_SYSTEMS="linux darwin" # windows
+OPERATING_SYSTEMS="linux darwin windows"
 
 function die()
 {
