@@ -138,7 +138,7 @@ jobs:
 
       - name: Unpack Windows artifacts
         run: |
-          7z x macos-artifacts.7z
+          7z x windows-artifacts.7z
 
       - name: Pack Linux, macOS and Windows artifacts
         run: ./package.sh

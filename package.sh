@@ -41,7 +41,11 @@ function prepare()
 			cp "${artifacts_source}/${b}.arm64" "${artifacts_dest}/${b}.arm64"
 			cp "${artifacts_source}/${b}.x86_64" "${artifacts_dest}/${b}.x86_64"
 		else
-			cp "${artifacts_source}/${b}.upx" "${artifacts_dest}/${b}"
+			if [ -f "${artifacts_source}/${b}.upx" ]; then
+				cp "${artifacts_source}/${b}.upx" "${artifacts_dest}/${b}"
+			else
+				cp "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
+			fi
 		fi
 	done
 }
