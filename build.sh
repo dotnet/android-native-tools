@@ -5,7 +5,7 @@ MY_DIR="$(cd $(dirname $0);pwd)"
 
 source common.sh
 
-PROJECTS="lld"
+PROJECTS="llvm-mc llvm-objcopy"
 TARGETS="X86;ARM;AArch64"
 
 HOST_BUILD_DIR="${BUILD_DIR}/${HOST}"
@@ -77,7 +77,7 @@ function compress_binary()
 
 function build()
 {
-	ninja -j${JOBS}
+	ninja -j${JOBS} llvm-objcopy
 	ninja -j${JOBS} llvm-mc
 
 	grep 'CMAKE_PROJECT_VERSION:' "${HOST_BUILD_DIR}/CMakeCache.txt" | cut -d '=' -f 2 > "${LLVM_VERSION_FILE}"

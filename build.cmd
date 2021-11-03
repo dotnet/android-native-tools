@@ -4,12 +4,12 @@ set BUILD_DIR=%MY_DIR%\xa-build
 set ARTIFACTS_DIR=%MY_DIR%\artifacts
 set SOURCE_DIR=%MY_DIR%external\llvm\llvm
 
-set PROJECTS=lld
+set PROJECTS=llvm-mc llvm-objcopy
 set TARGETS=X86;ARM;AArch64
-set BINARIES=lld.exe llvm-mc.exe llvm-objcopy.exe
+set BINARIES=llvm-mc.exe llvm-objcopy.exe
 
 set HOST_BUILD_DIR=%BUILD_DIR%\%HOST%
-set HOST_BIN_DIR=%HOST_BUILD_DIR%\bin
+set HOST_BIN_DIR=%HOST_BUILD_DIR%\Release\bin
 set HOST_ARTIFACTS_DIR=%ARTIFACTS_DIR%\%HOST%
 set LLVM_VERSION_FILE=%HOST_ARTIFACTS_DIR%\llvm-version.txt
 
@@ -38,7 +38,7 @@ cmake -G "Visual Studio 16 2019" -A x64 ^
  -DLLVM_ENABLE_LIBEDIT=OFF ^
  -DLLVM_ENABLE_LIBPFM=OFF ^
  -DLLVM_ENABLE_LIBXML2=OFF ^
- -DLLVM_ENABLE_PROJECTS="lld" ^
+ -DLLVM_ENABLE_PROJECTS="%PROJECTS%" ^
  -DLLVM_ENABLE_TERMINFO=OFF ^
  -DLLVM_ENABLE_THREADS=OFF ^
  -DLLVM_ENABLE_ZLIB=OFF ^
@@ -53,8 +53,11 @@ cmake -G "Visual Studio 16 2019" -A x64 ^
  -DLLVM_USE_CRT_RELEASE=MT ^
  %SOURCE_DIR%
 
-msbuild /m LLVM.sln
+msbuild /p:Configuration=Release /m tools\llvm-mc\llvm-mc.vcxproj
+msbuild /p:Configuration=Release /m tools\llvm-objcopy\llvm-objcopy.vcxproj
 
-for %b in (%BINARIES%) DO (
-  copy %HOST_BIN_DIR%\%b %HOST_ARTIFACTS_DIR%\%b
+for %%b in (%BINARIES%) DO (
+  copy %HOST_BIN_DIR%\%%b %HOST_ARTIFACTS_DIR%\%%b
 )
+
+cd %MY_DIR%

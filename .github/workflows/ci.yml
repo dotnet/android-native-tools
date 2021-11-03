@@ -95,10 +95,6 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
 
-      - name: Just some tests
-        run: |
-          clang++ --version
-
       - name: build Windows
         run: ./build.cmd
 
