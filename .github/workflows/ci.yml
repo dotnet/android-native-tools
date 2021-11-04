@@ -60,7 +60,7 @@ jobs:
       - name: Install Binutils build dependencies
         run: >-
           sudo apt-get update;
-          sudo apt-get -f -u install mingw-w64 autoconf gettext texinfo dwz xz-utils zlib1g-dev
+          sudo apt-get -f -u install mingw-w64 autoconf gettext texinfo dwz xz-utils zlib1g-dev libz-mingw-w64-dev
 
       - name: build Linux and Windows Binutils
         run: ./build-binutils.sh
