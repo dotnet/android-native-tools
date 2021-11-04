@@ -1,3 +1,0 @@
-Repository: https://github.com/openbsd/src
-Commit: 22db0d4b292ca83fdb0980c2e8a1022bb2cf845d
-Repository path: lib/libc/stdlib/getopt_long.c

@@ -10,7 +10,6 @@ TARGETS="X86;ARM;AArch64"
 
 MY_BUILD_DIR="${BUILD_DIR}/llvm"
 HOST_BIN_DIR="${MY_BUILD_DIR}/bin"
-HOST_ARTIFACTS_DIR="${ARTIFACTS_DIR}/${HOST}"
 LLVM_VERSION_FILE="${HOST_ARTIFACTS_DIR}/llvm-version.txt"
 
 SOURCE_DIR="${MY_DIR}/external/llvm/llvm"
@@ -65,14 +64,6 @@ function configure_darwin()
 	configure -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
               -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOS_TARGET}" \
               -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64'
-}
-
-function compress_binary()
-{
-	local input="${1}"
-
-	upx -9 -o "${input}.upx" "${input}"
-	upx -t "${input}.upx"
 }
 
 function build()
