@@ -8,8 +8,8 @@ source common.sh
 PROJECTS="llvm-mc llvm-objcopy"
 TARGETS="X86;ARM;AArch64"
 
-HOST_BUILD_DIR="${BUILD_DIR}/${HOST}"
-HOST_BIN_DIR="${HOST_BUILD_DIR}/bin"
+MY_BUILD_DIR="${BUILD_DIR}/llvm"
+HOST_BIN_DIR="${MY_BUILD_DIR}/bin"
 HOST_ARTIFACTS_DIR="${ARTIFACTS_DIR}/${HOST}"
 LLVM_VERSION_FILE="${HOST_ARTIFACTS_DIR}/llvm-version.txt"
 
@@ -63,7 +63,7 @@ function configure_linux()
 function configure_darwin()
 {
 	configure -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET='10.12' \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET='${MACOS_TARGET}' \
               -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64'
 }
 
@@ -80,23 +80,19 @@ function build()
 	ninja -j${JOBS} llvm-objcopy
 	ninja -j${JOBS} llvm-mc
 
-	grep 'CMAKE_PROJECT_VERSION:' "${HOST_BUILD_DIR}/CMakeCache.txt" | cut -d '=' -f 2 > "${LLVM_VERSION_FILE}"
+	grep 'CMAKE_PROJECT_VERSION:' "${MY_BUILD_DIR}/CMakeCache.txt" | cut -d '=' -f 2 > "${LLVM_VERSION_FILE}"
 
-	for b in ${BINARIES}; do
+	for b in ${LLVM_BINARIES}; do
 		cp "${HOST_BIN_DIR}/${b}" "${HOST_ARTIFACTS_DIR}/${b}"
 		strip "${HOST_ARTIFACTS_DIR}/${b}"
-		if [ "${HOST}" == "darwin" ]; then
-			lipo -extract x86_64 -output "${HOST_ARTIFACTS_DIR}/${b}.x86_64" "${HOST_ARTIFACTS_DIR}/${b}"
-			lipo -extract arm64 -output "${HOST_ARTIFACTS_DIR}/${b}.arm64" "${HOST_ARTIFACTS_DIR}/${b}"
-			rm "${HOST_ARTIFACTS_DIR}/${b}"
-		else
+		if [ "${HOST}" == "linux" ]; then
 			compress_binary "${HOST_ARTIFACTS_DIR}/${b}"
 		fi
 	done
 }
 
-create_dir "${HOST_BUILD_DIR}"
-create_dir "${HOST_ARTIFACTS_DIR}"
+create_empty_dir "${MY_BUILD_DIR}"
+create_empty_dir "${HOST_ARTIFACTS_DIR}"
 
 case "${HOST}" in
 	linux) JOBS=$(nproc) ;;
@@ -104,5 +100,5 @@ case "${HOST}" in
 	*) JOBS=1 ;;
 esac
 
-(cd "${HOST_BUILD_DIR}"; configure_${HOST})
-(cd "${HOST_BUILD_DIR}"; build)
+(cd "${MY_BUILD_DIR}"; configure_${HOST})
+(cd "${MY_BUILD_DIR}"; build)

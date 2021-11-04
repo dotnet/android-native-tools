@@ -3,15 +3,14 @@ MY_NAME=$(basename "$0")
 TRUE_PATH=$(readlink "$0" || echo "$0")
 MY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+source common.sh
+
 WORK_DIR="${MY_DIR}/prep"
-TARBALL_BASE_NAME="xamarin-android-llvm"
-ARTIFACT_TARBALL="${TARBALL_BASE_NAME}.tar.bz2"
+ARTIFACT_TARBALL="${DIST_PACKAGE_NAME_BASE}.tar.bz2"
 ARTIFACTS_DIR="${WORK_DIR}/artifacts"
 
 ARTIFACT_ZIP="${1}"
 XA_TAG_COMPONENT="${2}"
-
-source common.sh
 
 function die()
 {
@@ -50,7 +49,7 @@ function prepare()
 	fi
 
 	local llvm_version=$(head -1 "${ARTIFACTS_DIR}/llvm-version.txt" | tr -d ' \t')
-	local tag_name="${llvm_version}-${XA_TAG_COMPONENT}"
+	local tag_name="L_${llvm_version}-B_${BINUTILS_VERSION}-${XA_TAG_COMPONENT}"
 	echo "${tag_name}" >> "${ARTIFACTS_DIR}/version.txt"
 
 	echo New build for LLVM ${llvm_version} found
@@ -62,7 +61,7 @@ function prepare()
 		die Tag ${tag_name} already exists, please choose a new one
 	fi
 
-	local dest_archive="${MY_DIR}/${TARBALL_BASE_NAME}-${tag_name}.7z"
+	local dest_archive="${MY_DIR}/${DIST_PACKAGE_NAME_BASE}-${tag_name}.7z"
 
 	if [ -f "${dest_archive}" ]; then
 		rm "${dest_archive}"

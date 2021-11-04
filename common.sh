@@ -1,15 +1,21 @@
 #!/bin/bash -e
 
+BINUTILS_VERSION="2.37"
+MACOS_TARGET="10.12"
+
 if [ -z "${MY_DIR}" ]; then
 	echo common.sh must be included after defining the MY_DIR variable
 	exit 1
 fi
 
 HOST=$(uname | tr A-Z a-z)
-BUILD_DIR="${MY_DIR}/xa-build"
+BUILD_DIR="${MY_DIR}/xa-build/${HOST}"
 ARTIFACTS_DIR="${MY_DIR}/artifacts"
-BINARIES="llvm-mc llvm-objcopy"
+LLVM_BINARIES="llvm-mc llvm-objcopy"
+BINUTILS_BINARIES="ld"
+BINARIES="${BINUTILS_BINARIES} ${LLVM_BINARIES}"
 OPERATING_SYSTEMS="linux darwin windows"
+DIST_PACKAGE_NAME_BASE="xamarin-android-toolchain"
 
 function die()
 {
@@ -17,7 +23,7 @@ function die()
 	exit 1
 }
 
-function create_dir()
+function create_empty_dir()
 {
 	local dir="${1}"
 

@@ -11,14 +11,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_linux:
+  build_llvm_linux:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
 
-      - name: Install build dependencies
+      - name: Install LLVM build dependencies
         run: >-
           sudo apt-get update;
           sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
@@ -27,65 +27,135 @@ jobs:
           procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
           python3-setuptools libz3-dev ccache
 
-      - name: build Linux
-        run: ./build.sh
+      - name: build Linux LLVM
+        run: ./build-llvm.sh
 
-      - name: package config and build logs
+      - name: package LLVM config and build logs
         if: ${{ always() }}
-        run: find ${BUILD_DIR} -name 'config.*' | zip -9 linux-build-logs.zip -@
+        run: find ${BUILD_DIR} -name 'config.*' | zip -9 build-logs-linux-llvm.zip -@
 
-      - name: upload config and build logs
+      - name: upload LLVM config and build logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: build-logs
-          path: linux-build-logs.zip
+          path: build-logs-linux-llvm.zip
 
-      - name: package artifacts
-        run: tar cjf linux-artifacts.tar.bz2 artifacts
+      - name: package LLVM artifacts
+        run: tar cjf artifacts-linux-llvm.tar.bz2 artifacts
 
-      - name: upload Linux artifacts
+      - name: upload Linux LLVM artifacts
         uses: actions/upload-artifact@v2
         with:
           name: linux
-          path: linux-artifacts.tar.bz2
+          path: artifacts-linux-llvm.tar.bz2
 
-  build_macos:
+    build_binutils_linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Binutils build dependencies
+        run: >-
+          sudo apt-get update;
+          sudo apt-get -f -u install mingw-w64 autoconf gettext texinfo dwz xz-utils zlib1g-dev
+
+      - name: build Linux and Windows Binutils
+        run: ./build-binutils.sh
+
+      - name: package Binutils config and build logs
+        if: ${{ always() }}
+        run: find ${BUILD_DIR} -name 'config.*' | zip -9 build-logs-linux-binutils.zip -@
+
+      - name: upload Binutils config and build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-logs
+          path: build-logs-linux-binutils.zip
+
+      - name: package Binutils artifacts
+        run: tar cjf artifacts-linux-binutils.tar.bz2 artifacts
+
+      - name: upload Linux and Windows Binutils artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux
+          path: artifacts-linux-binutils.tar.bz2
+
+  build_llvm_macos:
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
 
-      - name: Install build dependencies
+      - name: Install LLVM build dependencies
         run: |
           brew update
-          brew install cmake ninja ccache upx
+          brew install cmake ninja ccache
 
-      - name: build macOS
-        run: bash ./build.sh
+      - name: build macOS LLVM
+        run: bash ./build-llvm.sh
 
-      - name: package config and build logs
+      - name: package LLVM config and build logs
         if: ${{ always() }}
-        run: find ${BUILD_DIR} -name 'config.*' | zip -9 macos-build-logs.zip -@
+        run: find ${BUILD_DIR} -name 'config.*' | zip -9 build-logs-macos-llvm.zip -@
 
-      - name: upload config and build logs
+      - name: upload LLVM config and build logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: build-logs
-          path: macos-build-logs.zip
+          path: build-logs-macos-llvm.zip
 
-      - name: package artifacts
-        run: tar cjf macos-artifacts.tar.bz2 artifacts
+      - name: package LLVM artifacts
+        run: tar cjf artifacts-macos-llvm.tar.bz2 artifacts
 
-      - name: upload macOS artifacts
+      - name: upload macOS LLVM artifacts
         uses: actions/upload-artifact@v2
         with:
           name: macOS
-          path: macos-artifacts.tar.bz2
+          path: artifacts-macos-llvm.tar.bz2
 
-  build_windows:
+  build_binutils_macos:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Binutils build dependencies
+        run: |
+          brew update
+          brew install make autoconf gettext xz
+
+      - name: build macOS Binutils
+        run: bash ./build-binutils.sh
+
+      - name: package Binutils config and build logs
+        if: ${{ always() }}
+        run: find ${BUILD_DIR} -name 'config.*' | zip -9 build-logs-macos-binutils.zip -@
+
+      - name: upload Binutils config and build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-logs
+          path: build-logs-macos-binutils.zip
+
+      - name: package Binutils artifacts
+        run: tar cjf artifacts-macos-binutils.tar.bz2 artifacts
+
+      - name: upload macOS Binutils artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: macOS
+          path: artifacts-macos-binutils.tar.bz2
+
+  build_llvm_windows:
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
@@ -95,21 +165,21 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
 
-      - name: build Windows
-        run: ./build.cmd
+      - name: build Windows LLVM
+        run: ./build-llvm.cmd
 
-      - name: package artifacts
-        run: 7z a windows-artifacts.7z artifacts
+      - name: package LLVM artifacts
+        run: 7z a artifacts-windows-llvm.7z artifacts
 
-      - name: upload Windows artifacts
+      - name: upload Windows LLVM artifacts
         uses: actions/upload-artifact@v2
         with:
           name: Windows
-          path: windows-artifacts.7z
+          path: artifacts-windows-llvm.7z
 
   package_binaries:
     runs-on: ubuntu-20.04
-    needs: [build_linux, build_macos, build_windows]
+    needs: [build_llvm_linux, build_binutils_linux, build_llvm_macos, build_binutils_macos, build_llvm_windows]
     steps:
       - uses: actions/checkout@v2
 
@@ -130,21 +200,23 @@ jobs:
 
       - name: Unpack Linux artifacts
         run: |
-          tar xf linux-artifacts.tar.bz2
+          tar xf artifacts-linux-llvm.tar.bz2
+          tar xf artifacts-linux-binutils.tar.bz2
 
       - name: Unpack macOS artifacts
         run: |
-          tar xf macos-artifacts.tar.bz2
+          tar xf artifacts-macos-llvm.tar.bz2
+          tar xf artifacts-macos-binutils.tar.bz2
 
       - name: Unpack Windows artifacts
         run: |
-          7z x windows-artifacts.7z
+          7z x artifacts-windows-llvm.7z
 
-      - name: Pack Linux, macOS and Windows artifacts
+      - name: Package Linux, macOS and Windows artifacts
         run: ./package.sh
 
-      - name: upload Xamarin.Android LLVM Utilities
+      - name: upload Xamarin.Android Toolchain
         uses: actions/upload-artifact@v2
         with:
           name: Xamarin.Android
-          path: artifacts/xamarin-android-llvm.tar.bz2
+          path: artifacts/xamarin-android-toolchain.tar.bz2
