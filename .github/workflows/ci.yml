@@ -50,7 +50,7 @@ jobs:
           name: linux
           path: artifacts-linux-llvm.tar.bz2
 
-    build_binutils_linux:
+  build_binutils_linux:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
