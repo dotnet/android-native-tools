@@ -8,7 +8,6 @@ PACKAGE_TREE_DIR="${ARTIFACTS_DIR}/package"
 PACKAGE_ARTIFACTS_DIR="${PACKAGE_TREE_DIR}/artifacts"
 
 LLVM_VERSION=""
-BINUTILS_VERSION="${1}"
 
 function prepare()
 {
@@ -21,7 +20,7 @@ function prepare()
 	echo Preparing binaries for ${os}
 	echo
 
-	create_dir "${artifacts_dest}"
+	create_empty_dir "${artifacts_dest}"
 	local exe
 
 	if [ "${os}" == "windows" ]; then
