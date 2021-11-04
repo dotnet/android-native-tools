@@ -32,7 +32,7 @@ jobs:
 
       - name: package LLVM config and build logs
         if: ${{ always() }}
-        run: find ${BUILD_DIR} -name 'config.*' | zip -9 build-logs-linux-llvm.zip -@
+        run: find ${BUILD_DIR} -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' | zip -9 build-logs-linux-llvm.zip -@
 
       - name: upload LLVM config and build logs
         if: ${{ always() }}
@@ -102,7 +102,7 @@ jobs:
 
       - name: package LLVM config and build logs
         if: ${{ always() }}
-        run: find ${BUILD_DIR} -name 'config.*' | zip -9 build-logs-macos-llvm.zip -@
+        run: find ${BUILD_DIR} -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' | zip -9 build-logs-macos-llvm.zip -@
 
       - name: upload LLVM config and build logs
         if: ${{ always() }}
