@@ -1,5 +1,10 @@
 set(GAS_DRIVER_SOURCES
   gas.cc
+  llvm_mc_runner.cc
+  llvm_mc_runner_arm32.cc
+  llvm_mc_runner_arm64.cc
+  llvm_mc_runner_x64.cc
+  llvm_mc_runner_x86.cc
   main.cc
   )
 

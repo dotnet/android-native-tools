@@ -15,7 +15,7 @@ project(
   LANGUAGES C CXX
   )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -170,6 +170,7 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
 endif()
 
 add_compile_definitions(BINUTILS_VERSION="${BINUTILS_VERSION}")
+add_compile_definitions(LLVM_VERSION="${LLVM_VERSION}")
 
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${XATU_CXX_FLAGS}>")
 add_compile_options("$<$<COMPILE_LANGUAGE:C>:${XATU_C_FLAGS}>")

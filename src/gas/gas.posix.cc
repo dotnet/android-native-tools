@@ -13,5 +13,12 @@ void Gas::init_platform ()
 
 void Gas::determine_program_name ([[maybe_unused]] int argc, char **argv)
 {
-	_program_name = strdup (basename (argv[0]));
+	fs::path program_path { argv[0] };
+
+	_program_name = program_path.filename ();
+	if (program_path.is_absolute ()) {
+		_program_dir = program_path.parent_path ().make_preferred ();
+	} else {
+		_program_dir = fs::absolute (program_path).parent_path ().make_preferred ();
+	}
 }

@@ -4,12 +4,18 @@
 
 #include <unistd.h>
 #include <getopt.h>
+#include <filesystem>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace xamarin::android::gas
 {
+	namespace fs = std::filesystem;
+
+	class LlvmMcRunner;
+
 	enum class TargetArchitecture
 	{
 		ARM32,
@@ -18,124 +24,57 @@ namespace xamarin::android::gas
 		X64,
 	};
 
+	enum OptionValues
+	{
+		OPTION_IGNORE = 100,
+		OPTION_O,
+		OPTION_WARN,
+		OPTION_G,
+		OPTION_MFPU,
+		OPTION_VERSION,
+		OPTION_VERSION_EXIT,
+		OPTION_HELP,
+	};
+
 	class Gas final
 	{
-		static constexpr int OPTION_STD_BASE = 150;
-
-		enum OptionValues
+		struct ParseArgsResult
 		{
-			OPTION_HELP = OPTION_STD_BASE,
-			OPTION_NOCPP,
-			OPTION_STATISTICS,
-			OPTION_VERSION,
-			OPTION_DUMPCONFIG,
-			OPTION_VERBOSE,
-			OPTION_EMULATION,
-			OPTION_DEBUG_PREFIX_MAP,
-			OPTION_DEFSYM,
-			OPTION_LISTING_LHS_WIDTH,
-			OPTION_LISTING_LHS_WIDTH2,
-			OPTION_LISTING_RHS_WIDTH,
-			OPTION_LISTING_CONT_LINES,
-			OPTION_DEPFILE,
-			OPTION_GSTABS,
-			OPTION_GSTABS_PLUS,
-			OPTION_GDWARF_2,
-			OPTION_GDWARF_3,
-			OPTION_GDWARF_4,
-			OPTION_GDWARF_5,
-			OPTION_GDWARF_SECTIONS,
-			OPTION_GDWARF_CIE_VERSION,
-			OPTION_STRIP_LOCAL_ABSOLUTE,
-			OPTION_TRADITIONAL_FORMAT,
-			OPTION_WARN,
-			OPTION_TARGET_HELP,
-			OPTION_EXECSTACK,
-			OPTION_NOEXECSTACK,
-			OPTION_SIZE_CHECK,
-			OPTION_ELF_STT_COMMON,
-			OPTION_ELF_BUILD_NOTES,
-			OPTION_SECTNAME_SUBST,
-			OPTION_ALTERNATE,
-			OPTION_AL,
-			OPTION_HASH_TABLE_SIZE,
-			OPTION_REDUCE_MEMORY_OVERHEADS,
-			OPTION_WARN_FATAL,
-			OPTION_COMPRESS_DEBUG,
-			OPTION_NOCOMPRESS_DEBUG,
-			OPTION_NO_PAD_SECTIONS,
+			const bool terminate;
+			const bool is_error;
 
-			// amd64 and arm32 options
-			OPTION_EB,
-			OPTION_EL,
-
-			// arm32 options
-			OPTION_FIX_V4BX,
-			OPTION_FDPIC,
-
-			// x86 and x64 options
-			OPTION_32,
-			OPTION_64,
-			OPTION_DIVIDE,
-			OPTION_MARCH,
-			OPTION_MTUNE,
-			OPTION_MMNEMONIC,
-			OPTION_MSYNTAX,
-			OPTION_MINDEX_REG,
-			OPTION_MNAKED_REG,
-			OPTION_MRELAX_RELOCATIONS,
-			OPTION_MSSE2AVX,
-			OPTION_MSSE_CHECK,
-			OPTION_MOPERAND_CHECK,
-			OPTION_MAVXSCALAR,
-			OPTION_X32,
-			OPTION_MADD_BND_PREFIX,
-			OPTION_MEVEXLIG,
-			OPTION_MEVEXWIG,
-			OPTION_MBIG_OBJ,
-			OPTION_MOMIT_LOCK_PREFIX,
-			OPTION_MEVEXRCIG,
-			OPTION_MSHARED,
-			OPTION_MAMD64,
-			OPTION_MINTEL64,
-			OPTION_MFENCE_AS_LOCK_ADD,
-			OPTION_X86_USED_NOTE,
-			OPTION_MVEXWIG,
-			OPTION_MALIGN_BRANCH_BOUNDARY,
-			OPTION_MALIGN_BRANCH_PREFIX_SIZE,
-			OPTION_MALIGN_BRANCH,
-			OPTION_MBRANCHES_WITH_32B_BOUNDARIES,
-			OPTION_MLFENCE_AFTER_LOAD,
-			OPTION_MLFENCE_BEFORE_INDIRECT_BRANCH,
-			OPTION_MLFENCE_BEFORE_RET,
-			OPTION_MUSE_UNALIGNED_VECTOR_MOVE,
+			ParseArgsResult (bool _terminate, bool _is_error) noexcept
+				: terminate (_terminate),
+				  is_error (_is_error)
+			{}
 		};
 
 		static constexpr char arm64_arch_prefix[] = "aarch64-linux-android-";
 		static constexpr char arm32_arch_prefix[] = "arm-linux-androideabi-";
 		static constexpr char x86_arch_prefix[] = "i686-linux-android-";
 		static constexpr char x64_arch_prefix[] = "x86_64-linux-android-";
-
-		static const std::vector<option> common_long_options;
-		static const std::vector<char> common_short_options;
-
-		static const std::vector<option> arm64_long_options;
-		static const std::vector<char> arm64_short_options;
-
-		static const std::vector<option> arm32_long_options;
-		static const std::vector<char> arm32_short_options;
-
-		static const std::vector<option> x86_long_options;
-		static const std::vector<char> x86_short_options;
+#if defined (_WIN32)
+		static constexpr char llvm_mc_name[] = "llvm-mc.exe";
+#else
+		static constexpr char llvm_mc_name[] = "llvm-mc";
+#endif
 
 	public:
 		Gas ();
 
+		~Gas ()
+		{}
+
 		int run (int argc, char **argv);
 
-		const char* program_name () const noexcept
+		const std::string& program_name () const noexcept
 		{
 			return _program_name;
+		}
+
+		const fs::path& program_dir () const noexcept
+		{
+			return _program_dir;
 		}
 
 		TargetArchitecture target_arch () const noexcept
@@ -144,12 +83,12 @@ namespace xamarin::android::gas
 		}
 
 	protected:
-		bool parse_arguments (int argc, char **argv);
+		ParseArgsResult parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner);
 
 	private:
 		void init_platform ();
 		void determine_program_name (int argc, char **argv);
-		int usage (bool is_error, std::string const message);
+		int usage (bool is_error, std::string const message = "");
 
 		std::string make_program_name (std::string const& arch_prefix)
 		{
@@ -158,7 +97,15 @@ namespace xamarin::android::gas
 		}
 
 	private:
-		char               *_program_name;
+		static std::vector<option> common_options;
+		static std::vector<option> x86_options;
+		static std::vector<option> arm32_options;
+
+		std::vector<fs::path> input_files;
+
+		std::string         _program_name;
+		fs::path            _gas_output_file;
+		fs::path            _program_dir;
 		TargetArchitecture  _target_arch;
 
 		std::string         generic_program_name { "as" };

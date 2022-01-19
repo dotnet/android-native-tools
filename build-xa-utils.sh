@@ -2,6 +2,7 @@
 
 MY_NAME="$(basename $0)"
 MY_DIR="$(cd $(dirname $0);pwd)"
+CONFIGURATION="${1:-Release}"
 
 source common.sh
 
@@ -17,8 +18,9 @@ function configure()
 
 	set -x
 	cmake -G Ninja \
-		  -DCMAKE_BUILD_TYPE=Release \
+		  -DCMAKE_BUILD_TYPE="${CONFIGURATION}" \
 		  -DBINUTILS_VERSION="${BINUTILS_VERSION}" \
+		  -DLLVM_VERSION="${LLVM_VERSION}" \
 		  "$@" \
 		  "${SOURCE_DIR}"
 }

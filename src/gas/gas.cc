@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "gas.hh"
+#include "llvm_mc_runner.hh"
 
 using namespace xamarin::android::gas;
 
@@ -19,7 +20,7 @@ Gas::Gas ()
 int Gas::usage (bool is_error, std::string const message)
 {
 	if (!message.empty ()) {
-		std::cerr << message << newline;
+		std::cerr << message << newline << newline;
 	}
 
 	std::cerr << "`" << program_name () << "` takes the same arguments as the GNU Assembler (gas) program." << newline
@@ -34,15 +35,21 @@ int Gas::run (int argc, char **argv)
 {
 	determine_program_name (argc, argv);
 	std::cout << "Program name: " << program_name () << newline;
+	std::cout << "Program dir: " << program_dir () << newline << newline;
 
+	std::unique_ptr<LlvmMcRunner> mc_runner;
 	if (arm64_program_name.compare (program_name ()) == 0) {
 		_target_arch = TargetArchitecture::ARM64;
+		mc_runner = std::make_unique<LlvmMcRunnerARM64> ();
 	} else if (arm32_program_name.compare (program_name ()) == 0) {
 		_target_arch = TargetArchitecture::ARM32;
+		mc_runner = std::make_unique<LlvmMcRunnerARM32> ();
 	} else if (x86_program_name.compare (program_name ()) == 0) {
 		_target_arch = TargetArchitecture::X86;
+		mc_runner = std::make_unique<LlvmMcRunnerX86> ();
 	} else if (x64_program_name.compare (program_name ()) == 0) {
 		_target_arch = TargetArchitecture::X64;
+		mc_runner = std::make_unique<LlvmMcRunnerX64> ();
 	} else if (generic_program_name.compare (program_name ()) == 0) {
 		std::string message { "Program invoked via its generic name (" };
 		message
@@ -60,169 +67,159 @@ int Gas::run (int argc, char **argv)
 		return usage (true /* is_error */, message);
 	}
 
-	if (!parse_arguments (argc, argv)) {
-		return 1;
+	auto&& [terminate, is_error] = parse_arguments (argc, argv, mc_runner);
+	if (terminate || is_error) {
+		return is_error ? 1 : 0;
 	}
+
+	fs::path llvm_mc = program_dir () / llvm_mc_name;
+
+	switch (input_files.size ()) {
+		case 0:
+			return usage (true, "missing input files on command line");
+
+		case 1:
+			if (!_gas_output_file.empty ()) {
+				mc_runner->set_output_file_path (_gas_output_file);
+			}
+			break;
+	}
+
+	for (fs::path const& input : input_files) {
+		mc_runner->set_input_file_path (input, _gas_output_file.empty ());
+		int ret = mc_runner->run (llvm_mc);
+		if (ret < 0) {
+			return ret;
+		}
+	}
+
+	// TODO: run `ld --relocatable` at the end to produce the desired output file by merging the multiple .o files
+	// produced by llvm-mc invocations for each input file, if there are multiple input files.
 
 	return 0;
 }
 
-const std::vector<char> Gas::common_short_options {
-	'-', 'J', 'K', 'L', 'M', 'R', 'W', 'Z', 'a', ':',
-	':', 'D', 'f', 'g', ':',':', 'I', ':', 'o', ':',
-	'v', 'w', 'X', 't', ':',
+std::vector<option> Gas::common_options {
+	// Arguments ignored by GAS, we shall ignore them silently too
+	{ "divide",    no_argument,       nullptr, OPTION_IGNORE },
+	{ "k",         no_argument,       nullptr, OPTION_IGNORE },
+	{ "nocpp",     no_argument,       nullptr, OPTION_IGNORE },
+	{ "Qn",        no_argument,       nullptr, OPTION_IGNORE },
+	{ "Qy",        no_argument,       nullptr, OPTION_IGNORE },
+	{ "s",         no_argument,       nullptr, OPTION_IGNORE },
+	{ "w",         no_argument,       nullptr, OPTION_IGNORE },
+	{ "X",         no_argument,       nullptr, OPTION_IGNORE },
+
+	// Global GAS arguments we support
+	{ "o",         required_argument, nullptr, OPTION_O },
+	{ "warn",      no_argument,       nullptr, OPTION_WARN },
+	{ "g",         no_argument,       nullptr, OPTION_G },
+	{ "gen-debug", no_argument,       nullptr, OPTION_G },
+
+	// Arguments handled by us, not passed to llvm-mc
+	{ "h",         no_argument,       nullptr, OPTION_HELP },
+	{ "help",      no_argument,       nullptr, OPTION_HELP },
+	{ "V",         no_argument,       nullptr, OPTION_VERSION },
+	{ "version",   no_argument,       nullptr, OPTION_VERSION_EXIT },
 };
 
-const std::vector<option> Gas::common_long_options {
-	{"alternate",                    no_argument,       nullptr, OPTION_ALTERNATE},
-	{"a",                            optional_argument, nullptr, 'a'},
-	{"al",                           optional_argument, nullptr, OPTION_AL},
-	{"compress-debug-sections",      optional_argument, nullptr, OPTION_COMPRESS_DEBUG},
-	{"nocompress-debug-sections",    no_argument,       nullptr, OPTION_NOCOMPRESS_DEBUG},
-	{"debug-prefix-map",             required_argument, nullptr, OPTION_DEBUG_PREFIX_MAP},
-	{"defsym",                       required_argument, nullptr, OPTION_DEFSYM},
-	{"dump-config",                  no_argument,       nullptr, OPTION_DUMPCONFIG},
-	{"emulation",                    required_argument, nullptr, OPTION_EMULATION},
-	{"execstack",                    no_argument,       nullptr, OPTION_EXECSTACK},
-	{"noexecstack",                  no_argument,       nullptr, OPTION_NOEXECSTACK},
-	{"size-check",                   required_argument, nullptr, OPTION_SIZE_CHECK},
-	{"elf-stt-common",               required_argument, nullptr, OPTION_ELF_STT_COMMON},
-	{"sectname-subst",               no_argument,       nullptr, OPTION_SECTNAME_SUBST},
-	{"generate-missing-build-notes", required_argument, nullptr, OPTION_ELF_BUILD_NOTES},
-	{"fatal-warnings",               no_argument,       nullptr, OPTION_WARN_FATAL},
-	{"gdwarf-2",                     no_argument,       nullptr, OPTION_GDWARF_2},
-	{"gdwarf-3",                     no_argument,       nullptr, OPTION_GDWARF_3},
-	{"gdwarf-4",                     no_argument,       nullptr, OPTION_GDWARF_4},
-	{"gdwarf-5",                     no_argument,       nullptr, OPTION_GDWARF_5},
-	{"gdwarf2",                      no_argument,       nullptr, OPTION_GDWARF_2},
-	{"gdwarf-sections",              no_argument,       nullptr, OPTION_GDWARF_SECTIONS},
-	{"gdwarf-cie-version",           required_argument, nullptr, OPTION_GDWARF_CIE_VERSION},
-	{"gen-debug",                    no_argument,       nullptr, 'g'},
-	{"gstabs",                       no_argument,       nullptr, OPTION_GSTABS},
-	{"gstabs+",                      no_argument,       nullptr, OPTION_GSTABS_PLUS},
-	{"hash-size",                    required_argument, nullptr, OPTION_HASH_TABLE_SIZE},
-	{"help",                         no_argument,       nullptr, OPTION_HELP},
-	{"itbl",                         required_argument, nullptr, 't'},
-	{"keep-locals",                  no_argument,       nullptr, 'L'},
-	{"keep-locals",                  no_argument,       nullptr, 'L'},
-	{"listing-lhs-width",            required_argument, nullptr, OPTION_LISTING_LHS_WIDTH},
-	{"listing-lhs-width2",           required_argument, nullptr, OPTION_LISTING_LHS_WIDTH2},
-	{"listing-rhs-width",            required_argument, nullptr, OPTION_LISTING_RHS_WIDTH},
-	{"listing-cont-lines",           required_argument, nullptr, OPTION_LISTING_CONT_LINES},
-	{"MD",                           required_argument, nullptr, OPTION_DEPFILE},
-	{"mri",                          no_argument,       nullptr, 'M'},
-	{"nocpp",                        no_argument,       nullptr, OPTION_NOCPP},
-	{"no-pad-sections",              no_argument,       nullptr, OPTION_NO_PAD_SECTIONS},
-	{"no-warn",                      no_argument,       nullptr, 'W'},
-	{"reduce-memory-overheads",      no_argument,       nullptr, OPTION_REDUCE_MEMORY_OVERHEADS},
-	{"statistics",                   no_argument,       nullptr, OPTION_STATISTICS},
-	{"strip-local-absolute",         no_argument,       nullptr, OPTION_STRIP_LOCAL_ABSOLUTE},
-	{"version",                      no_argument,       nullptr, OPTION_VERSION},
-	{"verbose",                      no_argument,       nullptr, OPTION_VERBOSE},
-	{"target-help",                  no_argument,       nullptr, OPTION_TARGET_HELP},
-	{"traditional-format",           no_argument,       nullptr, OPTION_TRADITIONAL_FORMAT},
-	{"warn",                         no_argument,       nullptr, OPTION_WARN},
+std::vector<option> Gas::x86_options {
+	{ "32", no_argument, nullptr, OPTION_IGNORE }, // llvm-mc doesn't need this
+	{ "64", no_argument, nullptr, OPTION_IGNORE }, // llvm-mc doesn't need this
 };
 
-const std::vector<char> Gas::arm64_short_options {
-	'm', ':',
+std::vector<option> Gas::arm32_options {
+	{ "mfpu", required_argument, nullptr, OPTION_MFPU },
 };
 
-const std::vector<option> Gas::arm64_long_options {
-	{"EB", no_argument, nullptr, OPTION_EB},
-	{"EL", no_argument, nullptr, OPTION_EL},
-};
-
-const std::vector<char> Gas::arm32_short_options {
-	'm', ':', 'k',
-};
-
-const std::vector<option> Gas::arm32_long_options {
-	{"EB",       no_argument, nullptr, OPTION_EB},
-	{"EL",       no_argument, nullptr, OPTION_EL},
-	{"fix-v4bx", no_argument, nullptr, OPTION_FIX_V4BX},
-	{"fdpic",    no_argument, nullptr, OPTION_FDPIC},
-};
-
-const std::vector<char> Gas::x86_short_options {
-	'k', 'V', 'Q', ':', 's', 'q', 'n', 'O', ':', ':'
-};
-
-const std::vector<option> Gas::x86_long_options {
-	{"32",                              no_argument,       nullptr, OPTION_32},
-	{"64",                              no_argument,       nullptr, OPTION_64},
-	{"x32",                             no_argument,       nullptr, OPTION_X32},
-	{"mshared",                         no_argument,       nullptr, OPTION_MSHARED},
-	{"mx86-used-note",                  required_argument, nullptr, OPTION_X86_USED_NOTE},
-	{"divide",                          no_argument,       nullptr, OPTION_DIVIDE},
-	{"march",                           required_argument, nullptr, OPTION_MARCH},
-	{"mtune",                           required_argument, nullptr, OPTION_MTUNE},
-	{"mmnemonic",                       required_argument, nullptr, OPTION_MMNEMONIC},
-	{"msyntax",                         required_argument, nullptr, OPTION_MSYNTAX},
-	{"mindex-reg",                      no_argument,       nullptr, OPTION_MINDEX_REG},
-	{"mnaked-reg",                      no_argument,       nullptr, OPTION_MNAKED_REG},
-	{"msse2avx",                        no_argument,       nullptr, OPTION_MSSE2AVX},
-	{"muse-unaligned-vector-move",      no_argument,       nullptr, OPTION_MUSE_UNALIGNED_VECTOR_MOVE},
-	{"msse-check",                      required_argument, nullptr, OPTION_MSSE_CHECK},
-	{"moperand-check",                  required_argument, nullptr, OPTION_MOPERAND_CHECK},
-	{"mavxscalar",                      required_argument, nullptr, OPTION_MAVXSCALAR},
-	{"mvexwig",                         required_argument, nullptr, OPTION_MVEXWIG},
-	{"madd-bnd-prefix",                 no_argument,       nullptr, OPTION_MADD_BND_PREFIX},
-	{"mevexlig",                        required_argument, nullptr, OPTION_MEVEXLIG},
-	{"mevexwig",                        required_argument, nullptr, OPTION_MEVEXWIG},
-	{"momit-lock-prefix",               required_argument, nullptr, OPTION_MOMIT_LOCK_PREFIX},
-	{"mfence-as-lock-add",              required_argument, nullptr, OPTION_MFENCE_AS_LOCK_ADD},
-	{"mrelax-relocations",              required_argument, nullptr, OPTION_MRELAX_RELOCATIONS},
-	{"mevexrcig",                       required_argument, nullptr, OPTION_MEVEXRCIG},
-	{"malign-branch-boundary",          required_argument, nullptr, OPTION_MALIGN_BRANCH_BOUNDARY},
-	{"malign-branch-prefix-size",       required_argument, nullptr, OPTION_MALIGN_BRANCH_PREFIX_SIZE},
-	{"malign-branch",                   required_argument, nullptr, OPTION_MALIGN_BRANCH},
-	{"mbranches-within-32B-boundaries", no_argument,       nullptr, OPTION_MBRANCHES_WITH_32B_BOUNDARIES},
-	{"mlfence-after-load",              required_argument, nullptr, OPTION_MLFENCE_AFTER_LOAD},
-	{"mlfence-before-indirect-branch",  required_argument, nullptr, OPTION_MLFENCE_BEFORE_INDIRECT_BRANCH},
-	{"mlfence-before-ret",              required_argument, nullptr, OPTION_MLFENCE_BEFORE_RET},
-	{"mamd64",                          no_argument,       nullptr, OPTION_MAMD64},
-	{"mintel64",                        no_argument,       nullptr, OPTION_MINTEL64},
-};
-
-bool Gas::parse_arguments (int argc, char **argv)
+Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner)
 {
-	std::vector<char> short_options { common_short_options };
-	std::vector<option> long_options { common_long_options };
+	std::vector<option> long_options { common_options };
 
 	switch (target_arch ()) {
-		case TargetArchitecture::ARM64:
-			short_options.insert (short_options.end (), arm64_short_options.begin (), arm64_short_options.end ());
-			long_options.insert (long_options.end (), arm64_long_options.begin (), arm64_long_options.end ());
-			break;
-
 		case TargetArchitecture::ARM32:
-			short_options.insert (short_options.end (), arm32_short_options.begin (), arm32_short_options.end ());
-			long_options.insert (long_options.end (), arm32_long_options.begin (), arm32_long_options.end ());
+			long_options.insert (long_options.end (), arm32_options.begin (), arm32_options.end ());
 			break;
 
 		case TargetArchitecture::X86:
 		case TargetArchitecture::X64:
-			short_options.insert (short_options.end (), x86_short_options.begin (), x86_short_options.end ());
-			long_options.insert (long_options.end (), x86_long_options.begin (), x86_long_options.end ());
+			long_options.insert (long_options.end (), x86_options.begin (), x86_options.end ());
+			break;
+
+		default:
 			break;
 	}
-	short_options.push_back ('\0'); // getopt will need to see it as a standard C string
-	long_options.emplace_back ();
+	long_options.push_back ({ nullptr, 0, nullptr, 0 });
+
+	constexpr char PROGRAM_DESCRIPTION[] = "Xamarin.Android GAS adapter for llvm-mc";
+
+	bool terminate = false, is_error = false;
+	bool show_version = false, show_help = false;
 
 	while (true) {
-		int long_index;
-		int option_char = getopt_long_only (argc, argv, short_options.data (), long_options.data (), &long_index);
+		int opt_index = 0;
+		int c = getopt_long_only (argc, argv, "-", long_options.data (), &opt_index);
 
-		switch (option_char) {
+		if (c == -1) {
+			break;
+		}
+
+		switch (c) {
 			case '?':
-				usage (true /* is_error */, "Unrecognized option");
-				return false;
+				terminate = true;
+				is_error = true;
+				break;
 
-			default:
+			case 1: // non-option argument
+				input_files.emplace_back (optarg);
+				break;
+
+			case OPTION_VERSION:
+				show_version = true;
+				break;
+
+			case OPTION_VERSION_EXIT:
+				show_version = true;
+				terminate = true;
+				break;
+
+			case OPTION_HELP:
+				show_help = true;
+				terminate = true;
+				break;
+
+			case OPTION_O:
+				_gas_output_file = optarg;
+				break;
+
+			case OPTION_MFPU:
+				mc_runner->map_option ("mfpu", optarg);
+				break;
+
+				// TODO: -o should cause an error if multiple input files are specified, llvm-mc doesn't support
+				// compiling more than one file at a time. Alternatively, we could run `ld --relocatable` at the end to
+				// produce the desired output file by merging the multiple .o files produced by llvm-mc invocations for
+				// each input file.
+
+			case OPTION_G:
+				mc_runner->generate_debug_info ();
 				break;
 		}
 	}
 
-	return true;
+	if (show_help) {
+		usage (false /* is_error */);
+		return {true, false};
+	} else if (show_version) {
+		std::cout << program_name () << " vX.Y.Z, " << PROGRAM_DESCRIPTION << newline
+		          << "\tGAS version compatibility: " << BINUTILS_VERSION << newline
+		          << "\tllvm-mc version compatibility: " << LLVM_VERSION << newline << newline;
+		return {true, false};
+	}
+
+	if (terminate) {
+		return {terminate, is_error};
+	}
+
+ 	return {terminate, is_error};
 }

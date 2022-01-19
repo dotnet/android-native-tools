@@ -54,6 +54,15 @@ function make_prefixed_binaries()
 	done
 }
 
+function detect_llvm_version()
+{
+	sed -n \
+		-e 's/^.*set.*(LLVM_VERSION_MAJOR \(.*\))/\1/p' \
+		-e 's/^.*set.*(LLVM_VERSION_MINOR \(.*\))/\1/p' \
+		-e 's/^.*set.*(LLVM_VERSION_PATCH \(.*\))/\1/p' \
+		external/llvm/llvm/CMakeLists.txt | xargs echo -n | tr ' ' '.'
+}
+
 HOST=$(uname | tr A-Z a-z)
 BUILD_DIR="${MY_DIR}/xa-build/${HOST}"
 ARTIFACTS_DIR="${MY_DIR}/artifacts"
@@ -65,3 +74,4 @@ XATU_BINARIES="as"
 BINARIES="${BINUTILS_BINARIES} ${LLVM_BINARIES}"
 OPERATING_SYSTEMS="linux darwin windows"
 DIST_PACKAGE_NAME_BASE="xamarin-android-toolchain"
+LLVM_VERSION="$(detect_llvm_version)"

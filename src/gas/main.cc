@@ -3,10 +3,10 @@
 
 xamarin::android::gas::Gas app;
 
-const char *get_program_name ()
-{
-	return app.program_name ();
-}
+// const char *get_program_name ()
+// {
+// 	return app.program_name ();
+// }
 
 int main (int argc, char **argv)
 {
