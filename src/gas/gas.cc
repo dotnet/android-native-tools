@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <iostream>
 
+#include "constants.hh"
 #include "gas.hh"
 #include "llvm_mc_runner.hh"
 
@@ -20,13 +21,13 @@ Gas::Gas ()
 int Gas::usage (bool is_error, std::string const message)
 {
 	if (!message.empty ()) {
-		std::cerr << message << newline << newline;
+		std::cerr << message << Constants::newline << Constants::newline;
 	}
 
-	std::cerr << "`" << program_name () << "` takes the same arguments as the GNU Assembler (gas) program." << newline
-	          << "Please read the `as(1)` manual page or visit https://sourceware.org/binutils/docs-" << BINUTILS_VERSION << "/as/Invoking.html#Invoking" << newline
-	          << "Command line options are compatibile with GAS version " << BINUTILS_VERSION << newline
-	          << newline;
+	std::cerr << "`" << program_name () << "` takes the same arguments as the GNU Assembler (gas) program." << Constants::newline
+	          << "Please read the `as(1)` manual page or visit https://sourceware.org/binutils/docs-" << BINUTILS_VERSION << "/as/Invoking.html#Invoking" << Constants::newline
+	          << "Command line options are compatibile with GAS version " << BINUTILS_VERSION << Constants::newline
+	          << Constants::newline;
 
 	return is_error ? 1 : 0;
 }
@@ -34,8 +35,8 @@ int Gas::usage (bool is_error, std::string const message)
 int Gas::run (int argc, char **argv)
 {
 	determine_program_name (argc, argv);
-	std::cout << "Program name: " << program_name () << newline;
-	std::cout << "Program dir: " << program_dir () << newline << newline;
+	std::cout << "Program name: " << program_name () << Constants::newline;
+	std::cout << "Program dir: " << program_dir () << Constants::newline << Constants::newline;
 
 	std::unique_ptr<LlvmMcRunner> mc_runner;
 	if (arm64_program_name.compare (program_name ()) == 0) {
@@ -55,24 +56,24 @@ int Gas::run (int argc, char **argv)
 		message
 			.append (generic_program_name)
 			.append ("), please use one of the ABI-prefixed names:")
-			.append (newline)
-			.append ("  ").append (arm64_program_name).append (newline)
-			.append ("  ").append (arm32_program_name).append (newline)
-			.append ("  ").append (x86_program_name).append (newline)
-			.append ("  ").append (x64_program_name).append (newline);
+			.append (Constants::newline)
+			.append ("  ").append (arm64_program_name).append (Constants::newline)
+			.append ("  ").append (arm32_program_name).append (Constants::newline)
+			.append ("  ").append (x86_program_name).append (Constants::newline)
+			.append ("  ").append (x64_program_name).append (Constants::newline);
 		return usage (true /* is_error */, message);
 	} else {
 		std::string message { "Unknown program name '" };
-		message.append (program_name ()).append ("'").append (newline);
+		message.append (program_name ()).append ("'").append (Constants::newline);
 		return usage (true /* is_error */, message);
 	}
 
 	auto&& [terminate, is_error] = parse_arguments (argc, argv, mc_runner);
 	if (terminate || is_error) {
-		return is_error ? 1 : 0;
+		return is_error ? Constants::wrapper_general_error_code : 0;
 	}
 
-	fs::path llvm_mc = program_dir () / llvm_mc_name;
+	fs::path llvm_mc = program_dir () / Constants::llvm_mc_name;
 
 	switch (input_files.size ()) {
 		case 0:
@@ -88,7 +89,7 @@ int Gas::run (int argc, char **argv)
 	for (fs::path const& input : input_files) {
 		mc_runner->set_input_file_path (input, _gas_output_file.empty ());
 		int ret = mc_runner->run (llvm_mc);
-		if (ret < 0) {
+		if (ret != 0) {
 			return ret;
 		}
 	}
@@ -211,9 +212,9 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 		usage (false /* is_error */);
 		return {true, false};
 	} else if (show_version) {
-		std::cout << program_name () << " vX.Y.Z, " << PROGRAM_DESCRIPTION << newline
-		          << "\tGAS version compatibility: " << BINUTILS_VERSION << newline
-		          << "\tllvm-mc version compatibility: " << LLVM_VERSION << newline << newline;
+		std::cout << program_name () << " vX.Y.Z, " << PROGRAM_DESCRIPTION << Constants::newline
+		          << "\tGAS version compatibility: " << BINUTILS_VERSION << Constants::newline
+		          << "\tllvm-mc version compatibility: " << LLVM_VERSION << Constants::newline << Constants::newline;
 		return {true, false};
 	}
 

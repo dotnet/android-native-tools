@@ -30,32 +30,14 @@ namespace xamarin::android::gas
 		X64,
 	};
 
-	struct LlvmMcOption
-	{
-		const std::string name;
-		const bool is_long;
-		const bool is_path;
-		const bool is_multi;
-		const bool has_argument;
-		const bool uses_comma_separated_list;
-
-		explicit LlvmMcOption (std::string const& name, bool is_long, bool is_path, bool is_multi, bool has_argument, bool uses_comma_separated_list = false)
-			: name (name),
-			  is_long (is_long),
-			  is_path (is_path),
-			  is_multi (is_multi),
-			  has_argument (has_argument),
-			  uses_comma_separated_list (uses_comma_separated_list)
-		{}
-	};
-
 	class LlvmMcRunner
 	{
 		using string_list = std::vector<std::string>;
 		using process_argument = std::variant<std::string, string_list>;
 
 	protected:
-		static std::unordered_map<LlvmMcArgument, LlvmMcOption> known_options;
+		// Value is `true` if the option can be set multiple times
+		static std::unordered_map<LlvmMcArgument, bool> known_options;
 
 	public:
 		virtual ~LlvmMcRunner ()
@@ -146,9 +128,9 @@ namespace xamarin::android::gas
 				}
 			}
 
-			LlvmMcOption const& desc = get_option_desc (argument);
+			bool is_multi = get_option_desc (argument);
 
-			if (!desc.is_multi) {
+			if (!is_multi) {
 				arguments[argument] = value;
 				return;
 			}
@@ -167,7 +149,7 @@ namespace xamarin::android::gas
 			return out_path.replace_extension (".o").make_preferred ();
 		}
 
-		LlvmMcOption const& get_option_desc (LlvmMcArgument argument)
+		bool get_option_desc (LlvmMcArgument argument)
 		{
 			auto iter = known_options.find (argument);
 			if (iter == known_options.end ()) {
@@ -185,6 +167,8 @@ namespace xamarin::android::gas
 		}
 
 	private:
+		int run_process (fs::path const& executable_path, std::vector<std::string::const_pointer> const& exec_args);
+
 		void append_program_argument (std::vector<std::string>& args, std::string const& option_name, std::string const& option_value = "");
 		void append_program_argument (std::vector<std::string>& args, std::string const& option_name, string_list const& option_value, bool uses_comma_separated_list = false);
 

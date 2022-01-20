@@ -53,11 +53,6 @@ namespace xamarin::android::gas
 		static constexpr char arm32_arch_prefix[] = "arm-linux-androideabi-";
 		static constexpr char x86_arch_prefix[] = "i686-linux-android-";
 		static constexpr char x64_arch_prefix[] = "x86_64-linux-android-";
-#if defined (_WIN32)
-		static constexpr char llvm_mc_name[] = "llvm-mc.exe";
-#else
-		static constexpr char llvm_mc_name[] = "llvm-mc";
-#endif
 
 	public:
 		Gas ();
@@ -113,7 +108,6 @@ namespace xamarin::android::gas
 		std::string         arm32_program_name;
 		std::string         x86_program_name;
 		std::string         x64_program_name;
-		std::string         newline;
 	};
 }
 

@@ -1,87 +1,23 @@
 // SPDX-License-Identifier: MIT
+#include <sys/types.h>
+#include <unistd.h>
+#include <cstring>
+#include <cerrno>
+
+#include "constants.hh"
 #include "llvm_mc_runner.hh"
 
 using namespace xamarin::android::gas;
 
-std::unordered_map<LlvmMcArgument, LlvmMcOption> LlvmMcRunner::known_options {
-	{
-		LlvmMcArgument::Arch,
-		LlvmMcOption {
-			"arch",
-			true /* is_long */,
-			true /* is_path */,
-			false /* is_multi */,
-			true /* has_argument */
-		}
-	},
-
-	{
-		LlvmMcArgument::FileType,
-		LlvmMcOption {
-			"filetype",
-			true /* is_long */,
-			false /* is_path */,
-			false /* is_multi */,
-			true /* has_argument */
-		}
-	},
-
-	{
-		LlvmMcArgument::IncludeDir,
-		LlvmMcOption {
-			"I",
-			false /* is_long */,
-			true /* is_path */,
-			true /* is_multi */,
-			true /* has_argument */
-		}
-	},
-
-	{
-		LlvmMcArgument::Mcpu,
-		LlvmMcOption {
-			"mcpu",
-			true /* is_long */,
-			false /* is_path */,
-			false /* is_multi */,
-			true /* has_argument */
-		}
-	},
-
-	{
-		LlvmMcArgument::Output,
-		LlvmMcOption {
-			"o",
-			false /* is_long */,
-			true /* is_path */,
-			false /* is_multi */,
-			true /* has_argument */
-		}
-	},
-
-	{
-		LlvmMcArgument::Mattr,
-		LlvmMcOption {
-			"mattr",
-			true /* is_long */,
-			false /* is_path */,
-			true /* is_multi */,
-			true /* has_argument */,
-			true /* uses_comma_separated_list */
-		}
-	},
-
-	{
-		LlvmMcArgument::GenerateDebug,
-		LlvmMcOption {
-			"g",
-			false /* is_long */,
-			false /* is_path */,
-			false /* is_multi */,
-			false /* has_argument */,
-			false /* uses_comma_separated_list */
-		}
-	},
+// Value is `true` if the option can be set multiple times
+std::unordered_map<LlvmMcArgument, bool> LlvmMcRunner::known_options {
+	{ LlvmMcArgument::Arch,          false },
+	{ LlvmMcArgument::FileType,      false },
+	{ LlvmMcArgument::IncludeDir,    true },
+	{ LlvmMcArgument::Mcpu,          false },
+	{ LlvmMcArgument::Output,        false },
+	{ LlvmMcArgument::Mattr,         true },
+	{ LlvmMcArgument::GenerateDebug, false},
 };
 
 void LlvmMcRunner::append_program_argument (std::vector<std::string>& args, std::string const& option_name, std::string const& option_value)
@@ -158,16 +94,18 @@ int LlvmMcRunner::run (fs::path const& executable_path)
 		append_program_argument (args, "-o", opt->second);
 	}
 
+	std::string input_file { "\"" + input_file_path.make_preferred ().string () + "\"" };
 	args.push_back (input_file_path.make_preferred ().string ());
 
-	std::vector<const char*> exec_args;
+	std::vector<std::string::const_pointer> exec_args;
 
+	exec_args.push_back (executable_path.string ().c_str ());
 	for (std::string const& arg : args) {
 		exec_args.push_back (arg.c_str ());
 	}
 	exec_args.push_back (nullptr);
 
-	std::cout << "Would run: " << executable_path;
+	std::cout << "Running: " << executable_path;
 	for (const char* arg : exec_args) {
 		if (arg == nullptr) {
 			continue;
@@ -176,5 +114,5 @@ int LlvmMcRunner::run (fs::path const& executable_path)
 	}
 	std::cout << "\n";
 
-	return 0;
+	return run_process (executable_path, exec_args);
 }

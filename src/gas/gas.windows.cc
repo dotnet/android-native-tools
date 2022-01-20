@@ -11,8 +11,6 @@ using namespace xamarin::android::gas;
 
 void Gas::init_platform ()
 {
-	newline = "\r\n";
-
 	auto make_exe = [](std::string& name)
 	{
 		name.append ("exe");

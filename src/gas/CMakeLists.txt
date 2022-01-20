@@ -11,10 +11,12 @@ set(GAS_DRIVER_SOURCES
 if(WIN32)
   list(APPEND GAS_DRIVER_SOURCES
     gas.windows.cc
+    llvm_mc_runner.windows.cc
     )
 else()
   list(APPEND GAS_DRIVER_SOURCES
     gas.posix.cc
+    llvm_mc_runner.posix.cc
     )
 endif()
 
