@@ -108,6 +108,7 @@ namespace xamarin::android::gas
 			}
 
 			set_arch (architecture);
+			triple = architecture + "-linux-gnu";
 		}
 
 		void set_arch (std::string const& arch)
@@ -167,7 +168,7 @@ namespace xamarin::android::gas
 		}
 
 	private:
-		int run_process (fs::path const& executable_path, std::vector<std::string::const_pointer> const& exec_args);
+		int run_process (fs::path const& executable_path, std::vector<std::string::const_pointer>& exec_args);
 
 		void append_program_argument (std::vector<std::string>& args, std::string const& option_name, std::string const& option_value = "");
 		void append_program_argument (std::vector<std::string>& args, std::string const& option_name, string_list const& option_value, bool uses_comma_separated_list = false);
@@ -188,6 +189,7 @@ namespace xamarin::android::gas
 	private:
 		std::unordered_map<LlvmMcArgument, process_argument> arguments;
 		std::filesystem::path input_file_path;
+		std::string triple;
 	};
 
 	class LlvmMcRunnerARM64 final : public LlvmMcRunner

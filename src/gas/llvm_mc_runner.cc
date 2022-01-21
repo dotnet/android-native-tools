@@ -72,6 +72,7 @@ int LlvmMcRunner::run (fs::path const& executable_path)
 		append_program_argument (args, "--arch", opt->second);
 	}
 
+	append_program_argument (args, "--triple", triple);
 	append_program_argument (args, "--assemble");
 
 	opt = arguments.find (LlvmMcArgument::GenerateDebug);
@@ -99,11 +100,11 @@ int LlvmMcRunner::run (fs::path const& executable_path)
 
 	std::vector<std::string::const_pointer> exec_args;
 
-	exec_args.push_back (executable_path.string ().c_str ());
+	std::string binary_path = executable_path.string ();
+	exec_args.push_back (binary_path.c_str ());
 	for (std::string const& arg : args) {
 		exec_args.push_back (arg.c_str ());
 	}
-	exec_args.push_back (nullptr);
 
 	std::cout << "Running: " << executable_path;
 	for (const char* arg : exec_args) {

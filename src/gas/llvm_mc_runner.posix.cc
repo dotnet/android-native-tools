@@ -9,8 +9,11 @@
 
 using namespace xamarin::android::gas;
 
-int LlvmMcRunner::run_process (fs::path const& executable_path, std::vector<std::string::const_pointer> const& exec_args)
+int LlvmMcRunner::run_process (fs::path const& executable_path, std::vector<std::string::const_pointer>& exec_args)
 {
+	// `execv(2)` needs the array to be null-terminated
+	exec_args.push_back (nullptr);
+
 	pid_t llvm_mc_pid = fork ();
 	if (llvm_mc_pid == -1) {
 		std::cerr << "Fork failed. " << std::strerror (errno) << Constants::newline;

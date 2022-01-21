@@ -26,8 +26,18 @@ add_executable(
   )
 
 if(WIN32)
+  target_link_options(
+    as
+    PRIVATE
+    -static-libstdc++
+    -static-libgcc
+    )
+
   target_link_libraries(
     as
     shlwapi
+    -static
+    winpthread
+    -dynamic
     )
 endif()

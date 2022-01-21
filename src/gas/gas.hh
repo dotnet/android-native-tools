@@ -103,7 +103,13 @@ namespace xamarin::android::gas
 		fs::path            _program_dir;
 		TargetArchitecture  _target_arch;
 
-		std::string         generic_program_name { "as" };
+		std::string         generic_program_name {
+#if defined (_WIN32)
+			"as.exe"
+#else
+			"as"
+#endif
+		};
 		std::string         arm64_program_name;
 		std::string         arm32_program_name;
 		std::string         x86_program_name;
