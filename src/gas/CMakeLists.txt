@@ -6,17 +6,18 @@ set(GAS_DRIVER_SOURCES
   llvm_mc_runner_x64.cc
   llvm_mc_runner_x86.cc
   main.cc
+  process.cc
   )
 
 if(WIN32)
   list(APPEND GAS_DRIVER_SOURCES
     gas.windows.cc
-    llvm_mc_runner.windows.cc
+    process.windows.cc
     )
 else()
   list(APPEND GAS_DRIVER_SOURCES
     gas.posix.cc
-    llvm_mc_runner.posix.cc
+    process.posix.cc
     )
 endif()
 

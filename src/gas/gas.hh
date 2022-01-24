@@ -4,6 +4,8 @@
 
 #include <unistd.h>
 #include <getopt.h>
+
+#include <array>
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -36,6 +38,29 @@ namespace xamarin::android::gas
 		OPTION_HELP,
 	};
 
+	template<size_t Size>
+	using char_array = std::array<char, Size>;
+
+	template<size_t ...Length>
+	static constexpr auto concat_const (const char (&...parts)[Length])
+	{
+		// `parts` being constant string arrays, Length for each of them includes the trailing NUL byte, thus the
+		// `sizeof... (Length)` part which subtracts the number of template parameters - the amount of NUL bytes so that
+		// we don't waste space.
+		constexpr size_t total_length = (... + Length) - sizeof... (Length);
+		char_array<total_length + 1> ret;
+		ret[total_length] = 0;
+
+		size_t i = 0;
+		for (char const* from : {parts...}) {
+			for (; *from != '\0'; i++) {
+				ret[i] = *from++;
+			}
+		}
+
+		return ret;
+	}
+
 	class Gas final
 	{
 		struct ParseArgsResult
@@ -49,14 +74,28 @@ namespace xamarin::android::gas
 			{}
 		};
 
+		static constexpr char generic_gas_name[] =
+#if defined (_WIN32)
+			"as.exe"
+#else
+			"as"
+#endif
+			;
+
+		static constexpr char generic_ld_name[] =
+#if defined (_WIN32)
+			"ld.exe"
+#else
+			"ld"
+#endif
+			;
+
 		static constexpr char arm64_arch_prefix[] = "aarch64-linux-android-";
 		static constexpr char arm32_arch_prefix[] = "arm-linux-androideabi-";
 		static constexpr char x86_arch_prefix[] = "i686-linux-android-";
 		static constexpr char x64_arch_prefix[] = "x86_64-linux-android-";
 
 	public:
-		Gas ();
-
 		~Gas ()
 		{}
 
@@ -81,17 +120,20 @@ namespace xamarin::android::gas
 		ParseArgsResult parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner);
 
 	private:
-		void init_platform ();
 		void determine_program_name (int argc, char **argv);
 		int usage (bool is_error, std::string const message = "");
 
-		std::string make_program_name (std::string const& arch_prefix)
-		{
-			std::string ret { arch_prefix };
-			return ret.append (generic_program_name);
-		}
-
 	private:
+		static constexpr auto arm64_gas_name = concat_const (arm64_arch_prefix, generic_gas_name);
+		static constexpr auto arm32_gas_name = concat_const (arm32_arch_prefix, generic_gas_name);
+		static constexpr auto x86_gas_name   = concat_const (x86_arch_prefix, generic_gas_name);
+		static constexpr auto x64_gas_name   = concat_const (x64_arch_prefix, generic_gas_name);
+
+		static constexpr auto arm64_ld_name  = concat_const (arm64_arch_prefix, generic_ld_name);
+		static constexpr auto arm32_ld_name  = concat_const (arm32_arch_prefix, generic_ld_name);
+		static constexpr auto x86_ld_name    = concat_const (x86_arch_prefix, generic_ld_name);
+		static constexpr auto x64_ld_name    = concat_const (x64_arch_prefix, generic_ld_name);
+
 		static std::vector<option> common_options;
 		static std::vector<option> x86_options;
 		static std::vector<option> arm32_options;
@@ -102,18 +144,6 @@ namespace xamarin::android::gas
 		fs::path            _gas_output_file;
 		fs::path            _program_dir;
 		TargetArchitecture  _target_arch;
-
-		std::string         generic_program_name {
-#if defined (_WIN32)
-			"as.exe"
-#else
-			"as"
-#endif
-		};
-		std::string         arm64_program_name;
-		std::string         arm32_program_name;
-		std::string         x86_program_name;
-		std::string         x64_program_name;
 	};
 }
 

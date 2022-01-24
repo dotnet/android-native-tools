@@ -6,8 +6,9 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <variant>
+
 #include "gas.hh"
+#include "process.hh"
 
 namespace xamarin::android::gas
 {
@@ -32,9 +33,6 @@ namespace xamarin::android::gas
 
 	class LlvmMcRunner
 	{
-		using string_list = std::vector<std::string>;
-		using process_argument = std::variant<std::string, string_list>;
-
 	protected:
 		// Value is `true` if the option can be set multiple times
 		static std::unordered_map<LlvmMcArgument, bool> known_options;
@@ -43,7 +41,7 @@ namespace xamarin::android::gas
 		virtual ~LlvmMcRunner ()
 		{}
 
-		void set_input_file_path (std::filesystem::path const& file_path, bool derive_output_file_name = true)
+		void set_input_file_path (fs::path const& file_path, bool derive_output_file_name = true)
 		{
 			if (file_path.empty ()) {
 				return; // TODO: throw instead
@@ -61,12 +59,18 @@ namespace xamarin::android::gas
 			set_output_file_path (make_output_file_path (file_path));
 		}
 
-		void set_output_file_path (std::filesystem::path const& file_path)
+		fs::path make_output_file_path (fs::path const& input_file)
+		{
+			fs::path out_path = input_file;
+			return out_path.replace_extension (".o").make_preferred ();
+		}
+
+		void set_output_file_path (fs::path const& file_path)
 		{
 			set_option (LlvmMcArgument::Output, file_path.string ());
 		}
 
-		void add_include_path (std::filesystem::path const& include_path)
+		void add_include_path (fs::path const& include_path)
 		{
 			if (include_path.empty ()) {
 				return;
@@ -138,16 +142,10 @@ namespace xamarin::android::gas
 
 			auto iter = arguments.find (argument);
 			if (iter != arguments.end ()) {
-				std::get<string_list> (arguments[argument]).push_back (value);
+				std::get<Process::string_list> (arguments[argument]).push_back (value);
 			} else {
-				arguments[argument] = string_list { value };
+				arguments[argument] = Process::string_list { value };
 			}
-		}
-
-		std::filesystem::path make_output_file_path (std::filesystem::path const& input_file)
-		{
-			std::filesystem::path out_path = input_file;
-			return out_path.replace_extension (".o").make_preferred ();
 		}
 
 		bool get_option_desc (LlvmMcArgument argument)
@@ -168,27 +166,8 @@ namespace xamarin::android::gas
 		}
 
 	private:
-		int run_process (fs::path const& executable_path, std::vector<std::string::const_pointer>& exec_args);
-
-		void append_program_argument (std::vector<std::string>& args, std::string const& option_name, std::string const& option_value = "");
-		void append_program_argument (std::vector<std::string>& args, std::string const& option_name, string_list const& option_value, bool uses_comma_separated_list = false);
-
-		void append_program_argument (std::vector<std::string>& args, std::string const& option_name, process_argument const& option_value, bool uses_comma_separated_list = false)
-		{
-			switch (option_value.index ()) {
-				case 0:
-					append_program_argument (args, option_name, std::get<std::string> (option_value));
-					break;
-
-				case 1:
-					append_program_argument (args, option_name, std::get<string_list> (option_value), uses_comma_separated_list);
-					break;
-			}
-		}
-
-	private:
-		std::unordered_map<LlvmMcArgument, process_argument> arguments;
-		std::filesystem::path input_file_path;
+		std::unordered_map<LlvmMcArgument, Process::process_argument> arguments;
+		fs::path input_file_path;
 		std::string triple;
 	};
 

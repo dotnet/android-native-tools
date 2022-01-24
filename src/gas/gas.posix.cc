@@ -6,9 +6,6 @@
 
 using namespace xamarin::android::gas;
 
-void Gas::init_platform ()
-{}
-
 void Gas::determine_program_name ([[maybe_unused]] int argc, char **argv)
 {
 	fs::path program_path { argv[0] };

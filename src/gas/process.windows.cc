@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "constants.hh"
-#include "llvm_mc_runner.hh"
+#include "process.hh"
 
 using namespace xamarin::android::gas;
 
@@ -42,11 +42,14 @@ static std::string escape_argument (std::string arg)
 	return result;
 }
 
-int LlvmMcRunner::run_process ([[maybe_unused]] fs::path const& executable_path, [[maybe_unused]] std::vector<std::string::const_pointer>& exec_args)
+int Process::run (bool print_command_line)
 {
-	std::cout << __PRETTY_FUNCTION__ << Constants::newline;
+	if (print_command_line) {
+		print_process_command_line ();
+	}
+
 	std::string args;
-	for (std::string const& a : exec_args) {
+	for (std::string const& a : _args) {
 		if (a.empty ()) {
 			continue;
 		}

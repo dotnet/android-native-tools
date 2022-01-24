@@ -5,12 +5,18 @@
 #include <cerrno>
 
 #include "constants.hh"
-#include "llvm_mc_runner.hh"
+#include "process.hh"
 
 using namespace xamarin::android::gas;
 
-int LlvmMcRunner::run_process (fs::path const& executable_path, std::vector<std::string::const_pointer>& exec_args)
+int Process::run (bool print_command_line)
 {
+	if (print_command_line) {
+		print_process_command_line ();
+	}
+
+	std::vector<std::string::const_pointer> exec_args = make_exec_args ();
+
 	// `execv(2)` needs the array to be null-terminated
 	exec_args.push_back (nullptr);
 

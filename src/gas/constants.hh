@@ -14,6 +14,7 @@ namespace xamarin::android::gas
 		static constexpr char newline[] = "\n";
 		static constexpr char llvm_mc_name[] = "llvm-mc";
 #endif
+		static constexpr char default_output_name[] = "a.out";
 		static constexpr int wrapper_general_error_code         = 100;
 		static constexpr int wrapper_llvm_mc_killed_error_code  = wrapper_general_error_code + 1;
 		static constexpr int wrapper_llvm_mc_stopped_error_code = wrapper_general_error_code + 2;
