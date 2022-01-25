@@ -2,11 +2,14 @@
 #if !defined (__LLVM_MC_RUNNER_HH)
 #define __LLVM_MC_RUNNER_HH
 
+#include <concepts>
 #include <filesystem>
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "exceptions.hh"
 #include "gas.hh"
 #include "process.hh"
 
@@ -31,6 +34,28 @@ namespace xamarin::android::gas
 		X64,
 	};
 
+	template<class TFunc> requires std::invocable<TFunc>
+	class ScopeGuard
+	{
+	public:
+		explicit ScopeGuard (TFunc&& fn) noexcept
+			: fn (std::forward<TFunc> (fn))
+		{}
+
+		ScopeGuard (ScopeGuard const&) = delete;
+
+		~ScopeGuard ()
+		{
+			fn ();
+		}
+
+		ScopeGuard operator= (ScopeGuard const&) = delete;
+		ScopeGuard operator= (ScopeGuard &&) = delete;
+
+	private:
+		TFunc fn;
+	};
+
 	class LlvmMcRunner
 	{
 	protected:
@@ -44,11 +69,11 @@ namespace xamarin::android::gas
 		void set_input_file_path (fs::path const& file_path, bool derive_output_file_name = true)
 		{
 			if (file_path.empty ()) {
-				return; // TODO: throw instead
+				throw invalid_argument_error { "Argument 'file_path' must not be empty" };
 			}
 
 			if (!file_path.has_filename ()) {
-				return; // TODO: throw instead
+				throw invalid_argument_error { "Argument 'file_path' must have the file name portion" };
 			}
 
 			input_file_path = file_path;
@@ -129,7 +154,7 @@ namespace xamarin::android::gas
 		{
 			if (argument == LlvmMcArgument::Arch) {
 				if (arguments.find (argument) != arguments.end ()) {
-					throw "TODO: Replace with real exception (Arch can be set only once)";
+					throw invalid_operation_error { "Architecture can be set only once" };
 				}
 			}
 
@@ -152,7 +177,7 @@ namespace xamarin::android::gas
 		{
 			auto iter = known_options.find (argument);
 			if (iter == known_options.end ()) {
-				throw "TODO: replace with a real exception (unknown option)";
+				throw invalid_operation_error { "Unknown option" };
 			}
 
 			return iter->second;

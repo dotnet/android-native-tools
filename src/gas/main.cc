@@ -3,12 +3,8 @@
 
 xamarin::android::gas::Gas app;
 
-// const char *get_program_name ()
-// {
-// 	return app.program_name ();
-// }
-
 int main (int argc, char **argv)
 {
+	// TODO: handle exceptions here (use backward for stacktrace perhaps?)
 	return app.run (argc, argv);
 }

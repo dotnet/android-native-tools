@@ -16,8 +16,7 @@ std::vector<std::string::const_pointer> Process::make_exec_args ()
 {
 	std::vector<std::string::const_pointer> exec_args;
 
-	std::string binary_path = executable_path.string ();
-	exec_args.push_back (binary_path.c_str ());
+	exec_args.push_back (executable_path.c_str ());
 	for (std::string const& arg : _args) {
 		exec_args.push_back (arg.c_str ());
 	}

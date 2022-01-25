@@ -140,7 +140,7 @@ int Gas::run (int argc, char **argv)
 		ld_path /= ld_name;
 		auto ld = std::make_unique<Process> (ld_path);
 		ld->append_program_argument ("-o");
-		ld->append_program_argument (_gas_output_file.empty () ? Constants::default_output_name : _gas_output_file);
+		ld->append_program_argument (_gas_output_file.empty () ? Constants::default_output_name : _gas_output_file.string ());
 		ld->append_program_argument ("--relocatable");
 
 		std::cout << "Have multiple output files:" << Constants::newline;
@@ -227,7 +227,17 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 				break;
 
 			case 1: // non-option argument
-				input_files.emplace_back (optarg);
+			{
+#if defined (_WIN32)
+				// Ignore the windows name hack parameter
+				const char *ret = strstr (optarg, Constants::name_hack_param);
+				if (ret == nullptr || ret != optarg) {
+#endif // _WIN32
+					input_files.emplace_back (optarg);
+#if defined (_WIN32)
+				}
+#endif // _WIN32
+			}
 				break;
 
 			case OPTION_VERSION:
@@ -251,11 +261,6 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 			case OPTION_MFPU:
 				mc_runner->map_option ("mfpu", optarg);
 				break;
-
-				// TODO: -o should cause an error if multiple input files are specified, llvm-mc doesn't support
-				// compiling more than one file at a time. Alternatively, we could run `ld --relocatable` at the end to
-				// produce the desired output file by merging the multiple .o files produced by llvm-mc invocations for
-				// each input file.
 
 			case OPTION_G:
 				mc_runner->generate_debug_info ();

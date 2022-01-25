@@ -10,6 +10,7 @@ namespace xamarin::android::gas
 #if defined (_WIN32)
 		static constexpr char newline[] = "\r\n";
 		static constexpr char llvm_mc_name[] = "llvm-mc.exe";
+		static constexpr char name_hack_param[] = "@name=";
 #else
 		static constexpr char newline[] = "\n";
 		static constexpr char llvm_mc_name[] = "llvm-mc";

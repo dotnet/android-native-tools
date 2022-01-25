@@ -18,7 +18,7 @@ namespace xamarin::android::gas
 
 	public:
 		explicit Process (fs::path const& executable_path)
-			: executable_path (executable_path)
+			: executable_path (executable_path.lexically_normal ())
 		{}
 
 		int run (bool print_command_line = true);
