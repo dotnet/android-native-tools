@@ -6,7 +6,7 @@ CONFIGURATION="${1:-Release}"
 
 source common.sh
 
-MY_BUILD_DIR="${BUILD_DIR}/xatu"
+MY_BUILD_DIR="${BUILD_DIR}/xa-utils"
 HOST_BIN_DIR="${MY_BUILD_DIR}/bin"
 SOURCE_DIR="${MY_DIR}/src"
 
@@ -62,7 +62,7 @@ function build()
 		cmd=".cmd"
 	fi
 
-	for b in ${XATU_BINARIES}; do
+	for b in ${XA_UTILS_BINARIES}; do
 		cp -P -a "${HOST_BIN_DIR}/${b}${exe}" "${HOST_ARTIFACTS_DIR}/${b}${exe}"
 
 		if [ "${host}" != "windows" ]; then
@@ -74,7 +74,7 @@ function build()
 		fi
 	done
 
-	for b in ${XATU_PREFIXED_BINARIES}; do
+	for b in ${XA_UTILS_PREFIXED_BINARIES}; do
 		cp -P -a "${HOST_BIN_DIR}/${b}${cmd}" "${HOST_ARTIFACTS_DIR}/${b}${cmd}"
 	done
 }
