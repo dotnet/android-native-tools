@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 BINUTILS_VERSION="2.37"
-MACOS_TARGET="10.12"
+MACOS_TARGET="10.15"
 
 if [ -z "${MY_DIR}" ]; then
 	echo common.sh must be included after defining the MY_DIR variable

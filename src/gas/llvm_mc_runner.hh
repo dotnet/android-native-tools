@@ -38,9 +38,9 @@ namespace xamarin::android::gas
 	};
 
 	template<class TFunc>
-#if defined (__cpp_concepts)
+#if __has_include (<concepts>) && !defined(__APPLE__) // Apple clang reports it supports concepts, but it breaks on the next line
 	requires std::invocable<TFunc>
-#endif // __cpp_concepts
+#endif // has <concepts>
 	class ScopeGuard
 	{
 	public:
