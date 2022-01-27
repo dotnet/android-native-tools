@@ -44,9 +44,9 @@ function prepare()
 		fi
 
 		if [ -f "${artifacts_source}/${b}.upx" ]; then
-			cp "${artifacts_source}/${b}.upx" "${artifacts_dest}/${b}"
+			cp -P -a "${artifacts_source}/${b}.upx" "${artifacts_dest}/${b}"
 		else
-			cp "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
+			cp -P -a "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
 		fi
 	done
 }
