@@ -2,7 +2,10 @@
 #if !defined (__LLVM_MC_RUNNER_HH)
 #define __LLVM_MC_RUNNER_HH
 
+#if __has_include (<concepts>)
 #include <concepts>
+#endif // has <concepts>
+
 #include <filesystem>
 #include <functional>
 #include <string>
@@ -34,7 +37,10 @@ namespace xamarin::android::gas
 		X64,
 	};
 
-	template<class TFunc> requires std::invocable<TFunc>
+	template<class TFunc>
+#if defined (__cpp_concepts)
+	requires std::invocable<TFunc>
+#endif // __cpp_concepts
 	class ScopeGuard
 	{
 	public:
