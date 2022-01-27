@@ -95,7 +95,7 @@ jobs:
       - name: Install Xamarin.Android Utilities build dependencies
         run: >-
           sudo apt-get update;
-          sudo apt-get -f -u install mingw-w64 cmake ninja xz-utils zlib1g-dev libz-mingw-w64-dev
+          sudo apt-get -f -u install mingw-w64 cmake ninja-build xz-utils zlib1g-dev libz-mingw-w64-dev
 
       - name: build Linux and Windows Xamarin.Android Utilities
         run: ./build-xa-utils.sh
