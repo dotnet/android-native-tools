@@ -98,7 +98,7 @@ jobs:
           sudo apt-get -f -u install mingw-w64 cmake ninja-build xz-utils zlib1g-dev libz-mingw-w64-dev
 
       - name: build Linux and Windows Xamarin.Android Utilities
-        run: ./build-xa-utils.sh
+        run: CC=gcc-10 CXX=g++-10 ./build-xa-utils.sh
 
       - name: package Xamarin.Android Utilities config and build logs
         if: ${{ always() }}
