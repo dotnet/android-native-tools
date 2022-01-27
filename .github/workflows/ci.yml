@@ -216,7 +216,7 @@ jobs:
           name: build-logs
           path: build-logs-macos-xa-utils.zip
 
-      - name: package Binutils artifacts
+      - name: package Xamarin.Android Utilities artifacts
         run: tar cjf artifacts-macos-xa-utils.tar.bz2 artifacts
 
       - name: upload macOS Xamarin.Android Utilities artifacts

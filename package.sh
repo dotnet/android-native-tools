@@ -22,9 +22,11 @@ function prepare()
 
 	create_empty_dir "${artifacts_dest}"
 	local exe
+	local cmd
 
 	if [ "${os}" == "windows" ]; then
 		exe=".exe"
+		cmd=".cmd"
 	fi
 
 	if [ -z "${LLVM_VERSION}" ]; then
@@ -35,7 +37,12 @@ function prepare()
 	fi
 
 	for b in ${BINARIES}; do
-		b="${b}${exe}"
+		if [ -f "${artifacts_source}/${b}${exe}" ]; then
+			b="${b}${exe}"
+		elif [ -f "${artifacts_source}/${b}${cmd}" ]; then
+			b="${b}${cmd}"
+		fi
+
 		if [ -f "${artifacts_source}/${b}.upx" ]; then
 			cp "${artifacts_source}/${b}.upx" "${artifacts_dest}/${b}"
 		else
