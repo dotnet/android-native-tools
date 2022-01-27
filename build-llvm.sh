@@ -83,7 +83,7 @@ function build()
 }
 
 create_empty_dir "${MY_BUILD_DIR}"
-create_empty_dir "${HOST_ARTIFACTS_DIR}"
+create_dir "${HOST_ARTIFACTS_DIR}"
 
 case "${HOST}" in
 	linux) JOBS=$(nproc) ;;

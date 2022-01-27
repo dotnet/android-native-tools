@@ -272,7 +272,7 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 		usage (false /* is_error */);
 		return {true, false};
 	} else if (show_version) {
-		std::cout << program_name () << " vX.Y.Z, " << PROGRAM_DESCRIPTION << Constants::newline
+		std::cout << program_name () << " v" << XATU_VERSION << ", " << PROGRAM_DESCRIPTION << Constants::newline
 		          << "\tGAS version compatibility: " << BINUTILS_VERSION << Constants::newline
 		          << "\tllvm-mc version compatibility: " << LLVM_VERSION << Constants::newline << Constants::newline;
 		return {true, false};

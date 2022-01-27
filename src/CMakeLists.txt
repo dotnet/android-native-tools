@@ -169,6 +169,7 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
   add_compile_definitions(_GNU_SOURCE)
 endif()
 
+add_compile_definitions(XATU_VERSION="${PROJECT_VERSION}")
 add_compile_definitions(BINUTILS_VERSION="${BINUTILS_VERSION}")
 add_compile_definitions(LLVM_VERSION="${LLVM_VERSION}")
 

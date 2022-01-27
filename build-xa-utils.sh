@@ -56,12 +56,14 @@ function build()
 	ninja -j${JOBS}
 
 	local exe
+	local cmd
 	if [ "${host}" == "windows" ]; then
 		exe=".exe"
+		cmd=".cmd"
 	fi
 
 	for b in ${XATU_BINARIES}; do
-		cp "${HOST_BIN_DIR}/${b}${exe}" "${HOST_ARTIFACTS_DIR}/${b}${exe}"
+		cp -P -a "${HOST_BIN_DIR}/${b}${exe}" "${HOST_ARTIFACTS_DIR}/${b}${exe}"
 
 		if [ "${host}" != "windows" ]; then
 			strip "${HOST_ARTIFACTS_DIR}/${b}"
@@ -70,6 +72,10 @@ function build()
 		if [ "${host}" == "linux" ]; then
 			compress_binary "${HOST_ARTIFACTS_DIR}/${b}"
 		fi
+	done
+
+	for b in ${XATU_PREFIXED_BINARIES}; do
+		cp -P -a "${HOST_BIN_DIR}/${b}${cmd}" "${HOST_ARTIFACTS_DIR}/${b}${cmd}"
 	done
 }
 
