@@ -249,7 +249,7 @@ jobs:
 
   package_binaries:
     runs-on: ubuntu-20.04
-    needs: [build_llvm_linux, build_binutils_linux, build_llvm_macos, build_binutils_macos, build_llvm_windows]
+    needs: [build_llvm_linux, build_binutils_linux, build_xautils_linux, build_llvm_macos, build_binutils_macos, build_xautils_macos, build_llvm_windows]
     steps:
       - uses: actions/checkout@v2
 
