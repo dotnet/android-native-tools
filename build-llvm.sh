@@ -71,10 +71,11 @@ function build()
 	ninja -j${JOBS} llvm-objcopy
 	ninja -j${JOBS} llvm-mc
 
+	mv "${HOST_BIN_DIR}/llvm-objcopy" "${HOST_BIN_DIR}/llvm-strip"
 	grep 'CMAKE_PROJECT_VERSION:' "${MY_BUILD_DIR}/CMakeCache.txt" | cut -d '=' -f 2 > "${LLVM_VERSION_FILE}"
 
 	for b in ${LLVM_BINARIES}; do
-		cp "${HOST_BIN_DIR}/${b}" "${HOST_ARTIFACTS_DIR}/${b}"
+		cp -P -a "${HOST_BIN_DIR}/${b}" "${HOST_ARTIFACTS_DIR}/${b}"
 		strip "${HOST_ARTIFACTS_DIR}/${b}"
 		if [ "${HOST}" == "linux" ]; then
 			compress_binary "${HOST_ARTIFACTS_DIR}/${b}"

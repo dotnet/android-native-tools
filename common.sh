@@ -64,15 +64,16 @@ function detect_llvm_version()
 }
 
 HOST=$(uname | tr A-Z a-z)
+ANDROID_TRIPLES="aarch64-linux-android arm-linux-androideabi i686-linux-android x86_64-linux-android"
 BUILD_DIR="${MY_DIR}/xa-build/${HOST}"
 ARTIFACTS_DIR="${MY_DIR}/artifacts"
 HOST_ARTIFACTS_DIR="${ARTIFACTS_DIR}/${HOST}"
-LLVM_BINARIES="llvm-mc llvm-objcopy"
-ANDROID_TRIPLES="aarch64-linux-android arm-linux-androideabi i686-linux-android x86_64-linux-android"
+LLVM_BINARIES="llvm-mc llvm-strip"
+LLVM_PREFIXED_BINARIES="$(make_prefixed_binaries strip)"
 BINUTILS_BINARIES="$(make_prefixed_binaries ld)"
 XA_UTILS_BINARIES="as"
 XA_UTILS_PREFIXED_BINARIES="$(make_prefixed_binaries as)"
-BINARIES="${BINUTILS_BINARIES} ${LLVM_BINARIES} ${XA_UTILS_BINARIES} ${XA_UTILS_PREFIXED_BINARIES}"
+BINARIES="${BINUTILS_BINARIES} ${LLVM_BINARIES} ${LLVM_PREFIXED_BINARIES} ${XA_UTILS_BINARIES} ${XA_UTILS_PREFIXED_BINARIES}"
 OPERATING_SYSTEMS="linux darwin windows"
 DIST_PACKAGE_NAME_BASE="xamarin-android-toolchain"
 LLVM_VERSION="$(detect_llvm_version)"

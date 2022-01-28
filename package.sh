@@ -9,6 +9,37 @@ PACKAGE_ARTIFACTS_DIR="${PACKAGE_TREE_DIR}/artifacts"
 
 LLVM_VERSION=""
 
+function make_windows_wrapper_scripts()
+{
+	local input="${1}"
+	local output_dir="${2}"
+	local output_base_name="${3}"
+	local output_path
+	local output_name
+
+	for TRIPLE in ${ANDROID_TRIPLES}; do
+		output_name="${TRIPLE}-${output_base_name}"
+		output_path="${output_dir}/${output_name}.cmd"
+		sed -e "s/@TARGET_NAME@/${output_name}/g" < "${input}" > "${output_path}"
+	done
+}
+
+function make_unix_symlinks()
+{
+	local input="${1}"
+	local output_dir="${2}"
+	local output_base_name="${3}"
+	local output_path
+	local output_name
+
+	for TRIPLE in ${ANDROID_TRIPLES}; do
+		output_name="${TRIPLE}-${output_base_name}"
+		output_path="${output_dir}/${output_name}"
+
+		ln -sf "${input}" "${output_path}"
+	done
+}
+
 function prepare()
 {
 	local os="${1}"
@@ -27,6 +58,12 @@ function prepare()
 	if [ "${os}" == "windows" ]; then
 		exe=".exe"
 		cmd=".cmd"
+
+		make_windows_wrapper_scripts "scripts/llvm-strip.cmd.in" "${artifacts_source}" "strip"
+		make_windows_wrapper_scripts "scripts/gas.cmd.in" "${artifacts_source}" "as"
+	else
+		make_unix_symlinks "llvm-strip" "${artifacts_source}" "strip"
+		make_unix_symlinks "as" "${artifacts_source}" "as"
 	fi
 
 	if [ -z "${LLVM_VERSION}" ]; then
@@ -36,6 +73,8 @@ function prepare()
 
 	fi
 
+	echo "Binaries: ${BINARIES}"
+	set -x
 	for b in ${BINARIES}; do
 		if [ -f "${artifacts_source}/${b}${exe}" ]; then
 			b="${b}${exe}"
@@ -49,6 +88,7 @@ function prepare()
 			cp -P -a "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
 		fi
 	done
+	set +x
 }
 
 for os in ${OPERATING_SYSTEMS}; do

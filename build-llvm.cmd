@@ -6,7 +6,7 @@ set SOURCE_DIR=%MY_DIR%external\llvm\llvm
 
 set PROJECTS=llvm-mc llvm-objcopy
 set TARGETS=X86;ARM;AArch64
-set BINARIES=llvm-mc.exe llvm-objcopy.exe
+set BINARIES=llvm-mc.exe llvm-strip.exe
 
 set HOST_BUILD_DIR=%BUILD_DIR%\%HOST%
 set HOST_BIN_DIR=%HOST_BUILD_DIR%\Release\bin
@@ -56,6 +56,7 @@ cmake -G "Visual Studio 16 2019" -A x64 ^
 msbuild /p:Configuration=Release /m tools\llvm-mc\llvm-mc.vcxproj
 msbuild /p:Configuration=Release /m tools\llvm-objcopy\llvm-objcopy.vcxproj
 
+move %HOST_BIN_DIR%\llvm-objcopy.exe %HOST_BIN_DIR%\llvm-strip.exe
 for %%b in (%BINARIES%) DO (
   copy %HOST_BIN_DIR%\%%b %HOST_ARTIFACTS_DIR%\%%b
 )

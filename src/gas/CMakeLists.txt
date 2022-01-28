@@ -48,30 +48,9 @@ if(WIN32)
     winpthread
     -dynamic
     )
-
-  foreach(PREFIX ${ARCH_PREFIXES})
-    set(AS_NAME ${PREFIX}as)
-    set(TARGET_NAME_ARG "@name=${AS_NAME}")
-
-    configure_file(gas.cmd.in ${CMAKE_BINARY_DIR}/bin/${AS_NAME}.cmd)
-  endforeach()
 else()
   set(TARGET_DIR "${CMAKE_BINARY_DIR}/bin")
   set(AS_NAME as)
   set(PREFIXES ${ARCH_PREFIXES})
   string(REPLACE ";" " " PREFIXES "${PREFIXES}")
-
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/scripts/xatu-make-symlinks.sh.in
-    ${CMAKE_BINARY_DIR}/xatu-make-symlinks.sh
-    USE_SOURCE_PERMISSIONS
-    @ONLY
-    NEWLINE_STYLE UNIX
-    )
-
-  add_custom_command(
-    TARGET as
-    POST_BUILD
-    COMMAND ${CMAKE_BINARY_DIR}/xatu-make-symlinks.sh
-    )
 endif()
