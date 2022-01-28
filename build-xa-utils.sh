@@ -73,10 +73,6 @@ function build()
 			compress_binary "${HOST_ARTIFACTS_DIR}/${b}"
 		fi
 	done
-
-	for b in ${XA_UTILS_PREFIXED_BINARIES}; do
-		cp -P -a "${HOST_BIN_DIR}/${b}${cmd}" "${HOST_ARTIFACTS_DIR}/${b}${cmd}"
-	done
 }
 
 create_empty_dir "${MY_BUILD_DIR}"
