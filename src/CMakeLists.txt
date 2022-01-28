@@ -1,15 +1,17 @@
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.19.2)
 
-set(XATU_VERSION_MAJOR 0)
-set(XATU_VERSION_MINOR 0)
-set(XATU_VERSION_MICRO 1)
+#
+# Read our version
+#
+file(STRINGS "../common.sh" XA_UTILS_PRODUCT_VERSION REGEX "^XA_UTILS_VERSION=\"(.*)\"")
+string(REGEX REPLACE "^XA_UTILS_VERSION=\"([0-9.]+)\"" "\\1" XA_UTILS_VERSION "${XA_UTILS_PRODUCT_VERSION}")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "" FORCE)
 
 project(
-  xa-toolchain-utils
-  VERSION ${XATU_VERSION_MAJOR}.${XATU_VERSION_MINOR}.${XATU_VERSION_MICRO}
+  xa-utilities
+  VERSION ${XA_UTILS_VERSION}
   DESCRIPTION "Xamarin.Android toolchain utilities"
   HOMEPAGE_URL "https://github.com/xamarin/xamarin-android-binutils"
   LANGUAGES C CXX
@@ -140,28 +142,28 @@ endif()
 foreach(flag ${COMMON_COMPILER_ARGS})
   cxx_compiler_has_flag(${flag})
   if(COMPILER_FLAG_FOUND)
-    list(APPEND XATU_CXX_FLAGS "${flag}")
+    list(APPEND XA_UTILS_CXX_FLAGS "${flag}")
   endif()
 endforeach()
 
 foreach(flag ${COMMON_COMPILER_ARGS})
   c_compiler_has_flag(${flag})
   if(COMPILER_FLAG_FOUND)
-    list(APPEND XATU_C_FLAGS "${flag}")
+    list(APPEND XA_UTILS_C_FLAGS "${flag}")
   endif()
 endforeach()
 
 foreach(flag ${COMMON_LINKER_ARGS})
   cxx_linker_has_flag(${flag})
   if(LINKER_FLAG_FOUND)
-    list(APPEND XATU_CXX_LINKER_FLAGS "${flag}")
+    list(APPEND XA_UTILS_CXX_LINKER_FLAGS "${flag}")
   endif()
 endforeach()
 
 foreach(flag ${COMMON_LINKER_ARGS})
   c_linker_has_flag(${flag})
   if(LINKER_FLAG_FOUND)
-    list(APPEND XATU_C_LINKER_FLAGS "${flag}")
+    list(APPEND XA_UTILS_C_LINKER_FLAGS "${flag}")
   endif()
 endforeach()
 
@@ -173,11 +175,11 @@ add_compile_definitions(XA_UTILS_VERSION="${PROJECT_VERSION}")
 add_compile_definitions(BINUTILS_VERSION="${BINUTILS_VERSION}")
 add_compile_definitions(LLVM_VERSION="${LLVM_VERSION}")
 
-add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${XATU_CXX_FLAGS}>")
-add_compile_options("$<$<COMPILE_LANGUAGE:C>:${XATU_C_FLAGS}>")
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${XA_UTILS_CXX_FLAGS}>")
+add_compile_options("$<$<COMPILE_LANGUAGE:C>:${XA_UTILS_C_FLAGS}>")
 
-add_link_options("$<$<COMPILE_LANGUAGE:CXX>:${XATU_CXX_LINKER_FLAGS}>")
-add_link_options("$<$<COMPILE_LANGUAGE:C>:${XATU_C_LINKER_FLAGS}>")
+add_link_options("$<$<COMPILE_LANGUAGE:CXX>:${XA_UTILS_CXX_LINKER_FLAGS}>")
+add_link_options("$<$<COMPILE_LANGUAGE:C>:${XA_UTILS_C_LINKER_FLAGS}>")
 
 if(WIN32)
   include_directories(compat)

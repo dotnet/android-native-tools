@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+XA_UTILS_VERSION="3.0.0"
 BINUTILS_VERSION="2.37"
 MACOS_TARGET="10.15"
 
