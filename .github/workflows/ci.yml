@@ -1,6 +1,6 @@
 name: CI
 env:
-  BINUTILS_VERSION: 2.35.2
+  BUILD_DIR: xa-build
 
 on:
   push:
@@ -11,99 +11,284 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_linux:
-    runs-on: ubuntu-18.04
+  build_llvm_linux:
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get -f -u install mingw-w64 autoconf gettext texinfo dwz xz-utils zlib1g-dev
+      - name: Install LLVM build dependencies
+        run: >-
+          sudo apt-get update;
+          sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
+          lsb-release patchutils diffstat xz-utils python3-dev libedit-dev libncurses5-dev swig
+          python3-six python3-sphinx binutils-dev libxml2-dev libjsoncpp-dev pkg-config lcov
+          procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
+          python3-setuptools libz3-dev ccache
 
-      - name: build Linux and Windows
-        run: ./build.sh ${BINUTILS_VERSION}
+      - name: build Linux LLVM
+        run: ./build-llvm.sh
 
-      - name: package config and build logs
+      - name: package LLVM config and build logs
         if: ${{ always() }}
-        run: find build -name 'config.*' | zip -9 linux-build-logs.zip -@
+        run: find ${BUILD_DIR} -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' | zip -9 build-logs-linux-llvm.zip -@
 
-      - name: upload config and build logs
+      - name: upload LLVM config and build logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: build-logs
-          path: linux-build-logs.zip
+          path: build-logs-linux-llvm.zip
 
-      - name: package artifacts
-        run: tar cjf linux-artifacts.tar.bz2 artifacts
+      - name: package LLVM artifacts
+        run: tar cjf artifacts-linux-llvm.tar.bz2 artifacts
 
-      - name: upload Linux and Windows artifacts
+      - name: upload Linux LLVM artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: linux-windows
-          path: linux-artifacts.tar.bz2
+          name: linux
+          path: artifacts-linux-llvm.tar.bz2
 
-  build_macos:
-    runs-on: macos-10.15
+  build_binutils_linux:
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
-      - name: Install build dependencies
+      - name: Install Binutils build dependencies
+        run: >-
+          sudo apt-get update;
+          sudo apt-get -f -u install mingw-w64 autoconf gettext texinfo dwz xz-utils zlib1g-dev libz-mingw-w64-dev
+
+      - name: build Linux and Windows Binutils
+        run: ./build-binutils.sh
+
+      - name: package Binutils config and build logs
+        if: ${{ always() }}
+        run: find ${BUILD_DIR} -name 'config.*' | zip -9 build-logs-linux-binutils.zip -@
+
+      - name: upload Binutils config and build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-logs
+          path: build-logs-linux-binutils.zip
+
+      - name: package Binutils artifacts
+        run: tar cjf artifacts-linux-binutils.tar.bz2 artifacts
+
+      - name: upload Linux and Windows Binutils artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux
+          path: artifacts-linux-binutils.tar.bz2
+
+  build_xautils_linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Xamarin.Android Utilities build dependencies
+        run: >-
+          sudo apt-get update;
+          sudo apt-get -f -u install mingw-w64 cmake ninja-build xz-utils zlib1g-dev libz-mingw-w64-dev
+
+      - name: build Linux and Windows Xamarin.Android Utilities
+        run: CC=gcc-10 CXX=g++-10 ./build-xa-utils.sh
+
+      - name: package Xamarin.Android Utilities config and build logs
+        if: ${{ always() }}
+        run: find ${BUILD_DIR} -name 'CMakeCache.txt' -o -name 'CMake*.log' | zip -9 build-logs-linux-xa-utils.zip -@
+
+      - name: upload Xamarin.Android Utilities config and build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-logs
+          path: build-logs-linux-xa-utils.zip
+
+      - name: package Xamarin.Android Utilities artifacts
+        run: tar cjf artifacts-linux-xa-utils.tar.bz2 artifacts
+
+      - name: upload Linux and Windows Xamarin.Android Utilities artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux
+          path: artifacts-linux-xa-utils.tar.bz2
+
+  build_llvm_macos:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install LLVM build dependencies
+        run: |
+          brew update
+          brew install cmake ninja ccache
+
+      - name: build macOS LLVM
+        run: bash ./build-llvm.sh
+
+      - name: package LLVM config and build logs
+        if: ${{ always() }}
+        run: find ${BUILD_DIR} -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' | zip -9 build-logs-macos-llvm.zip -@
+
+      - name: upload LLVM config and build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-logs
+          path: build-logs-macos-llvm.zip
+
+      - name: package LLVM artifacts
+        run: tar cjf artifacts-macos-llvm.tar.bz2 artifacts
+
+      - name: upload macOS LLVM artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: macOS
+          path: artifacts-macos-llvm.tar.bz2
+
+  build_binutils_macos:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Binutils build dependencies
         run: |
           brew update
           brew install make autoconf gettext xz
 
-      - name: build macOS
-        run: bash -x ./build.sh ${BINUTILS_VERSION}
+      - name: build macOS Binutils
+        run: bash ./build-binutils.sh
 
-      - name: package config and build logs
+      - name: package Binutils config and build logs
         if: ${{ always() }}
-        run: find build -name 'config.*' | zip -9 macos-build-logs.zip -@
+        run: find ${BUILD_DIR} -name 'config.*' | zip -9 build-logs-macos-binutils.zip -@
 
-      - name: upload config and build logs
+      - name: upload Binutils config and build logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: build-logs
-          path: macos-build-logs.zip
+          path: build-logs-macos-binutils.zip
 
-      - name: package artifacts
-        run: tar cjf macos-artifacts.tar.bz2 artifacts
+      - name: package Binutils artifacts
+        run: tar cjf artifacts-macos-binutils.tar.bz2 artifacts
 
-      - name: upload macOS artifacts
+      - name: upload macOS Binutils artifacts
         uses: actions/upload-artifact@v2
         with:
           name: macOS
-          path: macos-artifacts.tar.bz2
+          path: artifacts-macos-binutils.tar.bz2
+
+  build_xautils_macos:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Xamarin.Android Utilities build dependencies
+        run: |
+          brew update
+          brew install make cmake xz ninja
+
+      - name: build macOS Xamarin.Android Utilities
+        run: bash ./build-xa-utils.sh
+
+      - name: package Xamarin.Android Utilities config and build logs
+        if: ${{ always() }}
+        run: find ${BUILD_DIR} -name 'CMakeCache.txt' -o -name 'CMake*.log' | zip -9 build-logs-macos-xa-utils.zip -@
+
+      - name: upload Xamarin.Android Utilities config and build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-logs
+          path: build-logs-macos-xa-utils.zip
+
+      - name: package Xamarin.Android Utilities artifacts
+        run: tar cjf artifacts-macos-xa-utils.tar.bz2 artifacts
+
+      - name: upload macOS Xamarin.Android Utilities artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: macOS
+          path: artifacts-macos-xa-utils.tar.bz2
+
+  build_llvm_windows:
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+
+      - name: build Windows LLVM
+        run: ./build-llvm.cmd
+
+      - name: package LLVM artifacts
+        run: 7z a artifacts-windows-llvm.7z artifacts
+
+      - name: upload Windows LLVM artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Windows
+          path: artifacts-windows-llvm.7z
 
   package_binaries:
-    runs-on: ubuntu-18.04
-    needs: [build_linux, build_macos]
+    runs-on: ubuntu-20.04
+    needs: [build_llvm_linux, build_binutils_linux, build_xautils_linux, build_llvm_macos, build_binutils_macos, build_xautils_macos, build_llvm_windows]
     steps:
-      - name: Download Linux and Windows artifacts
+      - uses: actions/checkout@v2
+
+      - name: Download Linux artifacts
         uses: actions/download-artifact@v2
         with:
-          name: linux-windows
+          name: linux
 
       - name: Download macOS artifacts
         uses: actions/download-artifact@v2
         with:
           name: macOS
 
-      - name: Unpack Linux and Windows artifacts
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: Windows
+
+      - name: Unpack Linux artifacts
         run: |
-          tar xf linux-artifacts.tar.bz2
+          tar xf artifacts-linux-llvm.tar.bz2
+          tar xf artifacts-linux-binutils.tar.bz2
+          tar xf artifacts-linux-xa-utils.tar.bz2
 
       - name: Unpack macOS artifacts
         run: |
-          tar xf macos-artifacts.tar.bz2
+          tar xf artifacts-macos-llvm.tar.bz2
+          tar xf artifacts-macos-binutils.tar.bz2
+          tar xf artifacts-macos-xa-utils.tar.bz2
 
-      - name: Pack Linux, macOS and Windows artifacts
-        run: tar cjf xamarin-android-binutils.tar.bz2 artifacts
+      - name: Unpack Windows artifacts
+        run: |
+          7z x artifacts-windows-llvm.7z
 
-      - name: upload Xamarin.Android Binutils
+      - name: Package Linux, macOS and Windows artifacts
+        run: ./package.sh
+
+      - name: upload Xamarin.Android Toolchain
         uses: actions/upload-artifact@v2
         with:
           name: Xamarin.Android
-          path: xamarin-android-binutils.tar.bz2
+          path: artifacts/xamarin-android-toolchain.tar.bz2

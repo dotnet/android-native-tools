@@ -1,0 +1,5 @@
+[submodule "external/llvm"]
+	path = external/llvm
+	url = https://github.com/llvm/llvm-project.git
+	shallow = true
+	branch = release/13.x

@@ -2,22 +2,21 @@
 MY_NAME=$(basename "$0")
 TRUE_PATH=$(readlink "$0" || echo "$0")
 MY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-BUILD_DIR="${MY_DIR}/build"
-ARTIFACTS_DIR="${MY_DIR}/artifacts"
 PATCHES_DIR="${MY_DIR}/patches"
-VERSION_INFO_FILE="${ARTIFACTS_DIR}/version.txt"
 CACHE_DIR="${HOME}/android-archives"
-OS=$(uname -s)
+HOST=$(uname -s)
 
 ARCHITECTURES="arm arm64 x86 x86_64"
 BASE_URL="https://ftp.gnu.org/gnu/binutils"
-GETTER="$(which wget || which curl)"
-MAKE="$(which gmake || which make)"
-MACOS_TARGET="10.9"
+GETTER="$(command -v wget || command -v curl)"
+MAKE="$(command -v gmake || command -v make)"
 
-VERSION="${1}"
-BINUTILS_DIR_NAME="binutils-${VERSION}"
-BINUTILS_PATCH_NAME="binutils-${VERSION}.diff"
+source common.sh
+
+BINUTILS_DIR_NAME="binutils-${BINUTILS_VERSION}"
+BINUTILS_PATCH_NAME="binutils-${BINUTILS_VERSION}.diff"
+MY_BUILD_DIR="${BUILD_DIR}/binutils"
+VERSION_INFO_FILE="${ARTIFACTS_DIR}/binutils-version.txt"
 
 function die()
 {
@@ -25,12 +24,6 @@ function die()
 	exit 1
 }
 
-function usage()
-{
-	cat <<EOF
-Usage: ${MY_NAME} BINUTILS_VERSION
-EOF
-}
 
 function arch_to_triple()
 {
@@ -56,7 +49,7 @@ function get_build_tree()
 	local host="${1}"
 	local arch="${2}"
 
-	echo "${BUILD_DIR}/${host}-${arch}"
+	echo "${MY_BUILD_DIR}/${host}-${arch}"
 }
 
 function copy_artifact()
@@ -87,9 +80,7 @@ function gather_artifacts()
 
 	install -d -m 755 "${artifacts_dir}"
 	for arch in ${ARCHITECTURES}; do
-		copy_artifact "${host}" "${arch}" "binutils/${subdir}/strip-new${extension}" "strip${extension}"
-		copy_artifact "${host}" "${arch}" "gas/${subdir}/as-new${extension}" "as${extension}"
-		copy_artifact "${host}" "${arch}" "ld/${subdir}/ld-new${extension}" "ld${extension}"
+		copy_artifact "${host}" "${arch}" "gold/${subdir}/ld-new${extension}" "ld${extension}"
 	done
 }
 
@@ -105,7 +96,7 @@ function get_xcode_dir()
 
 function configure_mac_compilers()
 {
-	if [ "${OS}" != "Darwin" ]; then
+	if [ "${HOST}" != "darwin" ]; then
 		return
 	fi
 
@@ -116,7 +107,7 @@ function configure_mac_compilers()
 
 function detect_mac_arch_flags()
 {
-	if [ "${OS}" != "Darwin" ]; then
+	if [ "${HOST}" != "darwin" ]; then
 		return
 	fi
 
@@ -167,7 +158,7 @@ function build()
 
 	tar xf "${TARBALL_DEST}"
 
-	local source_dir="${BUILD_DIR}/${BINUTILS_DIR_NAME}"
+	local source_dir="${MY_BUILD_DIR}/${BINUTILS_DIR_NAME}"
 	local binutils_patch="${PATCHES_DIR}/${BINUTILS_PATCH_NAME}"
 	if [ -f "${binutils_patch}" ]; then
 		(cd "${source_dir}"; patch -p1 < "${binutils_patch}")
@@ -187,8 +178,8 @@ function build()
 	install -d -m 755 "${build_tree}"
 
 	local cflags="-O2 -m64 $(detect_mac_arch_flags)"
-	local enable_gold
-	local other_flags
+	local enable_gold="--enable-gold=yes"
+	local other_flags="--enable-ld=no --disable-libstdcxx --enable-lto"
 
 	if [ "${arch}" == "arm64" ]; then
 		other_flags="--enable-fix-cortex-a53-835769"
@@ -199,40 +190,30 @@ function build()
 	CFLAGS="${cflags}" CXXFLAGS="${cflags}" LDFLAGS="${cflags}" "${source_dir}/configure" \
 		--target=${triple} \
 		${configure_host} \
-		--enable-initfini-array \
-		--enable-64-bit-bfd \
 		--disable-werror \
 		--disable-nls \
 		--disable-debug \
+		--enable-threads=no \
 		--with-static-standard-libraries \
 		${enable_gold} \
 		${other_flags}
 
-	"${MAKE}" -j
+	"${MAKE}" configure-bfd configure-gold configure-libiberty
+	"${MAKE}" -j -C bfd bfdver.h
+	"${MAKE}" -j -C libiberty
+	"${MAKE}" -j -C gold
 }
-
-if [ -z "${VERSION}" ]; then
-	usage
-	die
-fi
 
 if [ -z "${GETTER}" ]; then
 	die Could not find neither wget nor curl
 fi
 
-TARBALL_NAME="binutils-${VERSION}.tar.xz"
+TARBALL_NAME="binutils-${BINUTILS_VERSION}.tar.xz"
 TARBALL_URL="${BASE_URL}/${TARBALL_NAME}"
 TARBALL_DEST="${CACHE_DIR}/${TARBALL_NAME}"
 
-if [ -d "${BUILD_DIR}" ]; then
-	rm -rf "${BUILD_DIR}"
-fi
-
-if [ -d "${ARTIFACTS_DIR}" ]; then
-	rm -rf "${ARTIFACTS_DIR}"
-fi
-
-install -d -m 755 "${BUILD_DIR}"
+create_empty_dir "${MY_BUILD_DIR}"
+create_empty_dir "${ARTIFACTS_DIR}"
 
 if [ ! -f "${TARBALL_DEST}" ]; then
 	if [ ! -d "${CACHE_DIR}" ]; then
@@ -246,23 +227,23 @@ if [ ! -f "${TARBALL_DEST}" ]; then
 fi
 
 HOSTS=""
-if [ "${OS}" == "Linux" ]; then
+if [ "${HOST}" == "linux" ]; then
 	HOSTS="linux windows"
-elif [ "${OS}" == "Darwin" ]; then
+elif [ "${HOST}" == "darwin" ]; then
 	HOSTS="darwin"
 else
-	die Unsupported build OS ${OS}
+	die Unsupported build OS ${HOST}
 fi
 
 for host in ${HOSTS}; do
 	for arch in ${ARCHITECTURES}; do
-		(cd "${BUILD_DIR}"; build ${host} ${arch})
+		(cd "${MY_BUILD_DIR}"; build ${host} ${arch})
 		if [ $? -ne 0 ]; then
 		   die Build ${host} ${arch} failed
 		fi
 	done
 	if [ "${host}" == "windows" ]; then
-		subdir=".libs"
+		subdir="."
 		extension=".exe"
 	else
 		subdir=""
@@ -271,4 +252,4 @@ for host in ${HOSTS}; do
 	gather_artifacts "${host}" "${subdir}" "${extension}"
 done
 
-echo "${VERSION}" > "${VERSION_INFO_FILE}"
+echo "${BINUTILS_VERSION}" > "${VERSION_INFO_FILE}"

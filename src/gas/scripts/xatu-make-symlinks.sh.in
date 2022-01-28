@@ -1,0 +1,14 @@
+#!/bin/bash -e
+TARGET_DIR="@TARGET_DIR@"
+AS_NAME="@AS_NAME@"
+ARCH_PREFIXES="@PREFIXES@"
+
+if [ -z "${TARGET_DIR}" -o -z "${AS_NAME}" -o -z "${ARCH_PREFIXES}" ]; then
+	echo Invalid arguments passed to the script
+	exit 1
+fi
+
+install -d -m 755 "${TARGET_DIR}"
+for PREFIX in ${ARCH_PREFIXES}; do
+	ln -sf ${AS_NAME} "${TARGET_DIR}/${PREFIX}${AS_NAME}"
+done

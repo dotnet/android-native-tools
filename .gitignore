@@ -32,8 +32,12 @@
 *.app
 
 # Other
-/build
+/xa-build
 /artifacts
 /prep
 /*.7z
 /*.zip
+/*.tar.bz2
+.ccls-cache
+.projectile
+compile_commands.json

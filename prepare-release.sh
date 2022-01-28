@@ -3,13 +3,14 @@ MY_NAME=$(basename "$0")
 TRUE_PATH=$(readlink "$0" || echo "$0")
 MY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+source common.sh
+
 WORK_DIR="${MY_DIR}/prep"
-TARBALL_BASE_NAME="xamarin-android-binutils"
-ARTIFACT_TARBALL="${TARBALL_BASE_NAME}.tar.bz2"
+ARTIFACT_TARBALL="${DIST_PACKAGE_NAME_BASE}.tar.bz2"
 ARTIFACTS_DIR="${WORK_DIR}/artifacts"
 
 ARTIFACT_ZIP="${1}"
-TAG_NAME="${2}"
+XA_TAG_COMPONENT="${2}"
 
 function die()
 {
@@ -20,33 +21,47 @@ function die()
 function usage()
 {
 	cat <<EOF
-Usage: ${MY_NAME} ARTIFACT_ZIP TAG_NAME
+Usage: ${MY_NAME} ARTIFACT_ZIP XA_TAG_COMPONENT
 
 where
 
   ARTIFACT_ZIP is a path to the artifact produced by the commit you want to release.
                The file must be downloaded manually from the build artifacts area.
-  TAG_NAME is a new tag for the upcoming release
+  XA_TAG_COMPONENT will be combined with LLVM versionin the following manner: {LLVM_VERSION}-{XA_TAG_COMPONENT}
+  and the resulting string will be used as the new tag name
 EOF
 	exit 0
 }
 
 function prepare()
 {
+	echo Unpacking artifact ZIP
 	unzip "${ARTIFACT_ZIP}"
 
 	if [ ! -f "${ARTIFACT_TARBALL}" ]; then
 		die Build artifact tarball $(pwd)/${ARTIFACT_TARBALL} not found
 	fi
 
+	echo Unpacking binaries tarball
 	tar xf "${ARTIFACT_TARBALL}"
 	if [ ! -d "${ARTIFACTS_DIR}" ]; then
 		die Artifacts directory ${ARTIFACTS_DIR} does not exist
 	fi
 
-	echo "${TAG_NAME}" >> "${ARTIFACTS_DIR}/version.txt"
+	local llvm_version=$(head -1 "${ARTIFACTS_DIR}/llvm-version.txt" | tr -d ' \t')
+	local tag_name="L_${llvm_version}-B_${BINUTILS_VERSION}-${XA_TAG_COMPONENT}"
+	echo "${tag_name}" >> "${ARTIFACTS_DIR}/version.txt"
 
-	local dest_archive="${MY_DIR}/${TARBALL_BASE_NAME}-${TAG_NAME}.7z"
+	echo New build for LLVM ${llvm_version} found
+	echo New tag name: ${tag_name}
+
+	git fetch -t
+
+	if git tag -l | grep "${tag_name}" > /dev/null 2>&1; then
+		die Tag ${tag_name} already exists, please choose a new one
+	fi
+
+	local dest_archive="${MY_DIR}/${DIST_PACKAGE_NAME_BASE}-${tag_name}.7z"
 
 	if [ -f "${dest_archive}" ]; then
 		rm "${dest_archive}"
@@ -61,23 +76,17 @@ function prepare()
 Next steps:
 
   * Go to https://github.com/xamarin/xamarin-android-binutils/releases
-  * Create new release using the ${TAG_NAME} tag
+  * Create new release using the '${tag_name}' tag
   * Upload ${dest_archive} to that release
 EOF
 }
 
-if [ -z "${ARTIFACT_ZIP}" -o -z "${TAG_NAME}" ]; then
+if [ -z "${ARTIFACT_ZIP}" -o -z "${XA_TAG_COMPONENT}" ]; then
 	usage
 fi
 
 if [ ! -f "${ARTIFACT_ZIP}" ]; then
 	die Artifact ZIP archive not found at ${ARTIFACT_ZIP}
-fi
-
-git fetch -t
-
-if git tag -l | grep "${TAG_NAME}" > /dev/null 2>&1; then
-	die Tag ${TAG_NAME} already exists, please choose a new one
 fi
 
 if [ -d "${WORK_DIR}" ]; then
