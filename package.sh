@@ -24,7 +24,7 @@ function make_windows_wrapper_scripts()
 	done
 }
 
-function make_unix_symlinks()
+function make_unix_wrapper_scripts()
 {
 	local input="${1}"
 	local output_dir="${2}"
@@ -36,7 +36,7 @@ function make_unix_symlinks()
 		output_name="${TRIPLE}-${output_base_name}"
 		output_path="${output_dir}/${output_name}"
 
-		ln -sf "${input}" "${output_path}"
+		cp -a -P "${input}" "${output_path}"
 	done
 }
 
@@ -62,8 +62,8 @@ function prepare()
 		make_windows_wrapper_scripts "scripts/llvm-strip.cmd.in" "${artifacts_source}" "strip"
 		make_windows_wrapper_scripts "scripts/gas.cmd.in" "${artifacts_source}" "as"
 	else
-		make_unix_symlinks "llvm-strip" "${artifacts_source}" "strip"
-		make_unix_symlinks "as" "${artifacts_source}" "as"
+		make_unix_wrapper_scripts "scripts/llvm-strip.sh" "${artifacts_source}" "strip"
+		make_unix_wrapper_scripts "scripts/gas.sh" "${artifacts_source}" "as"
 	fi
 
 	if [ -z "${LLVM_VERSION}" ]; then

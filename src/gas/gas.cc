@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include <unistd.h>
 
+#include <cstring>
 #include <iostream>
 #include <filesystem>
 
@@ -55,27 +56,44 @@ int Gas::usage (bool is_error, std::string const message)
 
 int Gas::run (int argc, char **argv)
 {
-	determine_program_name (argc, argv);
+	determine_program_dir (argc, argv);
+
+	auto lowercase_string = [](std::string& s) {
+		std::transform (
+			s.begin (),
+			s.end (),
+			s.begin (),
+			[](unsigned char c) { return std::tolower(c); }
+		);
+	};
+
+	std::string arch_name { generic_gas_name };
+	const char *first_param = argc > 1 ? argv[1] : nullptr;
+	if (first_param != nullptr && strlen (first_param) > sizeof(Constants::arch_hack_param) && strstr (first_param, Constants::arch_hack_param) == first_param) {
+		arch_name = first_param + (sizeof(Constants::arch_hack_param) - 1);
+		lowercase_string (arch_name);
+	}
+	_program_name = arch_name;
 
 	std::unique_ptr<LlvmMcRunner> mc_runner;
 	std::string ld_name;
-	if (program_name ().compare (arm64_gas_name.data ()) == 0) {
+	if (arch_name.compare (arm64_gas_name.data ()) == 0) {
 		_target_arch = TargetArchitecture::ARM64;
 		mc_runner = std::make_unique<LlvmMcRunnerARM64> ();
 		ld_name = arm64_ld_name.data ();
-	} else if (program_name ().compare (arm32_gas_name.data ()) == 0) {
+	} else if (arch_name.compare (arm32_gas_name.data ()) == 0) {
 		_target_arch = TargetArchitecture::ARM32;
 		mc_runner = std::make_unique<LlvmMcRunnerARM32> ();
 		ld_name = arm32_ld_name.data ();
-	} else if (program_name ().compare (x86_gas_name.data ()) == 0) {
+	} else if (arch_name.compare (x86_gas_name.data ()) == 0) {
 		_target_arch = TargetArchitecture::X86;
 		mc_runner = std::make_unique<LlvmMcRunnerX86> ();
 		ld_name = x86_ld_name.data ();
-	} else if (program_name ().compare (x64_gas_name.data ()) == 0) {
+	} else if (arch_name.compare (x64_gas_name.data ()) == 0) {
 		_target_arch = TargetArchitecture::X64;
 		mc_runner = std::make_unique<LlvmMcRunnerX64> ();
 		ld_name = x64_ld_name.data ();
-	} else if (program_name ().compare (generic_gas_name) == 0) {
+	} else if (arch_name.compare (generic_gas_name) == 0) {
 		std::string message { "Program invoked via its generic name (" };
 		message
 			.append (generic_gas_name)
@@ -88,7 +106,7 @@ int Gas::run (int argc, char **argv)
 		return usage (true /* is_error */, message);
 	} else {
 		std::string message { "Unknown program name '" };
-		message.append (program_name ()).append ("'").append (Constants::newline);
+		message.append (arch_name).append ("'").append (Constants::newline);
 		return usage (true /* is_error */, message);
 	}
 
@@ -226,17 +244,13 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 
 			case 1: // non-option argument
 			{
-#if defined (_WIN32)
-				// Ignore the windows name hack parameter
-				const char *ret = strstr (optarg, Constants::name_hack_param);
+				// Ignore the arch hack parameter
+				const char *ret = strstr (optarg, Constants::arch_hack_param);
 				if (ret == nullptr || ret != optarg) {
-#endif // _WIN32
 					input_files.emplace_back (optarg);
-#if defined (_WIN32)
 				}
-#endif // _WIN32
 			}
-				break;
+			break;
 
 			case OPTION_VERSION:
 				show_version = true;

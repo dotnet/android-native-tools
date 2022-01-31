@@ -147,14 +147,7 @@ namespace xamarin::android::gas
 			{}
 		};
 
-		static constexpr char generic_gas_name[] =
-#if defined (_WIN32)
-			"as.exe"
-#else
-			"as"
-#endif
-			;
-
+		static constexpr char generic_gas_name[] = "as";
 		static constexpr char generic_ld_name[] =
 #if defined (_WIN32)
 			"ld.exe"
@@ -193,7 +186,7 @@ namespace xamarin::android::gas
 		ParseArgsResult parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner);
 
 	private:
-		void determine_program_name (int argc, char **argv);
+		void determine_program_dir (int argc, char **argv);
 		int usage (bool is_error, std::string const message = "");
 
 	private:
