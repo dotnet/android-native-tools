@@ -3,7 +3,7 @@
 MY_NAME="$(basename $0)"
 MY_DIR="$(cd $(dirname $0);pwd)"
 
-source common.sh
+source ${MY_DIR}/common.sh
 
 PROJECTS="llvm-mc llvm-objcopy"
 TARGETS="X86;ARM;AArch64"

@@ -73,8 +73,6 @@ function prepare()
 
 	fi
 
-	echo "Binaries: ${BINARIES}"
-	set -x
 	for b in ${BINARIES}; do
 		if [ -f "${artifacts_source}/${b}${exe}" ]; then
 			b="${b}${exe}"
@@ -88,7 +86,6 @@ function prepare()
 			cp -P -a "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
 		fi
 	done
-	set +x
 }
 
 for os in ${OPERATING_SYSTEMS}; do

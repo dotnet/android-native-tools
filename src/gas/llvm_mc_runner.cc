@@ -58,18 +58,5 @@ int LlvmMcRunner::run (fs::path const& executable_path)
 	std::string input_file { "\"" + input_file_path.make_preferred ().string () + "\"" };
 	process->append_program_argument (input_file_path.make_preferred ().string ());
 
-	fs::path cwd = fs::current_path ();
-	if (input_file_path.has_parent_path ()) {
-		fs::current_path (input_file_path.parent_path ());
-		std::cout << "Switched CWD to " << fs::current_path () << Constants::newline;
-	}
-
-	ScopeGuard fg {
-		[&]() -> void {
-			std::cout << "Guard switching CWD back to " << cwd << Constants::newline;
-			fs::current_path (cwd);
-		}
-	};
-
 	return process->run ();
 }

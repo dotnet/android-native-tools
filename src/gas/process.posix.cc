@@ -18,6 +18,13 @@ int Process::run (bool print_command_line)
 
 	std::vector<std::string::const_pointer> exec_args = make_exec_args ();
 
+	ScopeGuard fg {
+		[&]() -> void {
+			// We made a copy in `make_exec_args`, free it up here
+			free (const_cast<char*>(exec_args[0]));
+		}
+	};
+
 	// `execv(2)` needs the array to be null-terminated
 	exec_args.push_back (nullptr);
 
@@ -37,6 +44,7 @@ int Process::run (bool print_command_line)
 	int wstatus = 0;
 	do {
 		pid_t result = waitpid (llvm_mc_pid,  &wstatus, WUNTRACED);
+
 		if (result == -1) {
 			std::cerr << "Failed to wait for " << Constants::llvm_mc_name << " to terminate. " << std::strerror (errno) << Constants::newline;
 			return Constants::wrapper_wait_failed_error_code;

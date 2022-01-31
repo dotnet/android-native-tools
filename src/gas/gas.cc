@@ -56,8 +56,6 @@ int Gas::usage (bool is_error, std::string const message)
 int Gas::run (int argc, char **argv)
 {
 	determine_program_name (argc, argv);
-	std::cout << "Program name: " << program_name () << Constants::newline;
-	std::cout << "Program dir: " << program_dir () << Constants::newline << Constants::newline;
 
 	std::unique_ptr<LlvmMcRunner> mc_runner;
 	std::string ld_name;

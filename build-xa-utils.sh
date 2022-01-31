@@ -4,7 +4,7 @@ MY_NAME="$(basename $0)"
 MY_DIR="$(cd $(dirname $0);pwd)"
 CONFIGURATION="${1:-Release}"
 
-source common.sh
+source ${MY_DIR}/common.sh
 
 MY_BUILD_DIR="${BUILD_DIR}/xa-utils"
 HOST_BIN_DIR="${MY_BUILD_DIR}/bin"

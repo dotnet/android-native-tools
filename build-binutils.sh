@@ -11,7 +11,7 @@ BASE_URL="https://ftp.gnu.org/gnu/binutils"
 GETTER="$(command -v wget || command -v curl)"
 MAKE="$(command -v gmake || command -v make)"
 
-source common.sh
+source ${MY_DIR}/common.sh
 
 BINUTILS_DIR_NAME="binutils-${BINUTILS_VERSION}"
 BINUTILS_PATCH_NAME="binutils-${BINUTILS_VERSION}.diff"

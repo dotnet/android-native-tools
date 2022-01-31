@@ -2,10 +2,6 @@
 #if !defined (__LLVM_MC_RUNNER_HH)
 #define __LLVM_MC_RUNNER_HH
 
-#if __has_include (<concepts>)
-#include <concepts>
-#endif // has <concepts>
-
 #include <filesystem>
 #include <functional>
 #include <string>
@@ -35,31 +31,6 @@ namespace xamarin::android::gas
 		ARM32,
 		X86,
 		X64,
-	};
-
-	template<class TFunc>
-#if __has_include (<concepts>) && !defined(__APPLE__) // Apple clang reports it supports concepts, but it breaks on the next line
-	requires std::invocable<TFunc>
-#endif // has <concepts>
-	class ScopeGuard
-	{
-	public:
-		explicit ScopeGuard (TFunc&& fn) noexcept
-			: fn (std::forward<TFunc> (fn))
-		{}
-
-		ScopeGuard (ScopeGuard const&) = delete;
-
-		~ScopeGuard ()
-		{
-			fn ();
-		}
-
-		ScopeGuard operator= (ScopeGuard const&) = delete;
-		ScopeGuard operator= (ScopeGuard &&) = delete;
-
-	private:
-		TFunc fn;
 	};
 
 	class LlvmMcRunner
