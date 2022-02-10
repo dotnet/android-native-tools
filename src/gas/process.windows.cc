@@ -66,7 +66,6 @@ int Process::run (bool print_command_line)
 
 	std::string binary = executable_path.string ();
 	DWORD creation_flags = CREATE_UNICODE_ENVIRONMENT;
-	std::cout << " Calling CreateProcess" << Constants::newline;
 	BOOL success = CreateProcess (
 		binary.c_str (),
 		const_cast<LPSTR>(args.c_str ()),
@@ -80,25 +79,19 @@ int Process::run (bool print_command_line)
 		&pi
 	);
 
-	std::cout << " CreateProcess returned " << (success ? "true" : "false") << Constants::newline;
 	if (!success) {
 		return Constants::wrapper_exec_failed_error_code;
 	}
 
 	// TODO: error handling below
-	std::cout << " Waiting for process " << std::hex << "0x" << pi.hProcess << " to exit" << Constants::newline;
 	DWORD result = WaitForSingleObject (pi.hProcess, INFINITE);
-
-	std::cout << " WaitForSingleObject returned " << result << Constants::newline;
 	if (result == 0) {
 		DWORD retcode = 0;
 		if (GetExitCodeProcess (pi.hProcess, &retcode)) {
-			std::cout << " process exited with code " << retcode << Constants::newline;
 			return retcode;
 		}
 
-		std::cout << " GetExitCodeProcess failed, returning 1" << Constants::newline;
-		return 1;
+		return 128;
 	}
 
 	return 1;

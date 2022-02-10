@@ -109,7 +109,7 @@ namespace xamarin::android::gas
 					break;
 
 				case LlvmMcArchitecture::X64:
-					architecture = "x86-64";
+					architecture = "x86_64";
 					break;
 			}
 

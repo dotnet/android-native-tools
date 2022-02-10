@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 XA_UTILS_VERSION="3.0.0"
-BINUTILS_VERSION="2.37"
+BINUTILS_VERSION="2.38"
 MACOS_TARGET="10.15"
 
 if [ -z "${MY_DIR}" ]; then
