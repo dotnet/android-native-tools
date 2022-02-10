@@ -95,26 +95,28 @@ namespace xamarin::android::gas
 			set_option (LlvmMcArgument::FileType, "obj");
 
 			std::string architecture;
+			std::string triple_prefix;
 			switch (arch) {
 				case LlvmMcArchitecture::ARM64:
-					architecture = "aarch64";
+					triple_prefix = architecture = "aarch64";
 					break;
 
 				case LlvmMcArchitecture::ARM32:
-					architecture = "arm";
+					triple_prefix = architecture = "arm";
 					break;
 
 				case LlvmMcArchitecture::X86:
-					architecture = "x86";
+					triple_prefix = architecture = "x86";
 					break;
 
 				case LlvmMcArchitecture::X64:
-					architecture = "x86_64";
+					architecture = "x86-64";
+					triple_prefix = "x86_64";
 					break;
 			}
 
 			set_arch (architecture);
-			triple = architecture + "-linux-gnu";
+			triple = triple_prefix + "-linux-gnu";
 		}
 
 		void set_arch (std::string const& arch)
