@@ -3,3 +3,7 @@
 	url = https://github.com/llvm/llvm-project.git
 	shallow = true
 	branch = release/13.x
+[submodule "external/llvm-mingw"]
+	path = external/llvm-mingw
+	url = https://github.com/mstorsjo/llvm-mingw.git
+	branch = master
