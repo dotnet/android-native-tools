@@ -48,15 +48,13 @@ int Process::run (bool print_command_line)
 		print_process_command_line ();
 	}
 
-	std::string args;
+	std::string binary = executable_path.string ();
+	std::string args { escape_argument (binary) };
 	for (std::string const& a : _args) {
 		if (a.empty ()) {
 			continue;
 		}
-
-		if (!args.empty ()) {
-			args.append (" ");
-		}
+		args.append (" ");
 		args.append (escape_argument (a));
 	}
 
@@ -64,7 +62,6 @@ int Process::run (bool print_command_line)
 	STARTUPINFO si         {};
 	si.cb = sizeof(si);
 
-	std::string binary = executable_path.string ();
 	DWORD creation_flags = CREATE_UNICODE_ENVIRONMENT;
 	BOOL success = CreateProcess (
 		binary.c_str (),
