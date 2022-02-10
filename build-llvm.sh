@@ -63,7 +63,9 @@ function configure_darwin()
 {
 	configure -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
               -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOS_TARGET}" \
-              -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64'
+              -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64' \
+			  -DCMAKE_SYSTEM_NAME='Linux' \
+			  -DCMAKE_CROSS_COMPILING=ON
 }
 
 function build()
