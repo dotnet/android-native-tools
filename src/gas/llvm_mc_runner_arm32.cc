@@ -46,8 +46,8 @@ std::unordered_map<std::string, std::vector<std::string>> LlvmMcRunnerARM32::fpu
 	{ "vfp10-r0",               {}}, // no llvm-mc equivalent?
 	{ "vfp9",                   {}}, // no llvm-mc equivalent?
 	{ "vfpv2",                  {"+vfp2"}},
-	{ "vfpv3",                  {"+vfp3", "thumb2"}},
-	{ "vfp3",                   {"+vfp3", "thumb2"}}, // undocumented GAS option, alias for vfpv3 above
+	{ "vfpv3",                  {"+vfp3", "+thumb2"}},
+	{ "vfp3",                   {"+vfp3", "+thumb2"}}, // undocumented GAS option, alias for vfpv3 above
 	{ "vfpv3-d16",              {"+vfp3d16"}},
 	{ "vfpv3-d16-fp16",         {"vfp3d16,+fp16"}},
 	{ "vfpv3-fp16",             {"+vfp3,+fp16"}},

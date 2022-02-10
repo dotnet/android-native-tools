@@ -2,5 +2,5 @@
 setlocal
 set BINARIES_DIRECTORY=%~dp0
 
-set "BINARIES_DIRECTORY=" && %BINARIES_DIRECTORY%as.exe @gas-arch=@TARGET_NAME@ %*
+set "BINARIES_DIRECTORY=" && "%BINARIES_DIRECTORY%as.exe" @gas-arch=@TARGET_NAME@ %*
 if not ERRORLEVEL 0 exit /b %errorlevel%
