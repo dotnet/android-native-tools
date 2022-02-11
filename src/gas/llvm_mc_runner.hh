@@ -162,10 +162,15 @@ namespace xamarin::android::gas
 			return iter->second;
 		}
 
+		void append_attribute (std::string const& new_attr)
+		{
+			set_option (LlvmMcArgument::Mattr, new_attr);
+		}
+
 		void append_attributes (std::vector<std::string> const& new_attrs)
 		{
 			for (std::string const& attr : new_attrs) {
-				set_option (LlvmMcArgument::Mattr, attr);
+				append_attribute (attr);
 			}
 		}
 
@@ -193,7 +198,10 @@ namespace xamarin::android::gas
 	public:
 		LlvmMcRunnerARM32 ()
 			: LlvmMcRunner (LlvmMcArchitecture::ARM32)
-		{}
+		{
+			// We always target ARMv7-a
+			append_attribute ("+armv7-a");
+		}
 
 		virtual ~LlvmMcRunnerARM32 ()
 		{}
