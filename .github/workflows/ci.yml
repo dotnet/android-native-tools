@@ -31,17 +31,6 @@ jobs:
       - name: build Linux LLVM MinGW
         run: CC=gcc-10 CXX=g++-10 ./build-llvm-mingw.sh
 
-      - name: package configs and build logs
-        if: ${{ always() }}
-        run: find ${BUILD_DIR} -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' | zip -9 build-logs-linux-llvm-mingw.zip -@
-
-      - name: upload configs and build logs
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: build-logs
-          path: build-logs-linux-llvm-mingw.zip
-
       - name: package LLVM artifacts
         run: tar cjf artifacts-linux-llvm-mingw.tar.bz2 artifacts
 
@@ -140,18 +129,7 @@ jobs:
           lcov help2man bzip2 libtool doxygen
 
       - name: build macOS LLVM MinGW
-        run: MACOS_REDIST=1 ./build-llvm-mingw.sh
-
-      - name: package configs and build logs
-        if: ${{ always() }}
-        run: find ${BUILD_DIR} -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' | zip -9 build-logs-macos-llvm-mingw.zip -@
-
-      - name: upload configs and build logs
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: build-logs
-          path: build-logs-linux-llvm-mingw.zip
+        run: CC=clang CXX=clang++ MACOS_REDIST=1 ./build-llvm-mingw.sh
 
       - name: package LLVM artifacts
         run: tar cjf artifacts-macos-llvm-mingw.tar.bz2 artifacts
