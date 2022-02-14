@@ -137,7 +137,7 @@ jobs:
           brew update;
           brew install cmake ninja ccache texinfo libffi patchutils diffstat xz
           python@3.10 make autoconf libedit swig sphinx libxml2 jsoncpp pkg-config
-          lcov procps help2man bzip2 libtool doxygen
+          lcov help2man bzip2 libtool doxygen
 
       - name: build macOS LLVM MinGW
         run: MACOS_REDIST=1 ./build-llvm-mingw.sh
