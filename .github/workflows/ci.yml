@@ -11,6 +11,46 @@ on:
   workflow_dispatch:
 
 jobs:
+  build_llvm_mingw_linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install LLVM MinGW build dependencies
+        run: >-
+          sudo apt-get update;
+          sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
+          lsb-release patchutils diffstat xz-utils python3-dev libedit-dev libncurses5-dev swig
+          python3-six python3-sphinx binutils-dev libxml2-dev libjsoncpp-dev pkg-config lcov
+          procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
+          python3-setuptools libz3-dev ccache automake yasm gettext autopoint bzip2 python3
+          python3-distutils libtool
+
+      - name: build Linux LLVM MinGW
+        run: CC=gcc-10 CXX=g++-10 ./build-llvm-mingw.sh
+
+      - name: package configs and build logs
+        if: ${{ always() }}
+        run: find ${BUILD_DIR} -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' | zip -9 build-logs-linux-llvm-mingw.zip -@
+
+      - name: upload configs and build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-logs
+          path: build-logs-linux-llvm-mingw.zip
+
+      - name: package LLVM artifacts
+        run: tar cjf artifacts-linux-llvm-mingw.tar.bz2 artifacts
+
+      - name: upload Linux LLVM MinGW artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux
+          path: artifacts-linux-llvm-mingw.tar.bz2
+
   build_llvm_linux:
     runs-on: ubuntu-20.04
     steps:
@@ -84,6 +124,43 @@ jobs:
         with:
           name: linux
           path: artifacts-linux-xa-utils.tar.bz2
+
+  build_llvm_mingw_macos:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install LLVM MinGW build dependencies
+        run: >-
+          brew update;
+          brew install cmake ninja ccache texinfo libffi patchutils diffstat xz
+          python@3.10 make autoconf libedit swig sphinx libxml2 jsoncpp pkg-config
+          lcov procps help2man bzip2 libtool doxygen
+
+      - name: build macOS LLVM MinGW
+        run: MACOS_REDIST=1 ./build-llvm-mingw.sh
+
+      - name: package configs and build logs
+        if: ${{ always() }}
+        run: find ${BUILD_DIR} -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' | zip -9 build-logs-macos-llvm-mingw.zip -@
+
+      - name: upload configs and build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-logs
+          path: build-logs-linux-llvm-mingw.zip
+
+      - name: package LLVM artifacts
+        run: tar cjf artifacts-macos-llvm-mingw.tar.bz2 artifacts
+
+      - name: upload Linux LLVM MinGW artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: macOS
+          path: artifacts-macos-llvm-mingw.tar.bz2
 
   build_llvm_macos:
     runs-on: macos-11
@@ -179,7 +256,7 @@ jobs:
 
   package_binaries:
     runs-on: ubuntu-20.04
-    needs: [build_llvm_linux, build_xautils_linux, build_llvm_macos, build_xautils_macos, build_llvm_windows]
+    needs: [build_llvm_mingw_linux, build_llvm_linux, build_xautils_linux, build_llvm_mingw_macos, build_llvm_macos, build_xautils_macos, build_llvm_windows]
     steps:
       - uses: actions/checkout@v2
         with:
