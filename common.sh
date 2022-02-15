@@ -1,6 +1,10 @@
 #!/bin/bash -e
 
 XA_UTILS_VERSION="4.0.0"
+
+#
+# Note: LLVM MinGW requires at least 10.13.4
+#
 MACOS_TARGET="10.15"
 
 if [ -z "${MY_DIR}" ]; then
