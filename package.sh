@@ -61,29 +61,39 @@ function prepare()
 
 		make_windows_wrapper_scripts "scripts/llvm-strip.cmd.in" "${artifacts_source}" "strip"
 		make_windows_wrapper_scripts "scripts/gas.cmd.in" "${artifacts_source}" "as"
+		make_windows_wrapper_scripts "scripts/ld.cmd.in" "${artifacts_source}" "ld"
 	else
 		make_unix_wrapper_scripts "scripts/llvm-strip.sh" "${artifacts_source}" "strip"
 		make_unix_wrapper_scripts "scripts/gas.sh" "${artifacts_source}" "as"
+		make_unix_wrapper_scripts "scripts/ld.sh" "${artifacts_source}" "ld"
 	fi
 
 	if [ -z "${LLVM_VERSION}" ]; then
 		version_file="${artifacts_source}/llvm-version.txt"
 		LLVM_VERSION=$(head -1 "${version_file}" | tr -d ' \n\t')
 		cp "${version_file}" "${PACKAGE_ARTIFACTS_DIR}"
-
 	fi
 
+	local dest_b=
 	for b in ${BINARIES}; do
+		if [ "${b}" == "ld" ]; then
+			dest_b="ld"
+		else
+			dest_b="${b}"
+		fi
+
 		if [ -f "${artifacts_source}/${b}${exe}" ]; then
 			b="${b}${exe}"
+			dest_b="${dest_b}${exe}"
 		elif [ -f "${artifacts_source}/${b}${cmd}" ]; then
 			b="${b}${cmd}"
+			dest_b="${dest_b}${cmd}"
 		fi
 
 		if [ -f "${artifacts_source}/${b}.upx" ]; then
-			cp -P -a "${artifacts_source}/${b}.upx" "${artifacts_dest}/${b}"
+			cp -P -a "${artifacts_source}/${b}.upx" "${artifacts_dest}/${dest_b}"
 		else
-			cp -P -a "${artifacts_source}/${b}" "${artifacts_dest}/${b}"
+			cp -P -a "${artifacts_source}/${b}" "${artifacts_dest}/${dest_b}"
 		fi
 	done
 }

@@ -5,7 +5,7 @@ MY_DIR="$(cd $(dirname $0);pwd)"
 
 source ${MY_DIR}/common.sh
 
-PROJECTS="llvm-mc llvm-objcopy"
+PROJECTS="llvm-mc;llvm-objcopy;lld"
 TARGETS="X86;ARM;AArch64"
 
 MY_BUILD_DIR="${BUILD_DIR}/llvm"
@@ -70,6 +70,7 @@ function build()
 {
 	ninja -j${JOBS} llvm-objcopy
 	ninja -j${JOBS} llvm-mc
+	ninja -j${JOBS} lld
 
 	mv "${HOST_BIN_DIR}/llvm-objcopy" "${HOST_BIN_DIR}/llvm-strip"
 	grep 'CMAKE_PROJECT_VERSION:' "${MY_BUILD_DIR}/CMakeCache.txt" | cut -d '=' -f 2 > "${LLVM_VERSION_FILE}"

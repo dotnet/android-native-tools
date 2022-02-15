@@ -4,9 +4,9 @@ set BUILD_DIR=%MY_DIR%\xa-build
 set ARTIFACTS_DIR=%MY_DIR%\artifacts
 set SOURCE_DIR=%MY_DIR%external\llvm\llvm
 
-set PROJECTS=llvm-mc llvm-objcopy
+set PROJECTS=llvm-mc;llvm-objcopy;lld
 set TARGETS=X86;ARM;AArch64
-set BINARIES=llvm-mc.exe llvm-strip.exe
+set BINARIES=llvm-mc.exe llvm-strip.exe lld.exe
 
 set HOST_BUILD_DIR=%BUILD_DIR%\%HOST%
 set HOST_BIN_DIR=%HOST_BUILD_DIR%\Release\bin
@@ -55,6 +55,7 @@ cmake -G "Visual Studio 16 2019" -A x64 ^
 
 msbuild /p:Configuration=Release /m tools\llvm-mc\llvm-mc.vcxproj
 msbuild /p:Configuration=Release /m tools\llvm-objcopy\llvm-objcopy.vcxproj
+msbuild /p:Configuration=Release /m tools\lld\tools\lld\lld.vcxproj
 
 move %HOST_BIN_DIR%\llvm-objcopy.exe %HOST_BIN_DIR%\llvm-strip.exe
 for %%b in (%BINARIES%) DO (
