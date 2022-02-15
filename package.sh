@@ -76,7 +76,7 @@ function prepare()
 
 	local dest_b=
 	for b in ${BINARIES}; do
-		if [ "${b}" == "ld" ]; then
+		if [ "${b}" == "lld" ]; then
 			dest_b="ld"
 		else
 			dest_b="${b}"
