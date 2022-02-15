@@ -123,6 +123,8 @@ jobs:
 
       - name: Install LLVM MinGW build dependencies
         run: >-
+          sudo xcode-select -p;
+          sudo -s /Applications/Xcode_13.2.app;
           brew update;
           brew install cmake ninja ccache texinfo libffi patchutils diffstat xz
           python@3.10 make autoconf libedit swig sphinx libxml2 jsoncpp pkg-config
