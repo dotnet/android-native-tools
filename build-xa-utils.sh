@@ -19,7 +19,7 @@ function configure()
 	set -x
 	cmake -G Ninja \
 		  -DCMAKE_BUILD_TYPE="${CONFIGURATION}" \
-		  -DBINUTILS_VERSION="${BINUTILS_VERSION}" \
+		  -DBINUTILS_VERSION="2.38" \
 		  -DLLVM_VERSION="${LLVM_VERSION}" \
 		  "$@" \
 		  "${SOURCE_DIR}"

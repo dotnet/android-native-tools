@@ -102,11 +102,9 @@ for os in ${OPERATING_SYSTEMS}; do
 	prepare ${os}
 done
 
-echo "${BINUTILS_VERSION}" > "${PACKAGE_ARTIFACTS_DIR}/binutils-version.txt"
-
 if [ -z "${LLVM_VERSION}" ]; then
 	die Unable to detect LLVM version from the artifacts
 fi
 
-echo Creating package for LLVM version ${LLVM_VERSION} and Binutils version ${BINUTILS_VERSION}
+echo Creating package for LLVM version ${LLVM_VERSION}
 (cd "${PACKAGE_TREE_DIR}"; tar cjf "${ARTIFACTS_DIR}/${DIST_PACKAGE_NAME_BASE}.tar.bz2" artifacts)

@@ -49,7 +49,7 @@ function prepare()
 	fi
 
 	local llvm_version=$(head -1 "${ARTIFACTS_DIR}/llvm-version.txt" | tr -d ' \t')
-	local tag_name="L_${llvm_version}-B_${BINUTILS_VERSION}-${XA_TAG_COMPONENT}"
+	local tag_name="L_${llvm_version}-${XA_TAG_COMPONENT}"
 	echo "${tag_name}" >> "${ARTIFACTS_DIR}/version.txt"
 
 	echo New build for LLVM ${llvm_version} found

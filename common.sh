@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
 XA_UTILS_VERSION="3.0.0"
-BINUTILS_VERSION="2.38"
 MACOS_TARGET="10.15"
 
 if [ -z "${MY_DIR}" ]; then
@@ -71,7 +70,6 @@ ARTIFACTS_DIR="${MY_DIR}/artifacts"
 HOST_ARTIFACTS_DIR="${ARTIFACTS_DIR}/${HOST}"
 LLVM_BINARIES="llvm-mc llvm-strip lld"
 LLVM_PREFIXED_BINARIES="$(make_prefixed_binaries strip) $(make_prefixed_binaries ld)"
-BINUTILS_BINARIES="$(make_prefixed_binaries ld)"
 XA_UTILS_BINARIES="as"
 XA_UTILS_PREFIXED_BINARIES="$(make_prefixed_binaries as)"
 BINARIES="${LLVM_BINARIES} ${LLVM_PREFIXED_BINARIES} ${XA_UTILS_BINARIES} ${XA_UTILS_PREFIXED_BINARIES}"
