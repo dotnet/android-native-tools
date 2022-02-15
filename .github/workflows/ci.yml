@@ -123,7 +123,6 @@ jobs:
 
       - name: Install LLVM MinGW build dependencies
         run: >-
-          sudo rm -rf /Library/Developer/CommandLineTools
           brew update;
           brew upgrade;
           brew install cmake ninja ccache libffi patchutils diffstat xz
@@ -135,7 +134,6 @@ jobs:
         env:
           CC: clang
           CXX: clang
-          MACOS_REDIST: 1
 
       - name: package LLVM artifacts
         run: tar cjf artifacts-macos-llvm-mingw.tar.bz2 artifacts
