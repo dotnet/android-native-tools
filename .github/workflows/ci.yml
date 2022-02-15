@@ -123,15 +123,19 @@ jobs:
 
       - name: Install LLVM MinGW build dependencies
         run: >-
-          sudo xcode-select -p;
-          sudo xcode-select -s /Applications/Xcode_13.2.app;
+          sudo rm -rf /Library/Developer/CommandLineTools
           brew update;
-          brew install cmake ninja ccache texinfo libffi patchutils diffstat xz
-          python@3.10 make autoconf libedit swig sphinx libxml2 jsoncpp pkg-config
-          lcov help2man bzip2 libtool doxygen
+          brew upgrade;
+          brew install cmake ninja ccache libffi patchutils diffstat xz
+          python@3.10 make autoconf swig sphinx jsoncpp pkg-config
+          lcov help2man libtool doxygen
 
       - name: build macOS LLVM MinGW
-        run: CC=clang CXX=clang++ MACOS_REDIST=1 ./build-llvm-mingw.sh
+        run: ./build-llvm-mingw.sh
+        env:
+          CC: clang
+          CXX: clang
+          MACOS_REDIST: 1
 
       - name: package LLVM artifacts
         run: tar cjf artifacts-macos-llvm-mingw.tar.bz2 artifacts
