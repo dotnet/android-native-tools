@@ -3,18 +3,16 @@
 # Binary utilities for Xamarin.Android 
 
 This repository hosts builds of select
-[LLVM](https://llvm.org/), GNU Binutils
-(https://sourceware.org/binutils) and custom utilities for
-Xamarin.Android.
+[LLVM](https://llvm.org/) and custom utilities for Xamarin.Android.
 
 Xamarin.Android uses a handful of utilities from LLVM (`llvm-mc`
-assembler and `llvm-strip/objcopy`), the `gold` linker from GNU
-Binutils and a custom wrapper for `llvm-mc` which implements the GNU
-AS interface required by Mono AOT and Xamarin.Android alike. These
-utilities are used in Xamarin.Android application build process, parts
-of which entail generation of native assembly for `ARM`, `ARM64`,
-`x86` and `x86_64` devices. They are also required when using the AOT
-and Profiled AOT capabilities of Mono and dotnet runtimes.
+assembler, `llvm-strip/objcopy` and the `lld` linker), a custom
+wrapper for `llvm-mc` which implements the GNU AS interface required
+by Mono AOT and Xamarin.Android alike. These utilities are used in
+Xamarin.Android application build process, parts of which entail
+generation of native assembly for `ARM`, `ARM64`, `x86` and `x86_64`
+devices.  They are also required when using the AOT and Profiled AOT
+capabilities of Mono and dotnet runtimes.
 
 # Component versions
 
@@ -23,17 +21,6 @@ versions.  This section explains how to update and where to find them.
 
 Each change to any of the components below requires that the
 Xamarin.Utilities version (see below) is updated as well.
-
-## GNU Binutils
-
-Binutils version is found in the `common.sh` file, in the
-`BINUTILS_VERSION` variable.  Version must correspond to the one used
-in Binutils download archive one whose name and URL are formed as
-follows: 
-
-``` shell
-https://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.xz
-```
 
 ## LLVM
 
@@ -44,8 +31,8 @@ update the submodule to whichever branch/tag is desired.
 ## Xamarin.Android Utilities
 
 This version can be found in `common.sh` in the `XA_UTILS_VERSION`
-variable.  Every time either GNU Binutils or LLVM are updated, this
-version has to be changed as well.
+variable.  Every time LLVM is updated, this version has to be changed
+as well.
 
 # How to build and publish new version of utilities
 

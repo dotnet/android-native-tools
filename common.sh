@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-XA_UTILS_VERSION="3.0.0"
+XA_UTILS_VERSION="4.0.0"
 MACOS_TARGET="10.15"
 
 if [ -z "${MY_DIR}" ]; then
