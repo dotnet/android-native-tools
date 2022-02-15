@@ -123,8 +123,6 @@ jobs:
 
       - name: Install LLVM MinGW build dependencies
         run: >-
-          brew update;
-          brew upgrade;
           brew install cmake ninja ccache libffi patchutils diffstat xz
           python@3.10 make autoconf swig sphinx jsoncpp pkg-config
           lcov help2man libtool doxygen
