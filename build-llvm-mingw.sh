@@ -17,7 +17,28 @@ function prepare_sources()
 	done
 }
 
+#
+# This is equivalent to the build-all.sh script from llvm-mingw, but it allows us
+# to override CMake flags per script
+#
+function build()
+{
+	local PREFIX="${1}"
+
+	CMAKEFLAGS="-DLLDB_ENABLE_PYTHON=OFF" ./build-llvm.sh $PREFIX
+	./build-lldb-mi.sh $PREFIX
+	./install-wrappers.sh $PREFIX
+	./build-mingw-w64.sh $PREFIX
+	./build-mingw-w64-tools.sh $PREFIX
+	./build-compiler-rt.sh $PREFIX
+	./build-libcxx.sh $PREFIX
+	./build-mingw-w64-libraries.sh $PREFIX
+	./build-compiler-rt.sh $PREFIX --build-sanitizers
+	./build-libssp.sh $PREFIX
+	./build-openmp.sh $PREFIX
+}
+
 create_dir "${MY_OUTPUT_DIR}"
 
 (cd "${LLVM_MINGW_DIR}"; prepare_sources)
-(cd "${LLVM_MINGW_DIR}"; ./build-all.sh "${MY_OUTPUT_DIR}")
+(cd "${LLVM_MINGW_DIR}"; build "${MY_OUTPUT_DIR}")

@@ -130,8 +130,7 @@ jobs:
       - name: Install LLVM MinGW build dependencies
         run: >-
           brew install cmake ninja ccache libffi patchutils diffstat xz
-          python@3.10 make autoconf swig sphinx jsoncpp pkg-config
-          lcov help2man libtool doxygen
+          make autoconf jsoncpp pkg-config lcov help2man libtool
 
       - name: build macOS LLVM MinGW
         run: >-
@@ -140,6 +139,7 @@ jobs:
         env:
           CC: clang
           CXX: clang++
+          CMAKEFLAGS: -DLLDB_ENABLE_PYTHON=OFF
           MACOS_REDIST: 1
 
       - name: package LLVM artifacts
