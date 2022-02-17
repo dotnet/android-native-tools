@@ -311,7 +311,7 @@ jobs:
         run: tar xf artifacts-macos-llvm-mingw.tar.bz2
 
       - name: Package Linux and macOS artifacts
-        run: ./package.sh
+        run: ./package-llvm-mingw.sh
 
       - name: upload LLVM MinGW Toolchain
         uses: actions/upload-artifact@v2
