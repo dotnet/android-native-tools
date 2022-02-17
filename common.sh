@@ -60,11 +60,20 @@ function make_prefixed_binaries()
 
 function detect_llvm_version()
 {
+	local llvm_top="${1}"
+
 	sed -n \
 		-e 's/^.*set.*(LLVM_VERSION_MAJOR \(.*\))/\1/p' \
 		-e 's/^.*set.*(LLVM_VERSION_MINOR \(.*\))/\1/p' \
 		-e 's/^.*set.*(LLVM_VERSION_PATCH \(.*\))/\1/p' \
-		external/llvm/llvm/CMakeLists.txt | xargs echo -n | tr ' ' '.'
+		"${llvm_top}/llvm/CMakeLists.txt" | xargs echo -n | tr ' ' '.'
+}
+
+function get_nth_line()
+{
+	local line="${1}"
+
+	echo $(head -n ${line} "${MINGW_VERSION_INFO_PATH}" | tail -n 1)
 }
 
 HOST=$(uname | tr A-Z a-z)
@@ -80,5 +89,11 @@ XA_UTILS_BINARIES="as"
 XA_UTILS_PREFIXED_BINARIES="$(make_prefixed_binaries as)"
 BINARIES="${LLVM_BINARIES} ${LLVM_PREFIXED_BINARIES} ${XA_UTILS_BINARIES} ${XA_UTILS_PREFIXED_BINARIES}"
 OPERATING_SYSTEMS="linux darwin windows"
-DIST_PACKAGE_NAME_BASE="xamarin-android-toolchain"
-LLVM_VERSION="$(detect_llvm_version)"
+XAT_DIST_PACKAGE_NAME_BASE="xamarin-android-toolchain"
+MINGW_DIST_PACKAGE_NAME_BASE="llvm-mingw-toolchain"
+RELEASE_PACKAGE_NAME_BASE="${XAT_DIST_PACKAGE_NAME_BASE}"
+LLVM_VERSION="$(detect_llvm_version "${MY_DIR}/external/llvm")"
+PACKAGE_TREE_DIR="${ARTIFACTS_DIR}/package"
+PACKAGE_ARTIFACTS_DIR="${PACKAGE_TREE_DIR}/artifacts"
+MINGW_BASE_OUTPUT_DIR="${ARTIFACTS_DIR}/llvm-mingw"
+MINGW_VERSION_INFO_PATH="${MINGW_BASE_OUTPUT_DIR}/version.txt"

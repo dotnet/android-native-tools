@@ -4,9 +4,6 @@ MY_DIR="$(cd $(dirname $0);pwd)"
 
 source common.sh
 
-PACKAGE_TREE_DIR="${ARTIFACTS_DIR}/package"
-PACKAGE_ARTIFACTS_DIR="${PACKAGE_TREE_DIR}/artifacts"
-
 LLVM_VERSION=""
 
 function make_windows_wrapper_scripts()
@@ -116,4 +113,4 @@ if [ -z "${LLVM_VERSION}" ]; then
 fi
 
 echo Creating package for LLVM version ${LLVM_VERSION}
-(cd "${PACKAGE_TREE_DIR}"; tar cjf "${ARTIFACTS_DIR}/${DIST_PACKAGE_NAME_BASE}.tar.bz2" artifacts)
+(cd "${PACKAGE_TREE_DIR}"; tar cjf "${ARTIFACTS_DIR}/${XAT_DIST_PACKAGE_NAME_BASE}.tar.bz2" artifacts)
