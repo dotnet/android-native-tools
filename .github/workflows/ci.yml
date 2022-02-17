@@ -40,7 +40,7 @@ jobs:
       - name: upload Linux LLVM MinGW artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: linux
+          name: linux-mingw
           path: artifacts-linux-llvm-mingw.tar.bz2
 
   build_llvm_linux:
@@ -139,7 +139,6 @@ jobs:
         env:
           CC: clang
           CXX: clang++
-          CMAKEFLAGS: -DLLDB_ENABLE_PYTHON=OFF
           MACOS_REDIST: 1
 
       - name: package LLVM artifacts
@@ -148,7 +147,7 @@ jobs:
       - name: upload Linux LLVM MinGW artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: macOS
+          name: macOS-mingw
           path: artifacts-macos-llvm-mingw.tar.bz2
 
   build_llvm_macos:
@@ -243,9 +242,9 @@ jobs:
           name: Windows
           path: artifacts-windows-llvm.7z
 
-  package_binaries:
+  package_xa_toolchain:
     runs-on: ubuntu-20.04
-    needs: [build_llvm_mingw_linux, build_llvm_linux, build_xautils_linux, build_llvm_mingw_macos, build_llvm_macos, build_xautils_macos, build_llvm_windows]
+    needs: [build_llvm_linux, build_xautils_linux, build_llvm_macos, build_xautils_macos, build_llvm_windows]
     steps:
       - uses: actions/checkout@v2
 
@@ -279,10 +278,41 @@ jobs:
           7z x artifacts-windows-llvm.7z
 
       - name: Package Linux, macOS and Windows artifacts
-        run: ./package.sh
+        run: ./package-xa-toolchain.sh
 
       - name: upload Xamarin.Android Toolchain
         uses: actions/upload-artifact@v2
         with:
           name: Xamarin.Android
           path: artifacts/xamarin-android-toolchain.tar.bz2
+
+  package_llvm_mingw:
+    runs-on: ubuntu-20.04
+    needs: [build_llvm_mingw_linux, build_llvm_mingw_macos]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: linux-mingw
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: macOS-mingw
+
+      - name: Unpack Linux artifacts
+        run: tar xf artifacts-linux-llvm-mingw.tar.bz2
+
+      - name: Unpack macOS artifacts
+        run: tar xf artifacts-macos-llvm-mingw.tar.bz2
+
+      - name: Package Linux and macOS artifacts
+        run: ./package.sh
+
+      - name: upload LLVM MinGW Toolchain
+        uses: actions/upload-artifact@v2
+        with:
+          name: llvm-mingw
+          path: artifacts/llvm-mingw-toolchain.tar.bz2
