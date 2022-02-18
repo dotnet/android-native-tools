@@ -17,4 +17,4 @@ echo "Creating LLVM (${LLVM_VER}) + MinGW (${MINGW_VER}) package"
 if [ -f "${PACKAGE_PATH}" ]; then
 	rm "${PACKAGE_PATH}"
 fi
-(cd "${ARTIFACTS_DIR}"; tar cjf "${PACKAGE_PATH}" artifacts/${MINGW_ARTIFACTS_DIR})
+tar cjf "${PACKAGE_PATH}" artifacts/${MINGW_ARTIFACTS_DIR}
