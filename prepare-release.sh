@@ -91,6 +91,7 @@ function prepare()
 	local mingw_version=$(get_nth_line 2 | cut -d ':' -f 2)
 	local tag_name="L1_${xa_llvm_version}-L2_${mingw_llvm_version}-M_${mingw_version}-${XA_TAG_COMPONENT}"
 	echo "${tag_name}" >> "${ARTIFACTS_DIR}/version.txt"
+	echo "X:${XA_TAG_COMPONENT}" >> "${ARTIFACTS_DIR}/llvm-mingw/version.txt"
 
 	echo Xamarin.Android LLVM version: ${xat_llvm_version}
 	echo MinGW LLVM version: ${mingw_llvm_version}

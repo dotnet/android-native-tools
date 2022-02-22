@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-XA_UTILS_VERSION="4.0.0"
+XA_UTILS_VERSION="5.0.0"
 
 #
 # Note: LLVM MinGW requires at least 10.13.4
