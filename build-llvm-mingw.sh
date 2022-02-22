@@ -28,7 +28,7 @@ function build()
 	CMAKEFLAGS="-DLLDB_ENABLE_PYTHON=OFF" ./build-llvm.sh $PREFIX
 	./build-lldb-mi.sh $PREFIX
 	./install-wrappers.sh $PREFIX
-	./build-mingw-w64.sh $PREFIX
+	DEFAULT_MSVCRT=msvcrt ./build-mingw-w64.sh $PREFIX
 	./build-mingw-w64-tools.sh $PREFIX
 	./build-compiler-rt.sh $PREFIX
 	./build-libcxx.sh $PREFIX
