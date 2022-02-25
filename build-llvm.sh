@@ -5,11 +5,12 @@ MY_DIR="$(cd $(dirname $0);pwd)"
 
 source ${MY_DIR}/common.sh
 
-PROJECTS="llvm-mc;llvm-objcopy;lld"
+PROJECTS="llvm-mc;llvm-objcopy;lld;llc"
 TARGETS="X86;ARM;AArch64"
 
 MY_BUILD_DIR="${BUILD_DIR}/llvm"
 HOST_BIN_DIR="${MY_BUILD_DIR}/bin"
+HOST_LIB_DIR="${MY_BUILD_DIR}/lib"
 LLVM_VERSION_FILE="${HOST_ARTIFACTS_DIR}/llvm-version.txt"
 
 SOURCE_DIR="${MY_DIR}/external/llvm/llvm"
@@ -22,7 +23,7 @@ function configure()
 
 	set -x
 	cmake -G Ninja \
-		  -DBUILD_SHARED_LIBS=OFF \
+		  -DBUILD_SHARED_LIBS=ON \
 		  -DCMAKE_BUILD_TYPE=Release \
 		  -DLLVM_BUILD_BENCHMARKS=OFF \
 		  -DLLVM_BUILD_DOCS=OFF \
@@ -66,26 +67,39 @@ function configure_darwin()
               -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64'
 }
 
+function copy_libs()
+{
+	local extension="${1}"
+
+	cp -P -a "${HOST_LIB_DIR}"/lib*.${extension} "${HOST_ARTIFACTS_LIB_DIR}"
+	strip "${HOST_ARTIFACTS_LIB_DIR}/"lib*.${extension}
+}
+
 function build()
 {
 	ninja -j${JOBS} llvm-objcopy
 	ninja -j${JOBS} llvm-mc
 	ninja -j${JOBS} lld
+	ninja -j${JOBS} llc
 
 	mv "${HOST_BIN_DIR}/llvm-objcopy" "${HOST_BIN_DIR}/llvm-strip"
 	grep 'CMAKE_PROJECT_VERSION:' "${MY_BUILD_DIR}/CMakeCache.txt" | cut -d '=' -f 2 > "${LLVM_VERSION_FILE}"
 
 	for b in ${LLVM_BINARIES}; do
-		cp -P -a "${HOST_BIN_DIR}/${b}" "${HOST_ARTIFACTS_DIR}/${b}"
-		strip "${HOST_ARTIFACTS_DIR}/${b}"
-		if [ "${HOST}" == "linux" ]; then
-			compress_binary "${HOST_ARTIFACTS_DIR}/${b}"
-		fi
+		cp -P -a "${HOST_BIN_DIR}/${b}" "${HOST_ARTIFACTS_BIN_DIR}/${b}"
+		strip "${HOST_ARTIFACTS_BIN_DIR}/${b}"
 	done
+
+	if [ "${HOST}" == "linux" ]; then
+		copy_libs "so.*"
+	else
+		copy_libs "dylib"
+	fi
 }
 
 create_empty_dir "${MY_BUILD_DIR}"
-create_dir "${HOST_ARTIFACTS_DIR}"
+create_dir "${HOST_ARTIFACTS_BIN_DIR}"
+create_dir "${HOST_ARTIFACTS_LIB_DIR}"
 
 case "${HOST}" in
 	linux) JOBS=$(nproc) ;;

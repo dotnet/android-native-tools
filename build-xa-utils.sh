@@ -63,20 +63,20 @@ function build()
 	fi
 
 	for b in ${XA_UTILS_BINARIES}; do
-		cp -P -a "${HOST_BIN_DIR}/${b}${exe}" "${HOST_ARTIFACTS_DIR}/${b}${exe}"
+		cp -P -a "${HOST_BIN_DIR}/${b}${exe}" "${HOST_ARTIFACTS_BIN_DIR}/${b}${exe}"
 
 		if [ "${host}" != "windows" ]; then
-			strip "${HOST_ARTIFACTS_DIR}/${b}"
+			strip "${HOST_ARTIFACTS_BIN_DIR}/${b}"
 		fi
 
 		if [ "${host}" == "linux" ]; then
-			compress_binary "${HOST_ARTIFACTS_DIR}/${b}"
+			compress_binary "${HOST_ARTIFACTS_BIN_DIR}/${b}"
 		fi
 	done
 }
 
 create_empty_dir "${MY_BUILD_DIR}"
-create_dir "${HOST_ARTIFACTS_DIR}"
+create_dir "${HOST_ARTIFACTS_BIN_DIR}"
 
 case "${HOST}" in
 	linux) JOBS=$(nproc) ;;
@@ -93,10 +93,11 @@ fi
 
 MY_BUILD_DIR="${MY_BUILD_DIR}-windows"
 HOST_ARTIFACTS_DIR="${ARTIFACTS_DIR}/windows"
+HOST_ARTIFACTS_BIN_DIR="${HOST_ARTIFACTS_DIR}/bin"
 HOST_BIN_DIR="${MY_BUILD_DIR}/bin"
 
 create_empty_dir "${MY_BUILD_DIR}"
-create_dir "${HOST_ARTIFACTS_DIR}"
+create_dir "${HOST_ARTIFACTS_BIN_DIR}"
 
 (cd "${MY_BUILD_DIR}"; configure_windows)
 (cd "${MY_BUILD_DIR}"; build windows)
