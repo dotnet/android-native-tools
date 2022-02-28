@@ -72,7 +72,18 @@ function copy_libs()
 	local extension="${1}"
 
 	cp -P -a "${HOST_LIB_DIR}"/lib*.${extension} "${HOST_ARTIFACTS_LIB_DIR}"
-	strip "${HOST_ARTIFACTS_LIB_DIR}/"lib*.${extension}
+
+	#
+	# Don't strip on macOS, it will end up exiting with this error
+	#
+	#   /Applications/Xcode_13.2.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip: error: symbols referenced by indirect symbol table entries
+        #    that can't be stripped in: /Users/runner/work/xamarin-android-binutils/xamarin-android-binutils/artifacts/darwin/lib/liblldMinGW.dylib (for architecture x86_64)
+	#
+	# Followed by a list of quite a few symbols
+	#
+	if [ "${HOST}" == "linux" ]; then
+		strip "${HOST_ARTIFACTS_LIB_DIR}/"lib*.${extension}
+	fi
 }
 
 function build()
