@@ -101,7 +101,10 @@ function prepare()
 		fi
 	done
 
-	cp -P -a "${artifacts_source_lib}/*" "${artifacts_dest_lib}"
+	if [ -d "${artifacts_source_lib}" ]; then
+		cp -P -a "${artifacts_source_lib}"/* "${artifacts_dest_lib}"
+		chmod 644 "${artifacts_dest_lib}"/*.*
+	fi
 }
 
 for os in ${OPERATING_SYSTEMS}; do
