@@ -17,7 +17,7 @@ if exist %HOST_BUILD_DIR% (rmdir /S /Q %HOST_BUILD_DIR%)
 mkdir %HOST_BUILD_DIR%
 
 if exist %HOST_ARTIFACTS_DIR% (rmdir /S /Q %HOST_ARTIFACTS_DIR%)
-mkdir %HOST_ARTIFACTS_DIR%
+mkdir %HOST_ARTIFACTS_DIR%\bin
 
 cd %HOST_BUILD_DIR%
 

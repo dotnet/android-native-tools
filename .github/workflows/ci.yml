@@ -182,6 +182,8 @@ jobs:
     needs: [build_llvm_linux, build_xautils_linux, build_llvm_macos, build_xautils_macos, build_llvm_windows]
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: Download Linux artifacts
         uses: actions/download-artifact@v2
