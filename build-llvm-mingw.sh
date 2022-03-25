@@ -25,7 +25,7 @@ function build()
 {
 	local PREFIX="${1}"
 
-	CMAKEFLAGS="-DLLDB_ENABLE_PYTHON=OFF" ./build-llvm.sh --disable-lldb $PREFIX
+	CMAKEFLAGS="-DLLDB_ENABLE_PYTHON=OFF" ./build-llvm.sh $PREFIX
 	./build-lldb-mi.sh $PREFIX
 	./install-wrappers.sh $PREFIX
 	DEFAULT_MSVCRT=msvcrt ./build-mingw-w64.sh $PREFIX
