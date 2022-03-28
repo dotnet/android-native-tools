@@ -61,6 +61,9 @@ jobs:
 
       - name: build Linux LLVM
         run: ./build-llvm.sh
+        env:
+          CC: gcc-10
+          CXX: g++-10
 
       - name: package LLVM config and build logs
         if: ${{ always() }}
