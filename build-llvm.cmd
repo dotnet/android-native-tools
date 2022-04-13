@@ -4,7 +4,7 @@ set BUILD_DIR=%MY_DIR%\xa-build
 set ARTIFACTS_DIR=%MY_DIR%\artifacts
 set SOURCE_DIR=%MY_DIR%external\llvm\llvm
 
-set PROJECTS=llvm-mc;llvm-objcopy;lld;llc
+set PROJECTS=lld
 set TARGETS=X86;ARM;AArch64
 set BINARIES=llvm-mc.exe llvm-strip.exe lld.exe llc.exe
 set PDBS=llvm-mc.pdb llvm-strip.pdb lld.pdb llc.pdb

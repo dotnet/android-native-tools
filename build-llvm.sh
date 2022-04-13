@@ -5,7 +5,7 @@ MY_DIR="$(cd $(dirname $0);pwd)"
 
 source ${MY_DIR}/common.sh
 
-PROJECTS="llvm-mc;llvm-objcopy;lld;llc"
+PROJECTS="lld"
 TARGETS="X86;ARM;AArch64"
 
 MY_BUILD_DIR="${BUILD_DIR}/llvm"
