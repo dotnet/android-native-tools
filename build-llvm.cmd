@@ -7,6 +7,7 @@ set SOURCE_DIR=%MY_DIR%external\llvm\llvm
 set PROJECTS=llvm-mc;llvm-objcopy;lld;llc
 set TARGETS=X86;ARM;AArch64
 set BINARIES=llvm-mc.exe llvm-strip.exe lld.exe llc.exe
+set PDBS=llvm-mc.pdb llvm-strip.pdb lld.pdb llc.pdb
 
 set HOST_BUILD_DIR=%BUILD_DIR%\%HOST%
 set HOST_BIN_DIR=%HOST_BUILD_DIR%\Release\bin
@@ -60,8 +61,12 @@ msbuild /p:Configuration=Release /m tools\lld\tools\lld\lld.vcxproj
 msbuild /p:Configuration=Release /m tools\llc\llc.vcxproj
 
 move %HOST_BIN_DIR%\llvm-objcopy.exe %HOST_BIN_DIR%\llvm-strip.exe
+move %HOST_BIN_DIR%\llvm-objcopy.pdb %HOST_BIN_DIR%\llvm-strip.pdb
 for %%b in (%BINARIES%) DO (
   copy %HOST_BIN_DIR%\%%b %HOST_ARTIFACTS_DIR%\bin\%%b
+)
+for %%p in (%PDBS%) DO (
+  copy %HOST_BIN_DIR%\%%p %HOST_ARTIFACTS_DIR%\bin\%%p
 )
 
 cd %MY_DIR%

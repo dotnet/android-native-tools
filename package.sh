@@ -79,7 +79,11 @@ function prepare()
 	fi
 
 	local dest_b=
+	local src_pdb=
+	local dest_pdb=
 	for b in ${BINARIES}; do
+		src_pdb=""
+		dest_pdb=""
 		if [ "${b}" == "lld" ]; then
 			dest_b="ld"
 		else
@@ -87,6 +91,8 @@ function prepare()
 		fi
 
 		if [ -f "${artifacts_source_bin}/${b}${exe}" ]; then
+			src_pdb="${b}.pdb"
+			dest_pdb="${dest_b}.pdb"
 			b="${b}${exe}"
 			dest_b="${dest_b}${exe}"
 		elif [ -f "${artifacts_source_bin}/${b}${cmd}" ]; then
@@ -98,6 +104,10 @@ function prepare()
 			cp -P -a "${artifacts_source_bin}/${b}.upx" "${artifacts_dest_bin}/${dest_b}"
 		else
 			cp -P -a "${artifacts_source_bin}/${b}" "${artifacts_dest_bin}/${dest_b}"
+		fi
+
+		if [ -n "${src_pdb}" -a -f "${artifacts_source_bin}/${src_pdb}" ]; then
+			cp -P -a "${artifacts_source_bin}/${src_pdb}" "${artifacts_dest_bin}/${dest_pdb}"
 		fi
 	done
 
