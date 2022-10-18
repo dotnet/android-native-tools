@@ -14,7 +14,7 @@ jobs:
   build_llvm_linux:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
@@ -39,7 +39,7 @@ jobs:
 
       - name: upload LLVM config and build logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-logs
           path: build-logs-linux-llvm.zip
@@ -48,7 +48,7 @@ jobs:
         run: tar cjf artifacts-linux-llvm.tar.bz2 artifacts
 
       - name: upload Linux LLVM artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: linux
           path: artifacts-linux-llvm.tar.bz2
@@ -56,7 +56,7 @@ jobs:
   build_xautils_linux:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
@@ -77,7 +77,7 @@ jobs:
 
       - name: upload Xamarin.Android Utilities config and build logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-logs
           path: build-logs-linux-xa-utils.zip
@@ -86,7 +86,7 @@ jobs:
         run: tar cjf artifacts-linux-xa-utils.tar.bz2 artifacts
 
       - name: upload Linux and Windows Xamarin.Android Utilities artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: linux
           path: artifacts-linux-xa-utils.tar.bz2
@@ -94,7 +94,7 @@ jobs:
   build_llvm_macos:
     runs-on: macos-11
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
@@ -112,7 +112,7 @@ jobs:
 
       - name: upload LLVM config and build logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-logs
           path: build-logs-macos-llvm.zip
@@ -121,7 +121,7 @@ jobs:
         run: tar cjf artifacts-macos-llvm.tar.bz2 artifacts
 
       - name: upload macOS LLVM artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: macOS
           path: artifacts-macos-llvm.tar.bz2
@@ -129,7 +129,7 @@ jobs:
   build_xautils_macos:
     runs-on: macos-11
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
@@ -147,7 +147,7 @@ jobs:
 
       - name: upload Xamarin.Android Utilities config and build logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-logs
           path: build-logs-macos-xa-utils.zip
@@ -156,7 +156,7 @@ jobs:
         run: tar cjf artifacts-macos-xa-utils.tar.bz2 artifacts
 
       - name: upload macOS Xamarin.Android Utilities artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: macOS
           path: artifacts-macos-xa-utils.tar.bz2
@@ -164,7 +164,7 @@ jobs:
   build_llvm_windows:
     runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
@@ -188,7 +188,7 @@ jobs:
         run: 7z a artifacts-windows-llvm.7z artifacts
 
       - name: upload Windows LLVM artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Windows
           path: artifacts-windows-llvm.7z
@@ -197,22 +197,22 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [build_llvm_linux, build_xautils_linux, build_llvm_macos, build_xautils_macos, build_llvm_windows]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: linux
 
       - name: Download macOS artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: macOS
 
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: Windows
 
@@ -234,7 +234,7 @@ jobs:
         run: ./package.sh
 
       - name: upload Xamarin.Android Toolchain
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Xamarin.Android
           path: artifacts/xamarin-android-toolchain.tar.bz2
