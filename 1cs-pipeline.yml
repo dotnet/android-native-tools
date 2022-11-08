@@ -29,9 +29,9 @@ jobs:
       CXX: g++-10
     displayName: Build LLVM
 
-- job: build_xautils_linux:
-    displayName: build Linux and Windows Xamarin.Android Utilities
-    timeoutInMinutes: 180
+- job: build_xautils_linux
+  displayName: build Linux and Windows Xamarin.Android Utilities
+  timeoutInMinutes: 180
   pool:
     vmImage: ubuntu-latest
   steps:
