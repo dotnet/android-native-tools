@@ -38,6 +38,11 @@ jobs:
   - checkout: self
     submodules: recursive
 
+  - script: |
+      sudo apt-get update
+      sudo apt-get -f -u install mingw-w64 cmake ninja-build xz-utils zlib1g-dev libz-mingw-w64-dev
+    displayName: Install Xamarin.Android Utilities build dependencies
+
   - script: ./build-xa-utils.sh
     env:
       CC: gcc-10
