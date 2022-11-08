@@ -1,0 +1,46 @@
+trigger:
+- main
+- codeql-pipeline #TODO REMOVE
+
+variables:
+- name: BUILD_DIR
+  value: xa-build
+- name: Codeql.Enabled
+  value: true
+
+jobs:
+- job: build_linux
+  displayName: Build Linux
+  timeoutInMinutes: 180
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    submodules: recursive
+
+  - script: echo hello world
+
+
+- job: build_macos
+  displayName: Build macOS
+  timeoutInMinutes: 180
+  pool:
+    vmImage: macOS-latest
+  steps:
+  - checkout: self
+    submodules: recursive
+
+  - script: echo hello world
+
+
+- job: build_windows
+  displayName: Build Windows
+  timeoutInMinutes: 180
+  pool:
+    vmImage: windows-latest
+  steps:
+  - checkout: self
+    submodules: recursive
+
+  - script: echo hello world
+
