@@ -162,7 +162,7 @@ jobs:
           path: artifacts-macos-xa-utils.tar.bz2
 
   build_llvm_windows:
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
         with:

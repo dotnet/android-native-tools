@@ -22,7 +22,10 @@ mkdir %HOST_ARTIFACTS_DIR%\bin
 
 cd %HOST_BUILD_DIR%
 
-cmake -G "Visual Studio 16 2019" -A x64 ^
+cmake --version
+cmake --help
+
+cmake -G "Visual Studio 17 2022" -A x64 ^
  -DBUILD_SHARED_LIBS=OFF ^
  -DCMAKE_BUILD_TYPE=Release ^
  -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded" ^
