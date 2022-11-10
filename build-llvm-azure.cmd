@@ -1,6 +1,8 @@
 FOR /F "tokens=1 delims=" %%F IN ('.\scripts\vswhere.cmd') DO SET result=%%F
-2>NUL CALL "%result%\Common7\Tools\VsDevCmd.bat"
+CALL "%result%\Common7\Tools\VsDevCmd.bat"
 IF ERRORLEVEL 1 CALL:FAILED_CASE
+
+echo "VS path: %result%"
 
 CALL ".\build-llvm.cmd"
 IF ERRORLEVEL 1 CALL:FAILED_CASE
