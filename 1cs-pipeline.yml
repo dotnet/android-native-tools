@@ -92,5 +92,5 @@ jobs:
   - checkout: self
     submodules: recursive
 
-  - script: echo hello world
-
+  - script: ./build-llvm-azure.cmd
+    displayName: Build Windows LLVM
