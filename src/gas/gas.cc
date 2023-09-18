@@ -247,7 +247,8 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 				// Ignore the arch hack parameter
 				const char *ret = strstr (optarg, Constants::arch_hack_param);
 				if (ret == nullptr || ret != optarg) {
-					input_files.emplace_back (optarg);
+					// char8_t* cast treats path string as utf8
+					input_files.emplace_back ((char8_t*)optarg);
 				}
 			}
 			break;
@@ -267,7 +268,7 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 				break;
 
 			case OPTION_O:
-				_gas_output_file = optarg;
+				_gas_output_file = (char8_t*)optarg;
 				break;
 
 			case OPTION_MFPU:

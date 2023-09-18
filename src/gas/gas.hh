@@ -165,6 +165,8 @@ namespace xamarin::android::gas
 		~Gas ()
 		{}
 
+		void get_command_line (int &argc, char **&argv);
+
 		int run (int argc, char **argv);
 
 		const std::string& program_name () const noexcept
