@@ -248,7 +248,7 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 				const char *ret = strstr (optarg, Constants::arch_hack_param);
 				if (ret == nullptr || ret != optarg) {
 					// char8_t* cast treats path string as utf8
-					input_files.emplace_back ((char8_t*)optarg);
+					input_files.emplace_back (reinterpret_cast<char8_t*>(optarg));
 				}
 			}
 			break;
@@ -268,7 +268,7 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 				break;
 
 			case OPTION_O:
-				_gas_output_file = (char8_t*)optarg;
+				_gas_output_file = reinterpret_cast<char8_t*>(optarg);
 				break;
 
 			case OPTION_MFPU:
