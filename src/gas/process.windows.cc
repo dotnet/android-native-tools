@@ -58,14 +58,22 @@ int Process::run (bool print_command_line)
 		args.append (escape_argument (a));
 	}
 
+	int size =  MultiByteToWideChar (CP_UTF8, 0, args.c_str (), -1, NULL , 0);
+	wchar_t* wargs = new wchar_t [size];
+	MultiByteToWideChar (CP_UTF8, 0, args.c_str (), -1, wargs, size);
+
+	size =  MultiByteToWideChar (CP_UTF8, 0, binary.c_str (), -1, NULL , 0);
+	wchar_t* wbinary = new wchar_t [size];
+	MultiByteToWideChar (CP_UTF8, 0, binary.c_str (), -1, wbinary, size);
+
 	PROCESS_INFORMATION pi {};
-	STARTUPINFO si         {};
+	STARTUPINFOW si {};
 	si.cb = sizeof(si);
 
 	DWORD creation_flags = CREATE_UNICODE_ENVIRONMENT;
-	BOOL success = CreateProcess (
-		binary.c_str (),
-		const_cast<LPSTR>(args.c_str ()),
+	BOOL success = CreateProcessW (
+		wbinary,
+		wargs,
 		nullptr, // process security attributes
 		nullptr, // primary thread security attributes
 		TRUE, // inherit handles
@@ -75,6 +83,9 @@ int Process::run (bool print_command_line)
 		&si,
 		&pi
 	);
+
+	delete[] wargs;
+	delete[] wbinary;
 
 	if (!success) {
 		return Constants::wrapper_exec_failed_error_code;

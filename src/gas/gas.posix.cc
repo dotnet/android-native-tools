@@ -6,6 +6,10 @@
 
 using namespace xamarin::android::gas;
 
+void Gas::get_command_line ([[maybe_unused]] int &argc, [[maybe_unused]] char **&argv)
+{
+}
+
 void Gas::determine_program_dir ([[maybe_unused]] int argc, char **argv)
 {
 	fs::path program_path { argv[0] };
