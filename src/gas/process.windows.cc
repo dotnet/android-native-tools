@@ -84,8 +84,8 @@ int Process::run (bool print_command_line)
 		&pi
 	);
 
-	delete wargs;
-	delete wbinary;
+	delete[] wargs;
+	delete[] wbinary;
 
 	if (!success) {
 		return Constants::wrapper_exec_failed_error_code;
