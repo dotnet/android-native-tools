@@ -53,14 +53,14 @@ jobs:
   - script: |
       find $(BUILD_DIR) -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' -o -name 'CMake*.log' -exec cp {} $(Build.StagingDirectory) \;
     displayName: Copy logs
-    condition: always
+    condition: always()
 
   - task: PublishPipelineArtifact@1
     displayName: Upload logs
     inputs:
       artifactName: build-logs-linux
       targetPath: $(Build.StagingDirectory)
-    condition: always
+    condition: always()
 
   - task: PublishPipelineArtifact@1
     displayName: Upload artifacts
@@ -84,7 +84,7 @@ jobs:
       brew install cmake ninja ccache
     displayName: Install LLVM build dependencies
 
-  - script: brew install make xz 
+  - script: brew install make xz
     displayName: Install Xamarin.Android Utilities build dependencies
 
   - script: bash ./build-llvm.sh
@@ -96,14 +96,14 @@ jobs:
   - script: |
       find $(BUILD_DIR) -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' -o -name 'CMake*.log' -exec cp {} $(Build.StagingDirectory) \;
     displayName: Copy logs
-    condition: always
+    condition: always()
 
   - task: PublishPipelineArtifact@1
     displayName: Upload logs
     inputs:
       artifactName: build-logs-macos
       targetPath: $(Build.StagingDirectory)
-    condition: always
+    condition: always()
 
   - task: PublishPipelineArtifact@1
     displayName: Upload artifacts
