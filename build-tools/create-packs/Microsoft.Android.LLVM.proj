@@ -1,0 +1,44 @@
+<!--
+***********************************************************************************************
+Microsoft.Android.LLVM.proj
+
+This project file is used to create the Microsoft.Android.LLVM.$(HostOS) NuGets, which contain
+the LLVM toolchain and utilities for the host OS.
+***********************************************************************************************
+-->
+<Project Sdk="Microsoft.Build.NoTargets">
+
+  <PropertyGroup>
+    <PackageId>Microsoft.Android.LLVM.$(HostOS)$(SymbolSuffix)</PackageId>
+    <Description>LLVM toolchain for the .NET Android SDK.</Description>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageType>DotnetPlatform</PackageType>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- Remove the `<group targetFramework=".NETStandard2.0" />` entry from the .nuspec. -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <!-- Ignore TargetFramework reference group related warnings, these are not functional NuGets. -->
+    <NoWarn>$(NoWarn);NU5128;NU5131</NoWarn>
+    <OutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\package\nuget-unsigned\</OutputPath>
+    <ContentSourcePath>$(MSBuildThisFileDirectory)..\..\artifacts\package\artifacts\$(HostOS)\</ContentSourcePath>
+    <PackageVersion Condition=" '$(PackageVersion)' == '' ">0.0.1</PackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <BeforePack>
+      _GetPackContent;
+      $(BeforePack);
+    </BeforePack>
+  </PropertyGroup>
+
+  <Target Name="_GetPackContent">
+    <ItemGroup>
+      <_BinFiles Include="$(ContentSourcePath)\bin\**" PackagePath="bin" />
+      <_PackageFiles Include="@(_BinFiles)" PackagePath="bin" Condition=" '%(_BinFiles.Extension)' != '.pdb' and '$(SymbolSuffix)' == '' " />
+      <_PackageFiles Include="@(_BinFiles)" PackagePath="bin" Condition=" '%(_BinFiles.Extension)' == '.pdb' and '$(SymbolSuffix)' != '' " />
+      <_PackageFiles Include="$(ContentSourcePath)\lib\**" PackagePath="lib" />
+    </ItemGroup>
+  </Target>
+
+</Project>

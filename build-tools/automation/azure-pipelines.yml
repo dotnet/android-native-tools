@@ -1,6 +1,10 @@
 trigger:
 - main
 - release/*
+- dev/*
+
+pr:
+- none
 
 resources:
   repositories:
@@ -16,118 +20,160 @@ variables:
 - name: Codeql.Enabled
   value: true
 
-jobs:
-- job: build_linux
-  displayName: Build Linux
-  timeoutInMinutes: 180
-  pool:
-    name: android-devdiv-ubuntu-vmss
-  steps:
-  - checkout: self
-    submodules: recursive
+stages:
+- stage: build
+  displayName: Build
+  jobs:
+  - job: build_linux
+    displayName: Build Linux
+    timeoutInMinutes: 180
+    pool:
+      name: android-devdiv-ubuntu-vmss
+    steps:
+    - checkout: self
+      submodules: recursive
 
-  - script: >-
-      sudo apt-get update;
-      sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
-      lsb-release patchutils diffstat xz-utils python3-dev libedit-dev libncurses5-dev swig
-      python3-six python3-sphinx binutils-dev libxml2-dev libjsoncpp-dev pkg-config lcov
-      procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
-      python3-setuptools libz3-dev ccache
-    displayName: Install LLVM build dependencies
-    
-  - script: sudo apt-get -f -u install mingw-w64 libz-mingw-w64-dev
-    displayName: Install Xamarin.Android Utilities build dependencies
+    - script: >-
+        sudo apt-get update;
+        sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
+        lsb-release patchutils diffstat xz-utils python3-dev libedit-dev libncurses5-dev swig
+        python3-six python3-sphinx binutils-dev libxml2-dev libjsoncpp-dev pkg-config lcov
+        procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
+        python3-setuptools libz3-dev ccache
+      displayName: Install LLVM build dependencies
 
-  - script: ./build-llvm.sh
-    env:
-      CC: gcc-10
-      CXX: g++-10
-    displayName: Build LLVM
+    - script: sudo apt-get -f -u install mingw-w64 libz-mingw-w64-dev
+      displayName: Install Xamarin.Android Utilities build dependencies
 
-  - script: ./build-xa-utils.sh
-    env:
-      CC: gcc-10
-      CXX: g++-10
-    displayName: Build utilities
+    - script: ./build-llvm.sh
+      env:
+        CC: gcc-10
+        CXX: g++-10
+      displayName: Build LLVM
 
-  - script: |
-      find $(BUILD_DIR) -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' -o -name 'CMake*.log' -exec cp {} $(Build.StagingDirectory) \;
-    displayName: Copy logs
-    condition: always()
+    - script: ./build-xa-utils.sh
+      env:
+        CC: gcc-10
+        CXX: g++-10
+      displayName: Build utilities
 
-  - task: PublishPipelineArtifact@1
-    displayName: Upload logs
-    inputs:
-      artifactName: build-logs-linux
-      targetPath: $(Build.StagingDirectory)
-    condition: always()
+    - script: |
+        rsync -avm --include 'config.*' --include '*.log' --include '*.txt' --include='*/' --exclude='*' $(BUILD_DIR) $(Build.StagingDirectory)
+      displayName: Copy logs
+      condition: always()
 
-  - task: PublishPipelineArtifact@1
-    displayName: Upload artifacts
-    inputs:
-      artifactName: artifacts-linux
-      targetPath: artifacts
+    - task: PublishPipelineArtifact@1
+      displayName: Upload logs
+      inputs:
+        artifactName: build-logs-linux
+        targetPath: $(Build.StagingDirectory)
+      condition: always()
 
-
-- job: build_macos
-  displayName: Build macOS
-  timeoutInMinutes: 180
-  pool:
-    name: Azure Pipelines
-    vmImage: internal-macos12
-  steps:
-  - checkout: self
-    submodules: recursive
-
-  - script: |
-      brew update
-      brew install cmake ninja ccache
-    displayName: Install LLVM build dependencies
-
-  - script: brew install make xz
-    displayName: Install Xamarin.Android Utilities build dependencies
-
-  - script: bash ./build-llvm.sh
-    displayName: build LLVM
-
-  - script: bash ./build-xa-utils.sh
-    displayName: Build utilities
-
-  - script: |
-      find $(BUILD_DIR) -name 'config.*' -o -name '*.log' -o -name 'CMakeCache.txt' -o -name 'CMake*.log' -exec cp {} $(Build.StagingDirectory) \;
-    displayName: Copy logs
-    condition: always()
-
-  - task: PublishPipelineArtifact@1
-    displayName: Upload logs
-    inputs:
-      artifactName: build-logs-macos
-      targetPath: $(Build.StagingDirectory)
-    condition: always()
-
-  - task: PublishPipelineArtifact@1
-    displayName: Upload artifacts
-    inputs:
-      artifactName: artifacts-macos
-      targetPath: artifacts
+    - task: PublishPipelineArtifact@1
+      displayName: Upload artifacts
+      inputs:
+        artifactName: artifacts-linux
+        targetPath: artifacts
 
 
-- job: build_windows
-  displayName: Build Windows
-  timeoutInMinutes: 180
-  pool:
-    name: AzurePipelines-EO
-    demands:
-    - ImageOverride -equals AzurePipelinesWindows2022compliant
-  steps:
-  - checkout: self
-    submodules: recursive
+  - job: build_macos
+    displayName: Build macOS
+    timeoutInMinutes: 180
+    pool:
+      name: Azure Pipelines
+      vmImage: internal-macos12
+    steps:
+    - checkout: self
+      submodules: recursive
 
-  - script: ./build-llvm-azure.cmd
-    displayName: Build Windows LLVM
+    - script: |
+        brew update
+        brew install cmake ninja ccache
+      displayName: Install LLVM build dependencies
 
-  - task: PublishPipelineArtifact@1
-    displayName: Upload artifacts
-    inputs:
-      artifactName: artifacts-windows
-      targetPath: artifacts
+    - script: brew install make xz
+      displayName: Install Xamarin.Android Utilities build dependencies
+
+    - script: bash ./build-llvm.sh
+      displayName: build LLVM
+
+    - script: bash ./build-xa-utils.sh
+      displayName: Build utilities
+
+    - script: |
+        rsync -avm --include 'config.*' --include '*.log' --include '*.txt' --include='*/' --exclude='*' $(BUILD_DIR) $(Build.StagingDirectory)
+      displayName: Copy logs
+      condition: always()
+
+    - task: PublishPipelineArtifact@1
+      displayName: Upload logs
+      inputs:
+        artifactName: build-logs-macos
+        targetPath: $(Build.StagingDirectory)
+      condition: always()
+
+    - task: PublishPipelineArtifact@1
+      displayName: Upload artifacts
+      inputs:
+        artifactName: artifacts-macos
+        targetPath: artifacts
+
+
+  - job: build_windows
+    displayName: Build Windows
+    timeoutInMinutes: 180
+    pool:
+      name: AzurePipelines-EO
+      demands:
+      - ImageOverride -equals AzurePipelinesWindows2022compliant
+    steps:
+    - checkout: self
+      submodules: recursive
+
+    - script: ./build-llvm-azure.cmd
+      displayName: Build Windows LLVM
+
+    - task: PublishPipelineArtifact@1
+      displayName: Upload artifacts
+      inputs:
+        artifactName: artifacts-windows
+        targetPath: artifacts
+
+
+- stage: package
+  displayName: Package
+  dependsOn: build
+  jobs:
+  - job: pack_nupkgs
+    displayName: Package NUPKGs
+    timeoutInMinutes: 180
+    pool:
+      name: Azure Pipelines
+      vmImage: internal-macos12
+    steps:
+    - checkout: self
+      submodules: recursive
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: artifacts-linux
+        downloadPath: artifacts
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: artifacts-macos
+        downloadPath: artifacts
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: artifacts-windows
+        downloadPath: artifacts
+
+    - script: ./package.sh
+      displayName: Package artifacts
+
+    - task: PublishPipelineArtifact@1
+      displayName: Upload NUPKGs
+      inputs:
+        artifactName: nuget-unsigned
+        targetPath: artifacts/
