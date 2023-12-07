@@ -22,11 +22,11 @@ variables:
 
 stages:
 - stage: build
-  displayName: Build
+  displayName: Build Stage
   jobs:
   - job: build_linux
     displayName: Build Linux
-    timeoutInMinutes: 180
+    timeoutInMinutes: 240
     pool:
       name: android-devdiv-ubuntu-vmss
     steps:
@@ -78,7 +78,7 @@ stages:
 
   - job: build_macos
     displayName: Build macOS
-    timeoutInMinutes: 180
+    timeoutInMinutes: 240
     pool:
       name: Azure Pipelines
       vmImage: internal-macos12
@@ -121,7 +121,7 @@ stages:
 
   - job: build_windows
     displayName: Build Windows
-    timeoutInMinutes: 180
+    timeoutInMinutes: 300
     pool:
       name: AzurePipelines-EO
       demands:
@@ -141,11 +141,11 @@ stages:
 
 
 - stage: package
-  displayName: Package
+  displayName: Package Stage
   dependsOn: build
   jobs:
   - job: pack_nupkgs
-    displayName: Package NUPKGs
+    displayName: Pack NUPKGs
     timeoutInMinutes: 180
     pool:
       name: Azure Pipelines
