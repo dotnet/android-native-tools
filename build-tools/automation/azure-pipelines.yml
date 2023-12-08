@@ -8,6 +8,11 @@ pr:
 
 resources:
   repositories:
+  - repository: yaml-templates
+    type: github
+    name: xamarin/yaml-templates
+    ref: refs/heads/main
+    endpoint: xamarin
   - repository: xa-yaml
     type: github
     name: xamarin/xamarin-android
