@@ -1,0 +1,31 @@
+<Project>
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudioEng.MicroBuild.Core" Version="1.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Target Name="AddBinUtilsFilesUnixSign" >
+    <ItemGroup>
+      <FilesToSign Include="@(_PackageFiles)">
+        <Authenticode>MacDeveloperVNext</Authenticode>
+        <Zip>true</Zip>
+      </FilesToSign>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="AddBinUtilsFilesUnixSignAndHarden" >
+    <ItemGroup>
+      <FilesToSign Include="@(_PackageFiles)">
+        <Authenticode>MacDeveloperVNextHarden</Authenticode>
+        <Zip>true</Zip>
+      </FilesToSign>
+    </ItemGroup>
+  </Target>
+
+</Project>

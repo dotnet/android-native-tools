@@ -20,6 +20,8 @@ the LLVM toolchain and utilities for the host OS.
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <!-- Ignore TargetFramework reference group related warnings, these are not functional NuGets. -->
     <NoWarn>$(NoWarn);NU5128;NU5131</NoWarn>
+    <!-- NOTE: Any file you want to sign must be under either $(OutDir) or $(IntermediateOutputPath). -->
+    <IntermediateOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\</IntermediateOutputPath>
     <OutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\package\nuget-unsigned\</OutputPath>
     <ContentSourcePath>$(MSBuildThisFileDirectory)..\..\artifacts\package\artifacts\$(HostOS)\</ContentSourcePath>
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">0.0.1</PackageVersion>
@@ -40,5 +42,7 @@ the LLVM toolchain and utilities for the host OS.
       <_PackageFiles Include="$(ContentSourcePath)\lib\**" PackagePath="lib" />
     </ItemGroup>
   </Target>
+
+  <Import Project="signing.targets" />
 
 </Project>

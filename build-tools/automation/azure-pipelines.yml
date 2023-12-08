@@ -176,4 +176,4 @@ stages:
       displayName: Upload NUPKGs
       inputs:
         artifactName: nuget-unsigned
-        targetPath: artifacts/
+        targetPath: artifacts/package/nuget-unsigned
