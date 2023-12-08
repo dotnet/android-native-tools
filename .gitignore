@@ -41,3 +41,15 @@
 .ccls-cache
 .projectile
 compile_commands.json
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.DS_Store
+
+# Build results
+[Bb]in/
+[Oo]bj/

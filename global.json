@@ -1,0 +1,8 @@
+{
+  "sdk": {
+    "allowPrerelease": true
+  },
+  "msbuild-sdks": {
+    "Microsoft.Build.NoTargets": "2.0.1"
+  }
+}
