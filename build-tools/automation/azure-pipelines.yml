@@ -185,7 +185,8 @@ stages:
 
     - task: CmdLine@2
       inputs:
-        script: package.sh
+        script: ./package.sh
+        workingDirectory: $(Build.SourcesDirectory)
       displayName: Package artifacts
 
     - task: DotNetCoreCLI@2
