@@ -189,7 +189,14 @@ stages:
       displayName: Sign and zip files
       inputs:
         projects: build-tools/automation/sign.proj
-        arguments: -p:SignType=$(MicroBuildSignType)
+        arguments: -p:SignType=$(MicroBuildSignType) -bl:$(Build.StagingDirectory)\sign.binlog
+
+    - task: PublishPipelineArtifact@1
+      displayName: Upload artifact
+      inputs:
+        artifactName: sign.binlog
+        targetPath: $(Build.StagingDirectory)\sign.binlog
+      condition: always()
 
     - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
       parameters:
