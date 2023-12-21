@@ -26,16 +26,22 @@
       </FilesToSign>
       <FilesToSign Include="$(OutDir)\windows\**\*.exe">
         <Authenticode>Microsoft400</Authenticode>
-        <Zip>true</Zip>
       </FilesToSign>
     </ItemGroup>
   </Target>
 
   <Target Name="_ZipOutput"
       AfterTargets="SignFiles" >
+    <ReadLinesFromFile File="$(OutDir)\darwin\llvm-version.txt" >
+      <Output TaskParameter="Lines" ItemName="_VersionLines"/>
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <_LlvmVersion>@(_VersionLines, ' ')</_LlvmVersion>
+    </PropertyGroup>
     <ZipDirectory
         SourceDirectory="$(OutDir)\package\artifacts"
-        DestinationFile="$(OutDir)\android-llvm-toolchain.zip" />
+        DestinationFile="$(OutDir)android-llvm-toolchain-$(_LlvmVersion).zip" >
+    </ZipDirectory>
   </Target>
 
 </Project>

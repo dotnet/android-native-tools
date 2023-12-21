@@ -126,4 +126,3 @@ if [ -z "${LLVM_VERSION}" ]; then
 fi
 
 echo Creating package for LLVM version ${LLVM_VERSION}
-(cd "${PACKAGE_TREE_DIR}"; tar cjf "${ARTIFACTS_DIR}/${DIST_PACKAGE_NAME_BASE}.tar.bz2" artifacts)

@@ -153,9 +153,10 @@ stages:
   jobs:
   - job: pack_sign
     displayName: Sign and Zip
-    timeoutInMinutes: 180
+    timeoutInMinutes: 240
     pool:
-      name: VSEngSS-MicroBuild2022-1ES
+      name: Azure Pipelines
+      vmImage: internal-macos12
     variables:
     - name: MicroBuildSignType
       value: Real
@@ -182,28 +183,37 @@ stages:
         artifactName: artifacts-windows
         downloadPath: artifacts
 
-    - script: pwsh ./prepare-package.ps1
+    - task: CmdLine@2
+      inputs:
+        script: package.sh
       displayName: Package artifacts
 
     - task: DotNetCoreCLI@2
       displayName: Sign and zip files
       inputs:
         projects: build-tools/automation/sign.proj
-        arguments: -p:SignType=$(MicroBuildSignType) -bl:$(Build.StagingDirectory)\sign.binlog
+        arguments: >-
+          -p:SignType=$(MicroBuildSignType)
+          -bl:$(Build.StagingDirectory)/sign-macos.binlog
 
     - task: PublishPipelineArtifact@1
       displayName: Upload artifact
       inputs:
-        artifactName: sign.binlog
-        targetPath: $(Build.StagingDirectory)\sign.binlog
+        artifactName: sign-macos-binlog-$(System.JobAttempt)
+        targetPath: $(Build.StagingDirectory)/sign-macos.binlog
       condition: always()
 
     - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
       parameters:
         condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
 
+    - script: >
+        mkdir -p $(Build.StagingDirectory)/toolchain &&
+        ln artifacts/android-llvm-toolchain*.zip $(Build.StagingDirectory)/toolchain
+      displayName: copy linux sdk
+
     - task: PublishPipelineArtifact@1
       displayName: Upload artifact
       inputs:
         artifactName: android-llvm-toolchain-signed
-        targetPath: artifacts/android-llvm-toolchain.zip
+        targetPath: $(Build.StagingDirectory)/toolchain
