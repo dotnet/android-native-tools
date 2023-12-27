@@ -230,10 +230,6 @@ stages:
     - checkout: self
       submodules: recursive
 
-    - template: build-tools/automation/yaml-templates/install-microbuild-tooling.yaml@xa-yaml
-      parameters:
-        condition: and(succeeded(), eq(variables['MicroBuildSignType'], 'Real'))
-
     - task: DownloadPipelineArtifact@2
       inputs:
         artifactName: android-llvm-toolchain-signed
@@ -245,7 +241,3 @@ stages:
         TargetFolders: $(Build.SourcesDirectory)\artifacts
         ExcludeSNVerify: true
       condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
-
-    - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
-      parameters:
-        condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))

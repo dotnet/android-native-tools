@@ -16,15 +16,15 @@
       BeforeTargets="SignFiles"
       AfterTargets="AfterBuild" >
     <ItemGroup>
-      <FilesToSign Include="$(OutDir)\darwin\bin\**">
+      <FilesToSign Include="$(OutDir)package\artifacts\darwin\bin\**">
         <Authenticode>MacDeveloperVNextHarden</Authenticode>
         <Zip>true</Zip>
       </FilesToSign>
-      <FilesToSign Include="$(OutDir)\darwin\lib\**">
+      <FilesToSign Include="$(OutDir)package\artifacts\darwin\lib\**">
         <Authenticode>MacDeveloperVNext</Authenticode>
         <Zip>true</Zip>
       </FilesToSign>
-      <FilesToSign Include="$(OutDir)\windows\**\*.exe">
+      <FilesToSign Include="$(OutDir)package\artifacts\windows\**\*.exe">
         <Authenticode>Microsoft400</Authenticode>
       </FilesToSign>
     </ItemGroup>
