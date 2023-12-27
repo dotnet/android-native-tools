@@ -150,6 +150,9 @@ stages:
 - stage: package
   displayName: Package Stage
   dependsOn: build
+  variables:
+  - name: MicroBuildSignType
+    value: Real
   jobs:
   - job: pack_sign
     displayName: Sign and Zip
@@ -157,9 +160,6 @@ stages:
     pool:
       name: Azure Pipelines
       vmImage: internal-macos12
-    variables:
-    - name: MicroBuildSignType
-      value: Real
     steps:
     - checkout: self
       submodules: recursive
@@ -204,13 +204,6 @@ stages:
         targetPath: $(Build.StagingDirectory)/sign-macos.binlog
       condition: always()
 
-    - task: MicroBuildCodesignVerify@3
-      displayName: verify signed content
-      inputs:
-        TargetFolders: $(Build.SourcesDirectory)/artifacts
-        ExcludeSNVerify: true
-      condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
-
     - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
       parameters:
         condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
@@ -225,3 +218,34 @@ stages:
       inputs:
         artifactName: android-llvm-toolchain-signed
         targetPath: $(Build.StagingDirectory)/toolchain
+
+
+  - job: sign_verify
+    displayName: Verify Signing
+    dependsOn: pack_sign
+    timeoutInMinutes: 240
+    pool:
+      name: VSEngSS-MicroBuild2022-1ES
+    steps:
+    - checkout: self
+      submodules: recursive
+
+    - template: build-tools/automation/yaml-templates/install-microbuild-tooling.yaml@xa-yaml
+      parameters:
+        condition: and(succeeded(), eq(variables['MicroBuildSignType'], 'Real'))
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: android-llvm-toolchain-signed
+        downloadPath: $(Build.SourcesDirectory)\artifacts
+
+    - task: MicroBuildCodesignVerify@3
+      displayName: verify signed content
+      inputs:
+        TargetFolders: $(Build.SourcesDirectory)\artifacts
+        ExcludeSNVerify: true
+      condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
+
+    - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
+      parameters:
+        condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
