@@ -22,7 +22,7 @@ the LLVM toolchain and utilities for the host OS.
     <NoWarn>$(NoWarn);NU5128;NU5131</NoWarn>
     <!-- NOTE: Any file you want to sign must be under either $(OutDir) or $(IntermediateOutputPath). -->
     <IntermediateOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\</IntermediateOutputPath>
-    <OutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\package\nuget-unsigned\</OutputPath>
+    <OutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\package\nugets\</OutputPath>
     <ContentSourcePath>$(MSBuildThisFileDirectory)..\..\artifacts\package\artifacts\$(HostOS)\</ContentSourcePath>
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">0.0.1</PackageVersion>
   </PropertyGroup>
@@ -43,6 +43,6 @@ the LLVM toolchain and utilities for the host OS.
     </ItemGroup>
   </Target>
 
-  <Import Project="signing.targets" />
+  <Import Project="signing.targets" Condition=" '$(SignType)' != '' " />
 
 </Project>

@@ -129,7 +129,7 @@ echo Creating package for LLVM version ${LLVM_VERSION}
 (cd "${PACKAGE_TREE_DIR}"; tar cjf "${ARTIFACTS_DIR}/${DIST_PACKAGE_NAME_BASE}.tar.bz2" artifacts)
 
 for os in ${OPERATING_SYSTEMS}; do
-	dotnet pack build-tools/create-packs/Microsoft.Android.LLVM.proj "-p:HostOS=${os}" "-p:PackageVersion=${LLVM_VERSION}"
+	dotnet pack build-tools/create-packs/Microsoft.Android.LLVM.proj "-v:n -p:HostOS=${os} -p:PackageVersion=${LLVM_VERSION} -p:SignType=$MicroBuildSignType"
 done
 
-dotnet pack build-tools/create-packs/Microsoft.Android.LLVM.proj "-p:HostOS=windows" "-p:SymbolSuffix=.symbols" "-p:PackageVersion=${LLVM_VERSION}"
+dotnet pack build-tools/create-packs/Microsoft.Android.LLVM.proj "-v:n -p:HostOS=windows -p:SymbolSuffix=.symbols -p:PackageVersion=${LLVM_VERSION} -p:SignType=$MicroBuildSignType"

@@ -8,13 +8,20 @@ pr:
 
 resources:
   repositories:
-  - repository: templates
+  - repository: yaml-templates
     type: github
     name: xamarin/yaml-templates
     ref: refs/heads/main
     endpoint: xamarin
+  - repository: xa-yaml
+    type: github
+    name: xamarin/xamarin-android
+    ref: refs/heads/main
+    endpoint: xamarin
 
 variables:
+- name: TeamName
+  value: XamarinAndroid
 - name: BUILD_DIR
   value: xa-build
 - name: Codeql.Enabled
@@ -72,7 +79,7 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: Upload artifacts
       inputs:
-        artifactName: artifacts-linux
+        artifactName: artifacts-linux-unsigned
         targetPath: artifacts
 
 
@@ -115,7 +122,7 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: Upload artifacts
       inputs:
-        artifactName: artifacts-macos
+        artifactName: artifacts-macos-unsigned
         targetPath: artifacts
 
 
@@ -136,17 +143,20 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: Upload artifacts
       inputs:
-        artifactName: artifacts-windows
+        artifactName: artifacts-windows-unsigned
         targetPath: artifacts
 
 
 - stage: package
   displayName: Package Stage
   dependsOn: build
+  variables:
+  - name: MicroBuildSignType
+    value: Real
   jobs:
-  - job: pack_nupkgs
-    displayName: Pack NUPKGs
-    timeoutInMinutes: 180
+  - job: pack_sign
+    displayName: Sign and Zip
+    timeoutInMinutes: 240
     pool:
       name: Azure Pipelines
       vmImage: internal-macos12
@@ -154,26 +164,78 @@ stages:
     - checkout: self
       submodules: recursive
 
+    - template: build-tools/automation/yaml-templates/install-microbuild-tooling.yaml@xa-yaml
+      parameters:
+        condition: and(succeeded(), eq(variables['MicroBuildSignType'], 'Real'))
+
     - task: DownloadPipelineArtifact@2
       inputs:
-        artifactName: artifacts-linux
+        artifactName: artifacts-linux-unsigned
         downloadPath: artifacts
 
     - task: DownloadPipelineArtifact@2
       inputs:
-        artifactName: artifacts-macos
+        artifactName: artifacts-macos-unsigned
         downloadPath: artifacts
 
     - task: DownloadPipelineArtifact@2
       inputs:
-        artifactName: artifacts-windows
+        artifactName: artifacts-windows-unsigned
         downloadPath: artifacts
 
-    - script: ./package.sh
-      displayName: Package artifacts
+    - task: DotNetCoreCLI@2
+      displayName: Sign nuget content
+      inputs:
+        projects: build-tools/create-packs/Microsoft.Android.LLVM.proj
+        arguments: >-
+          -t:AddFilesToSign,Build
+          -p:SignType=$(MicroBuildSignType)
+          -bl:$(Build.StagingDirectory)/sign-macos.binlog
+
+    - task: CmdLine@2
+      displayName: Package and sign nugets
+      inputs:
+        script: ./package.sh
+        workingDirectory: $(Build.SourcesDirectory)
+      env:
+        MicroBuildSignType: $(MicroBuildSignType)
 
     - task: PublishPipelineArtifact@1
-      displayName: Upload NUPKGs
+      displayName: Upload artifact
       inputs:
-        artifactName: nuget-unsigned
-        targetPath: artifacts/package/nuget-unsigned
+        artifactName: sign-macos-binlog-$(System.JobAttempt)
+        targetPath: $(Build.StagingDirectory)/sign-macos.binlog
+      condition: always()
+
+    - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
+      parameters:
+        condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
+
+    - task: PublishPipelineArtifact@1
+      displayName: Upload artifact
+      inputs:
+        artifactName: nuget-signed
+        targetPath: artifacts/package/nugets
+
+
+  - job: sign_verify
+    displayName: Verify Signing
+    dependsOn: pack_sign
+    timeoutInMinutes: 240
+    pool:
+      name: VSEngSS-MicroBuild2022-1ES
+    steps:
+    - checkout: self
+      submodules: recursive
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: nuget-signed
+        downloadPath: $(Build.SourcesDirectory)\artifacts
+
+    - task: MicroBuildCodesignVerify@3
+      displayName: verify signed content
+      inputs:
+        TargetFolders: $(Build.SourcesDirectory)\artifacts
+        ExcludeSNVerify: true
+      condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
