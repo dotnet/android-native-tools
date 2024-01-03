@@ -156,7 +156,7 @@ stages:
   jobs:
   - job: pack_sign
     displayName: Sign and Zip
-    timeoutInMinutes: 240
+    timeoutInMinutes: 480
     pool:
       name: Azure Pipelines
       vmImage: internal-macos12
