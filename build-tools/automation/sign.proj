@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.Build.NoTargets">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- NOTE: Any file you want to sign must be under either $(OutDir) or $(IntermediateOutputPath). -->
+    <OutDir Condition=" '$(OutDir)' == '' ">$(MSBuildThisFileDirectory)..\..\artifacts\</OutDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudioEng.MicroBuild.Core" Version="1.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="_CalculateFilesToSign"
+      BeforeTargets="SignFiles"
+      AfterTargets="AfterBuild" >
+    <ItemGroup>
+      <FilesToSign Include="$(OutDir)package\artifacts\darwin\bin\**">
+        <Authenticode>MacDeveloperVNextHarden</Authenticode>
+        <Zip>true</Zip>
+      </FilesToSign>
+      <FilesToSign Include="$(OutDir)package\artifacts\darwin\lib\**">
+        <Authenticode>MacDeveloperVNext</Authenticode>
+        <Zip>true</Zip>
+      </FilesToSign>
+      <FilesToSign Include="$(OutDir)package\artifacts\windows\**\*.exe">
+        <Authenticode>Microsoft400</Authenticode>
+      </FilesToSign>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_ZipOutput"
+      AfterTargets="SignFiles" >
+    <ReadLinesFromFile File="$(OutDir)\darwin\llvm-version.txt" >
+      <Output TaskParameter="Lines" ItemName="_VersionLines"/>
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <_LlvmVersion>@(_VersionLines, ' ')</_LlvmVersion>
+    </PropertyGroup>
+    <ZipDirectory
+        SourceDirectory="$(OutDir)\package\artifacts"
+        DestinationFile="$(OutDir)android-llvm-toolchain-$(_LlvmVersion).zip" >
+    </ZipDirectory>
+  </Target>
+
+</Project>
