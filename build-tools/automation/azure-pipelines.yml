@@ -37,8 +37,7 @@ extends:
     sdl:
       sourceAnalysisPool:
         name: AzurePipelines-EO
-        demands:
-        - ImageOverride -equals AzurePipelinesWindows2022compliantGPT
+        image: AzurePipelinesWindows2022compliantGPT
     stages:
     - stage: build
       displayName: Build Stage
@@ -47,7 +46,8 @@ extends:
         displayName: Build Linux
         timeoutInMinutes: 480
         pool:
-          name: android-devdiv-ubuntu-vmss
+          name: AzurePipelines-EO
+          image: AzurePipelinesUbuntu22.04compliantGPT
           os: linux
         templateContext:
           outputs:
@@ -141,8 +141,7 @@ extends:
         timeoutInMinutes: 600
         pool:
           name: AzurePipelines-EO
-          demands:
-          - ImageOverride -equals AzurePipelinesWindows2022compliant
+          image: AzurePipelinesWindows2022compliantGPT
         templateContext:
           outputs:
           - output: pipelineArtifact
