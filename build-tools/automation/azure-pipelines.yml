@@ -18,6 +18,10 @@ resources:
     name: xamarin/xamarin-android
     ref: refs/heads/main
     endpoint: xamarin
+  - repository: m365Pipelines
+    type: git
+    name: 1ESPipelineTemplates/M365GPT
+    ref: refs/tags/release
 
 variables:
 - name: TeamName
