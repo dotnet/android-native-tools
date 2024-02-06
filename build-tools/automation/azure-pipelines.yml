@@ -32,7 +32,7 @@ variables:
   value: true
 
 extends:
-  template: v1/M365.Official.PipelineTemplate.yml@m365Pipelines
+  template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
   parameters:
     sdl:
       sourceAnalysisPool:
