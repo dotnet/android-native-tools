@@ -38,7 +38,7 @@ extends:
       sourceAnalysisPool:
         name: AzurePipelines-EO
         demands:
-        - ImageOverride -equals AzurePipelinesWindows2022compliant
+        - ImageOverride -equals AzurePipelinesWindows2022compliantGPT
     stages:
     - stage: build
       displayName: Build Stage
@@ -48,6 +48,7 @@ extends:
         timeoutInMinutes: 480
         pool:
           name: android-devdiv-ubuntu-vmss
+          os: linux
         templateContext:
           outputs:
           - output: pipelineArtifact
@@ -98,7 +99,8 @@ extends:
         timeoutInMinutes: 480
         pool:
           name: Azure Pipelines
-          vmImage: internal-macos12
+          vmImage: macOS-12
+          os: macOS
         templateContext:
           outputs:
           - output: pipelineArtifact
@@ -167,7 +169,8 @@ extends:
         timeoutInMinutes: 480
         pool:
           name: Azure Pipelines
-          vmImage: internal-macos12
+          vmImage: macOS-12
+          os: macOS
         templateContext:
           outputs:
           - output: pipelineArtifact
