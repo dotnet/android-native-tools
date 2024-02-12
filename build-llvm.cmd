@@ -12,9 +12,8 @@ set PDBS=llvm-mc.pdb llvm-strip.pdb lld.pdb llc.pdb
 set HOST_BUILD_DIR=%BUILD_DIR%\%HOST%
 set HOST_BIN_DIR=%HOST_BUILD_DIR%\Release\bin
 set HOST_ARTIFACTS_DIR=%ARTIFACTS_DIR%\%HOST%
-set LLVM_VERSION_FILE=%HOST_ARTIFACTS_DIR%\llvm-version.txt
-set CMAKE_EXE_LINKER_FLAGS_INIT="/PROFILE /DYNAMICBASE /CETCOMPAT"
-set CMAKE_CXXFLAGS="/Qspectre /sdl"
+set LLVM_VERSION_FILE=%HOST_ARTIFACTS_DIR%\llvm-version.txtt 
+set CXXFLAGS="/Qspectre /sdl"
 
 if exist %HOST_BUILD_DIR% (rmdir /S /Q %HOST_BUILD_DIR%)
 mkdir %HOST_BUILD_DIR%
@@ -28,6 +27,7 @@ cmake --version
 cmake --help
 
 cmake -G "Visual Studio 17 2022" -A x64 ^
+ -CMAKE_EXE_LINKER_FLAGS_INIT="/PROFILE /DYNAMICBASE /CETCOMPAT" ^
  -DBUILD_SHARED_LIBS=OFF ^
  -DCMAKE_BUILD_TYPE=Release ^
  -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded" ^
