@@ -19,6 +19,10 @@ resources:
     ref: refs/heads/main
     endpoint: xamarin
 
+parameters:
+- name: ApiScanSourceBranch
+  default: refs/heads/main
+
 variables:
 - name: TeamName
   value: XamarinAndroid
@@ -241,3 +245,66 @@ stages:
         TargetFolders: $(Build.SourcesDirectory)\artifacts
         ExcludeSNVerify: true
       condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
+
+- stage: compliance_scan
+  displayName: Compliance
+  dependsOn: build
+  condition: and(eq(dependencies.build.result, 'Succeeded'), eq(variables['Build.SourceBranch'], '${{ parameters.ApiScanSourceBranch }}'))
+  jobs:
+  - job: api_scan
+    displayName: API Scan
+    pool:
+      name: Azure Pipelines
+      vmImage: windows-2022
+    timeoutInMinutes: 480
+    workspace:
+      clean: all
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: artifacts-windows-unsigned
+        downloadPath: $(Build.SourcesDirectory)\artifacts
+
+    - task: CopyFiles@2
+      displayName: Collect Files for APIScan
+      inputs:
+        Contents: |
+          $(Build.SourcesDirectory)\artifacts\**\?(*.dll|*.exe|*.pdb)
+        TargetFolder: $(Build.StagingDirectory)\apiscan
+
+    - powershell: Get-ChildItem -Path "$(Build.StagingDirectory)\apiscan" -Recurse
+      displayName: List Files for APIScan
+
+    - task: APIScan@2
+      displayName: Run APIScan
+      inputs:
+        softwareFolder: $(Build.StagingDirectory)\apiscan
+        symbolsFolder: 'SRV*http://symweb;$(Build.StagingDirectory)\apiscan'
+        softwareName: $(ApiScanName)
+        softwareVersionNum: $(Build.SourceBranchName)-$(Build.SourceVersion)
+        isLargeApp: true
+        toolVersion: Latest
+      env:
+        AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+
+    - task: SdtReport@2
+      displayName: Guardian Export - Security Report
+      inputs:
+        GdnExportAllTools: false
+        GdnExportGdnToolApiScan: true
+        GdnExportOutputSuppressionFile: source.gdnsuppress
+
+    - task: PublishSecurityAnalysisLogs@3
+      displayName: Publish Guardian Artifacts
+      inputs:
+        ArtifactName: APIScan Logs
+        ArtifactType: Container
+        AllTools: false
+        APIScan: true
+        ToolLogsNotFoundAction: Warning
+
+    - task: PostAnalysis@2
+      displayName: Fail Build on Guardian Issues
+      inputs:
+        GdnBreakAllTools: false
+        GdnBreakGdnToolApiScan: true
