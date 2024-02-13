@@ -248,8 +248,8 @@ stages:
 
 - stage: compliance_scan
   displayName: Compliance
-  dependsOn: build
-  condition: and(eq(dependencies.build.result, 'Succeeded'), eq(variables['Build.SourceBranch'], '${{ parameters.ApiScanSourceBranch }}'))
+  dependsOn: pack_sign
+  condition: and(eq(dependencies.pack_sign.result, 'Succeeded'), eq(variables['Build.SourceBranch'], '${{ parameters.ApiScanSourceBranch }}'))
   jobs:
   - job: api_scan
     displayName: API Scan
@@ -262,14 +262,20 @@ stages:
     steps:
     - task: DownloadPipelineArtifact@2
       inputs:
-        artifactName: artifacts-windows-unsigned
-        downloadPath: $(Build.SourcesDirectory)\artifacts
+        artifactName: android-llvm-toolchain-signed
+        downloadPath: $(Build.StagingDirectory)\toolchain-zip
+
+    - task: ExtractFiles@1
+      displayName: Extract android-llvm-toolchain-signed
+      inputs:
+        archiveFilePatterns: $(Build.StagingDirectory)\**\*.zip
+        destinationFolder: $(Build.SourcesDirectory)\binutils
 
     - task: CopyFiles@2
       displayName: Collect Files for APIScan
       inputs:
         Contents: |
-          $(Build.SourcesDirectory)\artifacts\**\?(*.dll|*.exe|*.pdb)
+          $(Build.SourcesDirectory)\binutils\windows\**\?(*.dll|*.exe|*.pdb)
         TargetFolder: $(Build.StagingDirectory)\apiscan
 
     - powershell: Get-ChildItem -Path "$(Build.StagingDirectory)\apiscan" -Recurse
