@@ -12,7 +12,8 @@ set PDBS=llvm-mc.pdb llvm-strip.pdb lld.pdb llc.pdb
 set HOST_BUILD_DIR=%BUILD_DIR%\%HOST%
 set HOST_BIN_DIR=%HOST_BUILD_DIR%\Release\bin
 set HOST_ARTIFACTS_DIR=%ARTIFACTS_DIR%\%HOST%
-set LLVM_VERSION_FILE=%HOST_ARTIFACTS_DIR%\llvm-version.txtt 
+set LLVM_VERSION_FILE=%HOST_ARTIFACTS_DIR%\llvm-version.txt
+t 
 set CXXFLAGS="/Qspectre /sdl"
 
 if exist %HOST_BUILD_DIR% (rmdir /S /Q %HOST_BUILD_DIR%)
@@ -66,7 +67,7 @@ msbuild /p:Configuration=Release /m tools\lld\tools\lld\lld.vcxproj
 msbuild /p:Configuration=Release /m tools\llc\llc.vcxproj
 
 move %HOST_BIN_DIR%\llvm-objcopy.exe %HOST_BIN_DIR%\llvm-strip.exe
-move %HOST_BIN_DIR%\llvm-objcopy.pdb %HOST_BIN_DIR%\llvm-strip.pdb
+copy %HOST_BIN_DIR%\llvm-objcopy.pdb %HOST_BIN_DIR%\llvm-strip.pdb
 for %%b in (%BINARIES%) DO (
   copy %HOST_BIN_DIR%\%%b %HOST_ARTIFACTS_DIR%\bin\%%b
 )
