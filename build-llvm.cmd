@@ -67,7 +67,7 @@ msbuild /p:Configuration=Release /m tools\lld\tools\lld\lld.vcxproj
 msbuild /p:Configuration=Release /m tools\llc\llc.vcxproj
 
 move %HOST_BIN_DIR%\llvm-objcopy.exe %HOST_BIN_DIR%\llvm-strip.exe
-copy %HOST_BIN_DIR%\llvm-objcopy.pdb %HOST_BIN_DIR%\llvm-strip.pdb
+move %HOST_BIN_DIR%\llvm-objcopy.pdb %HOST_BIN_DIR%\llvm-strip.pdb
 for %%b in (%BINARIES%) DO (
   copy %HOST_BIN_DIR%\%%b %HOST_ARTIFACTS_DIR%\bin\%%b
 )
