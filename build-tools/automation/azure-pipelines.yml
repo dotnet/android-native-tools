@@ -29,15 +29,23 @@ variables:
 - name: BUILD_DIR
   value: xa-build
 
+parameters:
+- name: Skip1ESComplianceTasks
+  default: false
+
 extends:
-  ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+  ${{ if or(eq(variables['Build.Reason'], 'PullRequest'), eq('${{ parameters.Skip1ESComplianceTasks }}', 'true')) }}:
     template: v1/1ES.Unofficial.PipelineTemplate.yml@1esPipelines
   ${{ else }}:
     template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
   parameters:
     sdl:
-      ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+      ${{ if eq('${{ parameters.Skip1ESComplianceTasks }}', 'true') }}:
         enableAllTools: false
+      codeql:
+        runSourceLanguagesInSourceAnalysis: true
+      suppression:
+        suppressionFile: $(Build.SourcesDirectory)\.gdn\.gdnsuppress
       sourceAnalysisPool:
         name: AzurePipelines-EO
         image: AzurePipelinesWindows2022compliantGPT
