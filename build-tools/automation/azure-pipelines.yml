@@ -28,6 +28,10 @@ variables:
   value: XamarinAndroid
 - name: BUILD_DIR
   value: xa-build
+- name: WindowsPoolImage1ESPT
+  value: 1ESPT-Windows2022
+- name: LinuxPoolImage1ESPT
+  value: 1ESPT-Ubuntu22.04
 
 parameters:
 - name: Skip1ESComplianceTasks
@@ -48,7 +52,8 @@ extends:
         suppressionFile: $(Build.SourcesDirectory)\.gdn\.gdnsuppress
       sourceAnalysisPool:
         name: AzurePipelines-EO
-        image: AzurePipelinesWindows2022compliantGPT
+        image: $(WindowsPoolImage1ESPT)
+        os: windows
     stages:
     - stage: build
       displayName: Build Stage
@@ -58,17 +63,17 @@ extends:
         timeoutInMinutes: 480
         pool:
           name: AzurePipelines-EO
-          image: AzurePipelinesUbuntu22.04compliantGPT
+          image: $(LinuxPoolImage1ESPT)
           os: linux
         templateContext:
           outputs:
           - output: pipelineArtifact
-            displayName: 'Upload logs'
+            displayName: Upload logs
             condition: always()
             artifactName: build-logs-linux
             targetPath: $(Build.StagingDirectory)
           - output: pipelineArtifact
-            displayName: 'Upload artifacts'
+            displayName: Upload linux-unsigned artifacts
             artifactName: artifacts-linux-unsigned
             targetPath: artifacts
         steps:
@@ -115,12 +120,12 @@ extends:
         templateContext:
           outputs:
           - output: pipelineArtifact
-            displayName: 'Upload logs'
+            displayName: Upload logs
             condition: always()
             artifactName: build-logs-macos
             targetPath: $(Build.StagingDirectory)
           - output: pipelineArtifact
-            displayName: 'Upload artifacts'
+            displayName: Upload macos-unsigned artifacts
             artifactName: artifacts-macos-unsigned
             targetPath: artifacts
         steps:
@@ -152,14 +157,15 @@ extends:
         timeoutInMinutes: 600
         pool:
           name: AzurePipelines-EO
-          image: AzurePipelinesWindows2022compliantGPT
+          image: $(WindowsPoolImage1ESPT)
+          os: windows
         variables:
         - name: Codeql.Enabled
           value: true
         templateContext:
           outputs:
           - output: pipelineArtifact
-            displayName: 'Upload artifacts'
+            displayName: Upload windows-unsigned artifacts
             artifactName: artifacts-windows-unsigned
             targetPath: artifacts
         steps:
@@ -185,10 +191,11 @@ extends:
           vmImage: macOS-12
           os: macOS
         templateContext:
+          outputParentDirectory: $(Build.StagingDirectory)
           outputs:
           - output: pipelineArtifact
-            displayName: 'Upload artifact'
-            condition: always()
+            displayName: Upload signing logs
+            condition: succeededOrFailed()
             artifactName: sign-macos-binlog-$(System.JobAttempt)
             targetPath: $(Build.StagingDirectory)/sign-macos.binlog
           - output: pipelineArtifact
