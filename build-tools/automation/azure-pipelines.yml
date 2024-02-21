@@ -197,9 +197,9 @@ extends:
             displayName: Upload signing logs
             condition: succeededOrFailed()
             artifactName: sign-macos-binlog-$(System.JobAttempt)
-            targetPath: $(Build.StagingDirectory)/sign-macos.binlog
+            targetPath: $(Build.StagingDirectory)/binlogs/sign-macos.binlog
           - output: pipelineArtifact
-            displayName: 'Upload artifact'
+            displayName: Upload toolchain-signed artifact
             artifactName: android-llvm-toolchain-signed
             targetPath: $(Build.StagingDirectory)/toolchain
         steps:
@@ -237,7 +237,7 @@ extends:
             projects: build-tools/automation/sign.proj
             arguments: >-
               -p:SignType=$(MicroBuildSignType)
-              -bl:$(Build.StagingDirectory)/sign-macos.binlog
+              -bl:$(Build.StagingDirectory)/binlogs/sign-macos.binlog
 
         - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
           parameters:
