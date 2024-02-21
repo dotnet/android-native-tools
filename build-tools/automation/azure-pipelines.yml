@@ -72,6 +72,7 @@ extends:
             condition: always()
             artifactName: build-logs-linux
             targetPath: $(Build.StagingDirectory)
+            sbomEnabled: false
           - output: pipelineArtifact
             displayName: Upload linux-unsigned artifacts
             artifactName: artifacts-linux-unsigned
@@ -124,6 +125,7 @@ extends:
             condition: always()
             artifactName: build-logs-macos
             targetPath: $(Build.StagingDirectory)
+            sbomEnabled: false
           - output: pipelineArtifact
             displayName: Upload macos-unsigned artifacts
             artifactName: artifacts-macos-unsigned
@@ -198,6 +200,7 @@ extends:
             condition: succeededOrFailed()
             artifactName: sign-macos-binlog-$(System.JobAttempt)
             targetPath: $(Build.StagingDirectory)/binlogs/sign-macos.binlog
+            sbomEnabled: false
           - output: pipelineArtifact
             displayName: Upload toolchain-signed artifact
             artifactName: android-llvm-toolchain-signed
