@@ -1,0 +1,61 @@
+{
+  "hydrated": false,
+  "properties": {
+    "helpUri": "https://eng.ms/docs/microsoft-security/security/azure-security/cloudai-security-fundamentals-engineering/security-integration/guardian-wiki/microsoft-guardian/general/suppressions",
+    "hydrationStatus": "This file does not contain identifying data. It is safe to check into your repo. To hydrate this file with identifying data, run `guardian hydrate --help` and follow the guidance."
+  },
+  "version": "1.0.0",
+  "suppressionSets": {
+    "default": {
+      "name": "default",
+      "createdDate": "2024-02-15 00:04:36Z",
+      "lastUpdatedDate": "2024-02-15 00:04:36Z"
+    }
+  },
+  "results": {
+    "56abf01a2bb694a67c82be21f03a0dd66f296b49029f3c23bf6f3f82501cd2a3": {
+      "signature": "56abf01a2bb694a67c82be21f03a0dd66f296b49029f3c23bf6f3f82501cd2a3",
+      "alternativeSignatures": [
+        "be97b4284131d0f331716c30392a1e1d25474b8694363df3eea88a91d4152094"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "justification": "Unable to resolve BA2007 identified in external LLVM CMake configuration.",
+      "createdDate": "2024-02-15 00:04:36Z"
+    },
+    "5eceb0d6d6dba608d129867a6be091ad2bae06078aa8a057dfa67331c4b98772": {
+      "signature": "5eceb0d6d6dba608d129867a6be091ad2bae06078aa8a057dfa67331c4b98772",
+      "alternativeSignatures": [
+        "23dc4e92dd0ab3635230bd466fdde746fa0be745694ba8530eab31091dc375e8"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "justification": "Unable to resolve BA2007 identified in external LLVM CMake configuration.",
+      "createdDate": "2024-02-15 00:04:36Z"
+    },
+    "fe61820f6936ba46368b182d5bbfc9576302c6c513803481bccdf0d863b966eb": {
+      "signature": "fe61820f6936ba46368b182d5bbfc9576302c6c513803481bccdf0d863b966eb",
+      "alternativeSignatures": [
+        "1868f8371a1ab6e1d82ab77b47a50f067e589870b4432ac45a2590876afd824e"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "justification": "Unable to resolve BA2007 identified in external LLVM CMake configuration.",
+      "createdDate": "2024-02-15 00:04:36Z"
+    },
+    "fbf0466272fbf02d7b438d4adc1e193bc720677a220027755f5db357559a5777": {
+      "signature": "fbf0466272fbf02d7b438d4adc1e193bc720677a220027755f5db357559a5777",
+      "alternativeSignatures": [
+        "6da9f7a139b0c80204a3573e089aa0345b453280ac942cb59c224b7c6866af43"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "justification": "Unable to resolve BA2007 identified in external LLVM CMake configuration.",
+      "createdDate": "2024-02-15 00:04:36Z"
+    }
+  }
+}
