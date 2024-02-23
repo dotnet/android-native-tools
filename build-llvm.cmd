@@ -3,8 +3,8 @@ set HOST=windows
 set BUILD_DIR=%MY_DIR%\xa-build
 set ARTIFACTS_DIR=%MY_DIR%\artifacts
 set SOURCE_DIR=%MY_DIR%external\llvm\llvm
-set XA_TOOLS_SOURCE_DIR=%MY_DIR\src
-set XA_TOOLS_BUILD_DIR=%MY_DIR\xa-build
+set XA_TOOLS_SOURCE_DIR=%MY_DIR%\src
+set XA_TOOLS_BUILD_DIR=%MY_DIR%\xa-build
 
 set PROJECTS=lld
 set TARGETS=X86;ARM;AArch64
@@ -35,7 +35,7 @@ cmake -G "Visual Studio 17 2022" -A x64 ^
  %XA_TOOLS_BUILD_DIR%
 
 msbuild /p:Configuration=Release
-cd %MY_DIR
+cd %MY_DIR%
 
 cd %HOST_BUILD_DIR%
 
