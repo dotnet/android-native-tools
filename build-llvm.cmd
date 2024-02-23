@@ -35,6 +35,8 @@ cmake -G "Visual Studio 17 2022" -A x64 ^
  -DBINUTILS_VERSION="2.38" ^
  %XA_TOOLS_SOURCE_DIR%
 
+dir
+
 msbuild /p:Configuration=Release
 cd %MY_DIR%
 
