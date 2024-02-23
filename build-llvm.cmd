@@ -37,7 +37,7 @@ cmake -G "Visual Studio 17 2022" -A x64 ^
 
 dir
 
-msbuild /p:Configuration=Release
+msbuild /p:Configuration=Release xa-utilities.sln
 cd %MY_DIR%
 
 cd %HOST_BUILD_DIR%
