@@ -18,299 +18,329 @@ resources:
     name: xamarin/xamarin-android
     ref: refs/heads/main
     endpoint: xamarin
-
-parameters:
-- name: ApiScanSourceBranch
-  default: refs/heads/main
+  - repository: 1esPipelines
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
 
 variables:
 - name: TeamName
   value: XamarinAndroid
 - name: BUILD_DIR
   value: xa-build
-- name: Codeql.Enabled
-  value: true
+- name: WindowsPoolImage1ESPT
+  value: 1ESPT-Windows2022
+- name: LinuxPoolImage1ESPT
+  value: 1ESPT-Ubuntu22.04
+- name: MicroBuildPoolName
+  value: VSEngSS-MicroBuild2022-1ES
 
-stages:
-- stage: build
-  displayName: Build Stage
-  jobs:
-  - job: build_linux
-    displayName: Build Linux
-    timeoutInMinutes: 240
-    pool:
-      name: android-devdiv-ubuntu-vmss
-    steps:
-    - checkout: self
-      submodules: recursive
+parameters:
+- name: ApiScanSourceBranch
+  default: refs/heads/main
+- name: Skip1ESComplianceTasks
+  default: false
 
-    - script: >-
-        sudo apt-get update;
-        sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
-        lsb-release patchutils diffstat xz-utils python3-dev libedit-dev libncurses5-dev swig
-        python3-six python3-sphinx binutils-dev libxml2-dev libjsoncpp-dev pkg-config lcov
-        procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
-        python3-setuptools libz3-dev ccache
-      displayName: Install LLVM build dependencies
+extends:
+  ${{ if or(eq(variables['Build.Reason'], 'PullRequest'), eq('${{ parameters.Skip1ESComplianceTasks }}', 'true')) }}:
+    template: v1/1ES.Unofficial.PipelineTemplate.yml@1esPipelines
+  ${{ else }}:
+    template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
+  parameters:
+    sdl:
+      ${{ if eq('${{ parameters.Skip1ESComplianceTasks }}', 'true') }}:
+        enableAllTools: false
+      codeql:
+        runSourceLanguagesInSourceAnalysis: true
+      suppression:
+        suppressionFile: $(Build.SourcesDirectory)\.gdn\.gdnsuppress
+      sourceAnalysisPool:
+        name: AzurePipelines-EO
+        image: $(WindowsPoolImage1ESPT)
+        os: windows
+    stages:
+    - stage: build
+      displayName: Build Stage
+      jobs:
+      - job: build_linux
+        displayName: Build Linux
+        timeoutInMinutes: 480
+        pool:
+          name: AzurePipelines-EO
+          image: $(LinuxPoolImage1ESPT)
+          os: linux
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: Upload logs
+            condition: always()
+            artifactName: build-logs-linux
+            targetPath: $(Build.StagingDirectory)
+            sbomEnabled: false
+          - output: pipelineArtifact
+            displayName: Upload linux-unsigned artifacts
+            artifactName: artifacts-linux-unsigned
+            targetPath: artifacts
+        steps:
+        - checkout: self
+          submodules: recursive
 
-    - script: sudo apt-get -f -u install mingw-w64 libz-mingw-w64-dev
-      displayName: Install Xamarin.Android Utilities build dependencies
+        - script: >-
+            sudo apt-get update;
+            sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
+            lsb-release patchutils diffstat xz-utils python3-dev libedit-dev libncurses5-dev swig
+            python3-six python3-sphinx binutils-dev libxml2-dev libjsoncpp-dev pkg-config lcov
+            procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
+            python3-setuptools libz3-dev ccache
+          displayName: Install LLVM build dependencies
 
-    - script: ./build-llvm.sh
-      env:
-        CC: gcc-10
-        CXX: g++-10
-      displayName: Build LLVM
+        - script: sudo apt-get -f -u install mingw-w64 libz-mingw-w64-dev
+          displayName: Install Xamarin.Android Utilities build dependencies
 
-    - script: ./build-xa-utils.sh
-      env:
-        CC: gcc-10
-        CXX: g++-10
-      displayName: Build utilities
+        - script: ./build-llvm.sh
+          env:
+            CC: gcc-10
+            CXX: g++-10
+          displayName: Build LLVM
 
-    - script: |
-        rsync -avm --include 'config.*' --include '*.log' --include '*.txt' --include='*/' --exclude='*' $(BUILD_DIR) $(Build.StagingDirectory)
-      displayName: Copy logs
-      condition: always()
+        - script: ./build-xa-utils.sh
+          env:
+            CC: gcc-10
+            CXX: g++-10
+          displayName: Build utilities
 
-    - task: PublishPipelineArtifact@1
-      displayName: Upload logs
-      inputs:
-        artifactName: build-logs-linux
-        targetPath: $(Build.StagingDirectory)
-      condition: always()
-
-    - task: PublishPipelineArtifact@1
-      displayName: Upload artifacts
-      inputs:
-        artifactName: artifacts-linux-unsigned
-        targetPath: artifacts
-
-
-  - job: build_macos
-    displayName: Build macOS
-    timeoutInMinutes: 240
-    pool:
-      name: Azure Pipelines
-      vmImage: internal-macos12
-    steps:
-    - checkout: self
-      submodules: recursive
-
-    - script: |
-        brew update
-        brew install cmake ninja ccache
-      displayName: Install LLVM build dependencies
-
-    - script: brew install make xz
-      displayName: Install Xamarin.Android Utilities build dependencies
-
-    - script: bash ./build-llvm.sh
-      displayName: build LLVM
-
-    - script: bash ./build-xa-utils.sh
-      displayName: Build utilities
-
-    - script: |
-        rsync -avm --include 'config.*' --include '*.log' --include '*.txt' --include='*/' --exclude='*' $(BUILD_DIR) $(Build.StagingDirectory)
-      displayName: Copy logs
-      condition: always()
-
-    - task: PublishPipelineArtifact@1
-      displayName: Upload logs
-      inputs:
-        artifactName: build-logs-macos
-        targetPath: $(Build.StagingDirectory)
-      condition: always()
-
-    - task: PublishPipelineArtifact@1
-      displayName: Upload artifacts
-      inputs:
-        artifactName: artifacts-macos-unsigned
-        targetPath: artifacts
+        - script: |
+            rsync -avm --include 'config.*' --include '*.log' --include '*.txt' --include='*/' --exclude='*' $(BUILD_DIR) $(Build.StagingDirectory)
+          displayName: Copy logs
+          condition: always()
 
 
-  - job: build_windows
-    displayName: Build Windows
-    timeoutInMinutes: 300
-    pool:
-      name: AzurePipelines-EO
-      demands:
-      - ImageOverride -equals AzurePipelinesWindows2022compliant
-    steps:
-    - checkout: self
-      submodules: recursive
+      - job: build_macos
+        displayName: Build macOS
+        timeoutInMinutes: 480
+        pool:
+          name: Azure Pipelines
+          vmImage: macOS-12
+          os: macOS
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: Upload logs
+            condition: always()
+            artifactName: build-logs-macos
+            targetPath: $(Build.StagingDirectory)
+            sbomEnabled: false
+          - output: pipelineArtifact
+            displayName: Upload macos-unsigned artifacts
+            artifactName: artifacts-macos-unsigned
+            targetPath: artifacts
+        steps:
+        - checkout: self
+          submodules: recursive
 
-    - script: ./build-llvm-azure.cmd
-      displayName: Build Windows LLVM
+        - script: |
+            brew update
+            brew install cmake ninja ccache
+          displayName: Install LLVM build dependencies
 
-    - task: PublishPipelineArtifact@1
-      displayName: Upload artifacts
-      inputs:
-        artifactName: artifacts-windows-unsigned
-        targetPath: artifacts
+        - script: brew install make xz
+          displayName: Install Xamarin.Android Utilities build dependencies
 
+        - script: bash ./build-llvm.sh
+          displayName: build LLVM
 
-- stage: package
-  displayName: Package Stage
-  dependsOn: build
-  variables:
-  - name: MicroBuildSignType
-    value: Real
-  jobs:
-  - job: pack_sign
-    displayName: Sign and Zip
-    timeoutInMinutes: 240
-    pool:
-      name: Azure Pipelines
-      vmImage: internal-macos12
-    steps:
-    - checkout: self
-      submodules: recursive
+        - script: bash ./build-xa-utils.sh
+          displayName: Build utilities
 
-    - template: build-tools/automation/yaml-templates/install-microbuild-tooling.yaml@xa-yaml
-      parameters:
-        condition: and(succeeded(), eq(variables['MicroBuildSignType'], 'Real'))
-
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        artifactName: artifacts-linux-unsigned
-        downloadPath: artifacts
-
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        artifactName: artifacts-macos-unsigned
-        downloadPath: artifacts
-
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        artifactName: artifacts-windows-unsigned
-        downloadPath: artifacts
-
-    - task: CmdLine@2
-      inputs:
-        script: ./package.sh
-        workingDirectory: $(Build.SourcesDirectory)
-      displayName: Package artifacts
-
-    - task: DotNetCoreCLI@2
-      displayName: Sign and zip files
-      inputs:
-        projects: build-tools/automation/sign.proj
-        arguments: >-
-          -p:SignType=$(MicroBuildSignType)
-          -bl:$(Build.StagingDirectory)/sign-macos.binlog
-
-    - task: PublishPipelineArtifact@1
-      displayName: Upload artifact
-      inputs:
-        artifactName: sign-macos-binlog-$(System.JobAttempt)
-        targetPath: $(Build.StagingDirectory)/sign-macos.binlog
-      condition: always()
-
-    - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
-      parameters:
-        condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
-
-    - script: >
-        mkdir -p $(Build.StagingDirectory)/toolchain &&
-        ln artifacts/android-llvm-toolchain*.zip $(Build.StagingDirectory)/toolchain
-      displayName: copy toolchain artifact
-
-    - task: PublishPipelineArtifact@1
-      displayName: Upload artifact
-      inputs:
-        artifactName: android-llvm-toolchain-signed
-        targetPath: $(Build.StagingDirectory)/toolchain
+        - script: |
+            rsync -avm --include 'config.*' --include '*.log' --include '*.txt' --include='*/' --exclude='*' $(BUILD_DIR) $(Build.StagingDirectory)
+          displayName: Copy logs
+          condition: always()
 
 
-  - job: sign_verify
-    displayName: Verify Signing
-    dependsOn: pack_sign
-    timeoutInMinutes: 240
-    pool:
-      name: VSEngSS-MicroBuild2022-1ES
-    steps:
-    - checkout: self
-      submodules: recursive
+      - job: build_windows
+        displayName: Build Windows
+        timeoutInMinutes: 600
+        pool:
+          name: AzurePipelines-EO
+          image: $(WindowsPoolImage1ESPT)
+          os: windows
+        variables:
+        - name: Codeql.Enabled
+          value: true
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: Upload windows-unsigned artifacts
+            artifactName: artifacts-windows-unsigned
+            targetPath: artifacts
+        steps:
+        - checkout: self
+          submodules: recursive
 
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        artifactName: android-llvm-toolchain-signed
-        downloadPath: $(Build.SourcesDirectory)\artifacts
+        - script: ./build-llvm-azure.cmd
+          displayName: Build Windows LLVM
 
-    - task: MicroBuildCodesignVerify@3
-      displayName: verify signed content
-      inputs:
-        TargetFolders: $(Build.SourcesDirectory)\artifacts
-        ExcludeSNVerify: true
-      condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
 
-- stage: compliance_scan
-  displayName: Compliance
-  dependsOn: package
-  condition: and(eq(dependencies.package.result, 'Succeeded'), eq(variables['Build.SourceBranch'], '${{ parameters.ApiScanSourceBranch }}'))
-  jobs:
-  - job: api_scan
-    displayName: API Scan
-    pool:
-      name: Azure Pipelines
-      vmImage: windows-2022
-    timeoutInMinutes: 480
-    workspace:
-      clean: all
-    steps:
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        artifactName: android-llvm-toolchain-signed
-        downloadPath: $(Build.StagingDirectory)\toolchain-zip
+    - stage: package
+      displayName: Package Stage
+      dependsOn: build
+      variables:
+      - name: MicroBuildSignType
+        value: Real
+      jobs:
+      - job: pack_sign
+        displayName: Sign and Zip
+        timeoutInMinutes: 480
+        pool:
+          name: Azure Pipelines
+          vmImage: macOS-12
+          os: macOS
+        templateContext:
+          outputParentDirectory: $(Build.StagingDirectory)
+          outputs:
+          - output: pipelineArtifact
+            displayName: Upload signing logs
+            condition: succeededOrFailed()
+            artifactName: sign-macos-binlog-$(System.JobAttempt)
+            targetPath: $(Build.StagingDirectory)/binlogs/sign-macos.binlog
+            sbomEnabled: false
+          - output: pipelineArtifact
+            displayName: Upload toolchain-signed artifact
+            artifactName: android-llvm-toolchain-signed
+            targetPath: $(Build.StagingDirectory)/toolchain
+        steps:
+        - checkout: self
+          submodules: recursive
 
-    - task: ExtractFiles@1
-      displayName: Extract android-llvm-toolchain-signed
-      inputs:
-        archiveFilePatterns: $(Build.StagingDirectory)\**\*.zip
-        destinationFolder: $(Build.SourcesDirectory)\binutils
+        - template: build-tools/automation/yaml-templates/install-microbuild-tooling.yaml@xa-yaml
+          parameters:
+            condition: and(succeeded(), eq(variables['MicroBuildSignType'], 'Real'))
 
-    - task: CopyFiles@2
-      displayName: Collect Files for APIScan
-      inputs:
-        Contents: |
-          $(Build.SourcesDirectory)\binutils\windows\**\?(*.dll|*.exe|*.pdb)
-        TargetFolder: $(Build.StagingDirectory)\apiscan
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifactName: artifacts-linux-unsigned
+            downloadPath: artifacts
 
-    - powershell: Get-ChildItem -Path "$(Build.StagingDirectory)\apiscan" -Recurse
-      displayName: List Files for APIScan
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifactName: artifacts-macos-unsigned
+            downloadPath: artifacts
 
-    - task: APIScan@2
-      displayName: Run APIScan
-      inputs:
-        softwareFolder: $(Build.StagingDirectory)\apiscan
-        symbolsFolder: 'SRV*http://symweb;$(Build.StagingDirectory)\apiscan'
-        softwareName: $(ApiScanName)
-        softwareVersionNum: $(Build.SourceBranchName)-$(Build.SourceVersion)
-        isLargeApp: true
-        toolVersion: Latest
-      env:
-        AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifactName: artifacts-windows-unsigned
+            downloadPath: artifacts
 
-    - task: SdtReport@2
-      displayName: Guardian Export - Security Report
-      inputs:
-        GdnExportAllTools: false
-        GdnExportGdnToolApiScan: true
-        GdnExportOutputSuppressionFile: source.gdnsuppress
+        - task: CmdLine@2
+          inputs:
+            script: ./package.sh
+            workingDirectory: $(Build.SourcesDirectory)
+          displayName: Package artifacts
 
-    - task: PublishSecurityAnalysisLogs@3
-      displayName: Publish Guardian Artifacts
-      inputs:
-        ArtifactName: APIScan Logs
-        ArtifactType: Container
-        AllTools: false
-        APIScan: true
-        ToolLogsNotFoundAction: Warning
+        - task: DotNetCoreCLI@2
+          displayName: Sign and zip files
+          inputs:
+            projects: build-tools/automation/sign.proj
+            arguments: >-
+              -p:SignType=$(MicroBuildSignType)
+              -bl:$(Build.StagingDirectory)/binlogs/sign-macos.binlog
 
-    - task: PostAnalysis@2
-      displayName: Fail Build on Guardian Issues
-      inputs:
-        GdnBreakAllTools: false
-        GdnBreakGdnToolApiScan: true
+        - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
+          parameters:
+            condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
+
+        - script: >
+            mkdir -p $(Build.StagingDirectory)/toolchain &&
+            ln artifacts/android-llvm-toolchain*.zip $(Build.StagingDirectory)/toolchain
+          displayName: copy toolchain artifact
+
+
+      - job: sign_verify
+        displayName: Verify Signing
+        dependsOn: pack_sign
+        timeoutInMinutes: 240
+        pool: $(MicroBuildPoolName)
+        steps:
+        - checkout: self
+          submodules: recursive
+
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifactName: android-llvm-toolchain-signed
+            downloadPath: $(Build.SourcesDirectory)\artifacts
+
+        - task: MicroBuildCodesignVerify@3
+          displayName: verify signed content
+          inputs:
+            TargetFolders: $(Build.SourcesDirectory)\artifacts
+            ExcludeSNVerify: true
+          condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
+
+
+    - stage: Compliance
+      displayName: Compliance
+      dependsOn: package
+      condition: and(eq(dependencies.package.result, 'Succeeded'), eq(variables['Build.SourceBranch'], '${{ parameters.ApiScanSourceBranch }}'))
+      jobs:
+      - job: api_scan
+        displayName: API Scan
+        pool: $(MicroBuildPoolName)
+        timeoutInMinutes: 360
+        workspace:
+          clean: all
+        steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifactName: android-llvm-toolchain-signed
+            downloadPath: $(Build.StagingDirectory)\toolchain-zip
+
+        - task: ExtractFiles@1
+          displayName: Extract android-llvm-toolchain-signed
+          inputs:
+            archiveFilePatterns: $(Build.StagingDirectory)\**\*.zip
+            destinationFolder: $(Build.SourcesDirectory)\binutils
+
+        - task: CopyFiles@2
+          displayName: Collect Files for APIScan
+          inputs:
+            Contents: |
+              $(Build.SourcesDirectory)\binutils\windows\**\?(*.dll|*.exe|*.pdb)
+            TargetFolder: $(Build.StagingDirectory)\apiscan
+
+        - powershell: Get-ChildItem -Path "$(Build.StagingDirectory)\apiscan" -Recurse
+          displayName: List Files for APIScan
+
+        - task: APIScan@2
+          displayName: Run APIScan
+          inputs:
+            softwareFolder: $(Build.StagingDirectory)\apiscan
+            symbolsFolder: 'SRV*http://symweb;$(Build.StagingDirectory)\apiscan'
+            softwareName: $(ApiScanName)
+            softwareVersionNum: $(Build.SourceBranchName)-$(Build.SourceVersion)
+            isLargeApp: true
+            toolVersion: Latest
+          env:
+            AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+
+        - task: SdtReport@2
+          displayName: Guardian Export - Security Report
+          inputs:
+            GdnExportAllTools: false
+            GdnExportGdnToolApiScan: true
+            GdnExportOutputSuppressionFile: apiscan.gdnsuppress
+
+        - task: PublishSecurityAnalysisLogs@3
+          displayName: Publish Guardian Artifacts
+          inputs:
+            ArtifactName: APIScan Logs
+            ArtifactType: Container
+            AllTools: false
+            APIScan: true
+            ToolLogsNotFoundAction: Warning
+
+        - task: PostAnalysis@2
+          displayName: Fail Build on Guardian Issues
+          inputs:
+            GdnBreakAllTools: false
+            GdnBreakGdnToolApiScan: true
