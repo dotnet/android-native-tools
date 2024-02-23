@@ -32,7 +32,7 @@ cmake -G "Visual Studio 17 2022" -A x64 ^
  -DCMAKE_EXE_LINKER_FLAGS_INIT="/PROFILE /DYNAMICBASE /CETCOMPAT /guard:cf" ^
  -DCMAKE_BUILD_TYPE=Release ^
  -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded" ^
- %XA_TOOLS_BUILD_DIR%
+ %XA_TOOLS_SOURCE_DIR%
 
 msbuild /p:Configuration=Release
 cd %MY_DIR%
