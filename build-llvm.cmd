@@ -23,7 +23,7 @@ mkdir %HOST_BUILD_DIR%
 if exist %HOST_ARTIFACTS_DIR% (rmdir /S /Q %HOST_ARTIFACTS_DIR%)
 mkdir %HOST_ARTIFACTS_DIR%\bin
 
-if exist %XA_TOOLS_BUILD_DIR% (rmdir /S / %XA_TOOLS_BUILD_DIR%)
+if exist %XA_TOOLS_BUILD_DIR% (rmdir /S /Q %XA_TOOLS_BUILD_DIR%)
 mkdir %XA_TOOLS_BUILD_DIR%
 
 cd %XA_TOOLS_BUILD_DIR%
@@ -32,6 +32,7 @@ cmake -G "Visual Studio 17 2022" -A x64 ^
  -DCMAKE_EXE_LINKER_FLAGS_INIT="/PROFILE /DYNAMICBASE /CETCOMPAT /guard:cf" ^
  -DCMAKE_BUILD_TYPE=Release ^
  -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded" ^
+ -DBINUTILS_VERSION="2.38" ^
  %XA_TOOLS_SOURCE_DIR%
 
 msbuild /p:Configuration=Release
