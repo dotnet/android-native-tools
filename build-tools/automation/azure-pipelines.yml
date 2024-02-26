@@ -46,6 +46,8 @@ extends:
     sdl:
       ${{ if eq('${{ parameters.Skip1ESComplianceTasks }}', 'true') }}:
         enableAllTools: false
+      binskim:
+        scanOutputDirectoryOnly: true
       codeql:
         runSourceLanguagesInSourceAnalysis: true
       suppression:
