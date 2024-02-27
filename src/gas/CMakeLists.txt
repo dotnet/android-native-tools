@@ -33,21 +33,14 @@ add_executable(
   ${GAS_DRIVER_SOURCES}
   )
 
-if(WIN32)
-  target_link_options(
-    as
-    PRIVATE
-    -static-libstdc++
-    -static-libgcc
-    )
+# SYSTEM disables warnings produced by cxxopts headers, which we can do nothing about
+target_include_directories(as SYSTEM PRIVATE ${CMAKE_SOURCE_DIR}/../external/cxxopts/include)
 
+if(WIN32)
   target_link_libraries(
     as
     shlwapi
-    -static
-    winpthread
-    -dynamic
-    )
+  )
 else()
   set(TARGET_DIR "${CMAKE_BINARY_DIR}/bin")
   set(AS_NAME as)
