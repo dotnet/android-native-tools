@@ -23,7 +23,20 @@ resources:
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
 
+parameters:
+- name: ApiScanSourceBranch
+  default: refs/heads/main
+- name: SignArtifacts
+  default: false
+- name: Skip1ESComplianceTasks
+  default: false
+
 variables:
+- name: MicroBuildSignType
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.SignArtifacts, 'true')) }}:
+    value: Real
+  ${{ else }}:
+    value: Test
 - name: TeamName
   value: XamarinAndroid
 - name: BUILD_DIR
@@ -34,12 +47,6 @@ variables:
   value: 1ESPT-Ubuntu22.04
 - name: MicroBuildPoolName
   value: VSEngSS-MicroBuild2022-1ES
-
-parameters:
-- name: ApiScanSourceBranch
-  default: refs/heads/main
-- name: Skip1ESComplianceTasks
-  default: false
 
 extends:
   ${{ if or(eq(variables['Build.Reason'], 'PullRequest'), eq('${{ parameters.Skip1ESComplianceTasks }}', 'true')) }}:
@@ -185,9 +192,6 @@ extends:
     - stage: package
       displayName: Package Stage
       dependsOn: build
-      variables:
-      - name: MicroBuildSignType
-        value: Real
       jobs:
       - job: pack_sign
         displayName: Sign and Zip
@@ -259,6 +263,7 @@ extends:
       - job: sign_verify
         displayName: Verify Signing
         dependsOn: pack_sign
+        condition: and(eq(dependencies.pack_sign.result, 'Succeeded'), eq(variables['MicroBuildSignType'], 'Real'))
         timeoutInMinutes: 240
         pool: $(MicroBuildPoolName)
         steps:
@@ -275,7 +280,6 @@ extends:
           inputs:
             TargetFolders: $(Build.SourcesDirectory)\artifacts
             ExcludeSNVerify: true
-          condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
 
 
     - stage: Compliance
