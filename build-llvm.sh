@@ -109,6 +109,32 @@ function build()
 	fi
 }
 
+function print_compiler_info()
+{
+	local path="$(which ${1})"
+
+	if [ -z "${path}" ]; then
+		echo "Compiler ${1} not found"
+		return
+	fi
+
+	echo "Compiler ${1} found:"
+	"${path}" --version
+	echo
+}
+
+if [ "${HOST}" == "linux" ]; then
+	echo "Compilers found:"
+
+	print_compiler_info gcc
+	print_compiler_info g++
+
+	for v in 10 11 12 13 14; do
+		print_compiler_info gcc-${v}
+		print_compiler_info g++-${v}
+	done
+fi
+
 create_empty_dir "${MY_BUILD_DIR}"
 create_dir "${HOST_ARTIFACTS_BIN_DIR}"
 create_dir "${HOST_ARTIFACTS_LIB_DIR}"

@@ -86,18 +86,3 @@ esac
 
 (cd "${MY_BUILD_DIR}"; configure_${HOST})
 (cd "${MY_BUILD_DIR}"; build "${HOST}")
-
-if [ "${HOST}" != "linux" ]; then
-	exit 0
-fi
-
-MY_BUILD_DIR="${MY_BUILD_DIR}-windows"
-HOST_ARTIFACTS_DIR="${ARTIFACTS_DIR}/windows"
-HOST_ARTIFACTS_BIN_DIR="${HOST_ARTIFACTS_DIR}/bin"
-HOST_BIN_DIR="${MY_BUILD_DIR}/bin"
-
-create_empty_dir "${MY_BUILD_DIR}"
-create_dir "${HOST_ARTIFACTS_BIN_DIR}"
-
-(cd "${MY_BUILD_DIR}"; configure_windows)
-(cd "${MY_BUILD_DIR}"; build windows)
