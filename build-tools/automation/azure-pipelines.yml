@@ -39,6 +39,11 @@ variables:
     value: Real
   ${{ else }}:
     value: Test
+- name: ToolchainArtifactName
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.SignArtifactsOverride, 'true')) }}:
+    value: android-llvm-toolchain-signed
+  ${{ else }}:
+    value: android-llvm-toolchain-unsigned
 - name: TeamName
   value: XamarinAndroid
 - name: BUILD_DIR
@@ -214,8 +219,8 @@ extends:
             targetPath: $(Build.StagingDirectory)/binlogs/sign-macos.binlog
             sbomEnabled: false
           - output: pipelineArtifact
-            displayName: Upload toolchain-signed artifact
-            artifactName: android-llvm-toolchain-signed
+            displayName: Upload toolchain artifact
+            artifactName: $(ToolchainArtifactName)
             targetPath: $(Build.StagingDirectory)/toolchain
         steps:
         - checkout: self
@@ -251,6 +256,7 @@ extends:
           inputs:
             projects: build-tools/automation/sign.proj
             arguments: >-
+              -t:Build,ZipOutput
               -p:SignType=$(MicroBuildSignType)
               -bl:$(Build.StagingDirectory)/binlogs/sign-macos.binlog
 
@@ -276,7 +282,7 @@ extends:
 
         - task: DownloadPipelineArtifact@2
           inputs:
-            artifactName: android-llvm-toolchain-signed
+            artifactName: $(ToolchainArtifactName)
             downloadPath: $(Build.SourcesDirectory)\artifacts
 
         - task: MicroBuildCodesignVerify@3
