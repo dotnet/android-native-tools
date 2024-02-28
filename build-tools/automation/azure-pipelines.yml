@@ -1,10 +1,14 @@
 trigger:
-- main
-- release/*
-- dev/*
+  branches:
+    include:
+    - main
+    - release/*
+  tags:
+    include:
+    - '*'
 
 pr:
-- none
+- main
 
 resources:
   repositories:
@@ -23,7 +27,18 @@ resources:
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
 
+parameters:
+- name: SignArtifactsOverride
+  default: false
+- name: Skip1ESComplianceTasks
+  default: false
+
 variables:
+- name: MicroBuildSignType
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.SignArtifactsOverride, 'true')) }}:
+    value: Real
+  ${{ else }}:
+    value: Test
 - name: TeamName
   value: XamarinAndroid
 - name: BUILD_DIR
@@ -32,10 +47,8 @@ variables:
   value: 1ESPT-Windows2022
 - name: LinuxPoolImage1ESPT
   value: 1ESPT-Ubuntu22.04
-
-parameters:
-- name: Skip1ESComplianceTasks
-  default: false
+- name: MicroBuildPoolName
+  value: VSEngSS-MicroBuild2022-1ES
 
 extends:
   ${{ if or(eq(variables['Build.Reason'], 'PullRequest'), eq('${{ parameters.Skip1ESComplianceTasks }}', 'true')) }}:
@@ -183,9 +196,6 @@ extends:
     - stage: package
       displayName: Package Stage
       dependsOn: build
-      variables:
-      - name: MicroBuildSignType
-        value: Real
       jobs:
       - job: pack_sign
         displayName: Sign and Zip
@@ -257,9 +267,9 @@ extends:
       - job: sign_verify
         displayName: Verify Signing
         dependsOn: pack_sign
+        condition: and(eq(dependencies.pack_sign.result, 'Succeeded'), eq(variables['MicroBuildSignType'], 'Real'))
         timeoutInMinutes: 240
-        pool:
-          name: VSEngSS-MicroBuild2022-1ES
+        pool: $(MicroBuildPoolName)
         steps:
         - checkout: self
           submodules: recursive
@@ -274,4 +284,3 @@ extends:
           inputs:
             TargetFolders: $(Build.SourcesDirectory)\artifacts
             ExcludeSNVerify: true
-          condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
