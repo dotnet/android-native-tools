@@ -154,7 +154,7 @@ extends:
             brew install cmake ninja ccache
           displayName: Install LLVM build dependencies
 
-        - script: brew install make xz
+        - script: export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install make xz
           displayName: Install Xamarin.Android Utilities build dependencies
 
         - script: bash ./build-llvm.sh
