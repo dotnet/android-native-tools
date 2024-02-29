@@ -63,6 +63,7 @@ function prepare()
 		exe=".exe"
 		cmd=".cmd"
 
+		cp -P -a "${artifacts_source_bin}/llvm-objcopy.pdb" "${artifacts_dest_bin}/llvm-objcopy.pdb"
 		make_windows_wrapper_scripts "scripts/llvm-strip.cmd.in" "${artifacts_source_bin}" "strip"
 		make_windows_wrapper_scripts "scripts/gas.cmd.in" "${artifacts_source_bin}" "as"
 		make_windows_wrapper_scripts "scripts/ld.cmd.in" "${artifacts_source_bin}" "ld"
