@@ -159,7 +159,7 @@ extends:
 
         - script: |
             brew update
-            brew install cmake ninja ccache
+            export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install cmake ninja ccache
           displayName: Install LLVM build dependencies
 
         - script: export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install make xz
