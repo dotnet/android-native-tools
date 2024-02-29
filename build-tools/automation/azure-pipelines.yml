@@ -82,7 +82,7 @@ extends:
         displayName: Build Linux
         timeoutInMinutes: 480
         pool:
-          name: AzurePipelines-EO
+          name: MAUI-1ESPT
           image: $(LinuxPoolImage1ESPT)
           os: linux
         templateContext:
@@ -135,8 +135,11 @@ extends:
         displayName: Build macOS
         timeoutInMinutes: 480
         pool:
-          name: Azure Pipelines
-          vmImage: macOS-12
+          ${{ if eq(variables['MicroBuildSignType'], 'Real') }}:
+            name: Azure Pipelines
+            vmImage: macOS-latest
+          ${{ else }}:
+            name: VSEng-Xamarin-RedmondMac-Android-Untrusted
           os: macOS
         templateContext:
           outputs:
@@ -178,7 +181,7 @@ extends:
         displayName: Build Windows
         timeoutInMinutes: 600
         pool:
-          name: AzurePipelines-EO
+          name: MAUI-1ESPT
           image: $(WindowsPoolImage1ESPT)
           os: windows
         variables:
@@ -207,7 +210,7 @@ extends:
         timeoutInMinutes: 480
         pool:
           name: Azure Pipelines
-          vmImage: macOS-12
+          vmImage: macOS-latest
           os: macOS
         templateContext:
           outputParentDirectory: $(Build.StagingDirectory)
