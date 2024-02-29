@@ -135,7 +135,7 @@ extends:
         displayName: Build macOS
         timeoutInMinutes: 480
         pool:
-          ${{ if eq(variables['MicroBuildSignType'], 'Real') }}:
+          ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.SignArtifactsOverride, 'true')) }}:
             name: Azure Pipelines
             vmImage: macOS-latest
           ${{ else }}:
