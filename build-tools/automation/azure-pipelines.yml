@@ -1,10 +1,14 @@
 trigger:
-- main
-- release/*
-- dev/*
+  branches:
+    include:
+    - main
+    - release/*
+  tags:
+    include:
+    - '*'
 
 pr:
-- none
+- main
 
 resources:
   repositories:
@@ -26,17 +30,22 @@ resources:
 parameters:
 - name: ApiScanSourceBranch
   default: refs/heads/main
-- name: SignArtifacts
+- name: SignArtifactsOverride
   default: false
 - name: Skip1ESComplianceTasks
   default: false
 
 variables:
 - name: MicroBuildSignType
-  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.SignArtifacts, 'true')) }}:
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.SignArtifactsOverride, 'true')) }}:
     value: Real
   ${{ else }}:
     value: Test
+- name: ToolchainArtifactName
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.SignArtifactsOverride, 'true')) }}:
+    value: android-llvm-toolchain-signed
+  ${{ else }}:
+    value: android-llvm-toolchain-unsigned
 - name: TeamName
   value: XamarinAndroid
 - name: BUILD_DIR
@@ -152,7 +161,7 @@ extends:
             brew install cmake ninja ccache
           displayName: Install LLVM build dependencies
 
-        - script: brew install make xz
+        - script: export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install make xz
           displayName: Install Xamarin.Android Utilities build dependencies
 
         - script: bash ./build-llvm.sh
@@ -212,8 +221,8 @@ extends:
             targetPath: $(Build.StagingDirectory)/binlogs/sign-macos.binlog
             sbomEnabled: false
           - output: pipelineArtifact
-            displayName: Upload toolchain-signed artifact
-            artifactName: android-llvm-toolchain-signed
+            displayName: Upload toolchain artifact
+            artifactName: $(ToolchainArtifactName)
             targetPath: $(Build.StagingDirectory)/toolchain
         steps:
         - checkout: self
@@ -249,6 +258,7 @@ extends:
           inputs:
             projects: build-tools/automation/sign.proj
             arguments: >-
+              -t:Build,ZipOutput
               -p:SignType=$(MicroBuildSignType)
               -bl:$(Build.StagingDirectory)/binlogs/sign-macos.binlog
 
@@ -274,7 +284,7 @@ extends:
 
         - task: DownloadPipelineArtifact@2
           inputs:
-            artifactName: android-llvm-toolchain-signed
+            artifactName: $(ToolchainArtifactName)
             downloadPath: $(Build.SourcesDirectory)\artifacts
 
         - task: MicroBuildCodesignVerify@3
@@ -298,11 +308,11 @@ extends:
         steps:
         - task: DownloadPipelineArtifact@2
           inputs:
-            artifactName: android-llvm-toolchain-signed
+            artifactName: $(ToolchainArtifactName)
             downloadPath: $(Build.StagingDirectory)\toolchain-zip
 
         - task: ExtractFiles@1
-          displayName: Extract android-llvm-toolchain-signed
+          displayName: Extract $(ToolchainArtifactName)
           inputs:
             archiveFilePatterns: $(Build.StagingDirectory)\**\*.zip
             destinationFolder: $(Build.SourcesDirectory)\binutils
