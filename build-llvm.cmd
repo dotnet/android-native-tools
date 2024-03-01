@@ -54,19 +54,33 @@ cmake -G "%CMAKE_VS_GENERATOR%" -A x64 ^
  -DLLVM_USE_CRT_MINSIZEREL=MT ^
  -DLLVM_USE_CRT_RELEASE=MT ^
  %SOURCE_DIR%
+IF %ERRORLEVEL% GEQ 1 EXIT /B 1
 
 msbuild /p:Configuration=Release /m tools\llvm-mc\llvm-mc.vcxproj
+IF %ERRORLEVEL% GEQ 1 EXIT /B 2
+
 msbuild /p:Configuration=Release /m tools\llvm-objcopy\llvm-objcopy.vcxproj
+IF %ERRORLEVEL% GEQ 1 EXIT /B 3
+
 msbuild /p:Configuration=Release /m tools\lld\tools\lld\lld.vcxproj
+IF %ERRORLEVEL% GEQ 1 EXIT /B 4
+
 msbuild /p:Configuration=Release /m tools\llc\llc.vcxproj
+IF %ERRORLEVEL% GEQ 1 EXIT /B 5
 
 move %HOST_BIN_DIR%\llvm-objcopy.exe %HOST_BIN_DIR%\llvm-strip.exe
+IF %ERRORLEVEL% GEQ 1 EXIT /B 6
+
 move %HOST_BIN_DIR%\llvm-objcopy.pdb %HOST_BIN_DIR%\llvm-strip.pdb
+IF %ERRORLEVEL% GEQ 1 EXIT /B 7
+
 for %%b in (%BINARIES%) DO (
   copy %HOST_BIN_DIR%\%%b %HOST_ARTIFACTS_BIN_DIR%\%%b
+  IF %ERRORLEVEL% GEQ 1 EXIT /B 8
 )
 for %%p in (%PDBS%) DO (
   copy %HOST_BIN_DIR%\%%p %HOST_ARTIFACTS_BIN_DIR%\%%p
+  IF %ERRORLEVEL% GEQ 1 EXIT /B 9
 )
 
 cd %MY_DIR%

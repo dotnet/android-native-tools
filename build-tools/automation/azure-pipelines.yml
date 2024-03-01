@@ -197,8 +197,8 @@ extends:
         - script: ./build-llvm-azure.cmd
           displayName: Build Windows LLVM
 
-        - script: ./build-xa-utils.cmd
-          displayName: Build Windows LLVM
+        - script: ./build-xa-utils-azure.cmd
+          displayName: Build utilities
 
     - stage: package
       displayName: Package Stage
