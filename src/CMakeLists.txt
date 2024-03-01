@@ -143,6 +143,7 @@ else() # UNIX
     /sdl
     /guard:cf
     /Zi
+    /W3
   )
 
   set(COMMON_LINKER_ARGS
