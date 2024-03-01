@@ -142,6 +142,7 @@ extends:
             vmImage: macOS-latest
           ${{ else }}:
             name: VSEng-Xamarin-RedmondMac-Android-Untrusted
+            demands: macOS.Name -equals Monterey
           os: macOS
         templateContext:
           outputs:
