@@ -194,11 +194,11 @@ extends:
         - checkout: self
           submodules: recursive
 
-        - script: ./build-llvm-azure.cmd
-          displayName: Build Windows LLVM
-
         - script: ./build-xa-utils-azure.cmd
           displayName: Build utilities
+
+        - script: ./build-llvm-azure.cmd
+          displayName: Build Windows LLVM
 
     - stage: package
       displayName: Package Stage
