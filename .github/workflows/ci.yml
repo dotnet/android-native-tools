@@ -3,12 +3,7 @@ env:
   BUILD_DIR: xa-build
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-  workflow_dispatch:
+  workflow_dispatch
 
 jobs:
   build_llvm_linux:
