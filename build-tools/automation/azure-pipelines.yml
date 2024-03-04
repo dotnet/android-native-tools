@@ -115,14 +115,14 @@ extends:
 
         - script: ./build-llvm.sh
           env:
-            CC: gcc-10
-            CXX: g++-10
+            CC: gcc-13
+            CXX: g++-13
           displayName: Build LLVM
 
         - script: ./build-xa-utils.sh
           env:
-            CC: gcc-10
-            CXX: g++-10
+            CC: gcc-13
+            CXX: g++-13
           displayName: Build utilities
 
         - script: |
@@ -140,6 +140,7 @@ extends:
             vmImage: macOS-latest
           ${{ else }}:
             name: VSEng-Xamarin-RedmondMac-Android-Untrusted
+            demands: macOS.Name -equals Monterey
           os: macOS
         templateContext:
           outputs:
@@ -197,9 +198,11 @@ extends:
         - checkout: self
           submodules: recursive
 
+        - script: ./build-xa-utils-azure.cmd
+          displayName: Build utilities
+
         - script: ./build-llvm-azure.cmd
           displayName: Build Windows LLVM
-
 
     - stage: package
       displayName: Package Stage

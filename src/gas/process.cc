@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include <cstring>
+#include <iostream>
 
 #include "process.hh"
 
@@ -18,7 +19,14 @@ std::vector<std::string::const_pointer> Process::make_exec_args ()
 {
 	std::vector<std::string::const_pointer> exec_args;
 
-	exec_args.push_back (strdup (executable_path.string ().c_str ()));
+	const char *const epath = executable_path.string ().c_str ();
+	exec_args.push_back (
+#if defined(_WIN32)
+		_strdup (epath)
+#else
+		strdup (epath)
+#endif
+	);
 	for (std::string const& arg : _args) {
 		exec_args.push_back (arg.c_str ());
 	}

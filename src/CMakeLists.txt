@@ -85,58 +85,89 @@ macro(c_linker_has_flag _flag)
   _linker_has_flag(C ${_flag})
 endmacro()
 
-set(COMMON_COMPILER_ARGS
-  -fstack-protector-strong
-  -fstrict-return
-  -fno-strict-aliasing
-  -ffunction-sections
-  -funswitch-loops
-  -finline-limit=500
-  -Wa,-noexecstack
-  -fpic
-  -g
-  -Wa,--noexecstack
-  -Wformat
-  -Werror=format-security
-  -Wall
-  -Wextra
-  -Wnull-dereference
-  -Wmisleading-indentation
-  -Wunused
-  -Wpedantic
-  -Wsuggest-final-types
-  -Wsuggest-final-methods
-  -Wint-to-pointer-cast
-  -Wunguarded-availability
-  -Wsuggest-override
+if(UNIX)
+  set(COMMON_COMPILER_ARGS
+    -fstack-protector-strong
+    -fstrict-return
+    -fno-strict-aliasing
+    -ffunction-sections
+    -funswitch-loops
+    -finline-limit=500
+    -Wa,-noexecstack
+    -fpic
+    -g
+    -Wa,--noexecstack
+    -Wformat
+    -Werror=format-security
+    -Wall
+    -Wextra
+    -Wnull-dereference
+    -Wmisleading-indentation
+    -Wunused
+    -Wpedantic
+    -Wsuggest-final-types
+    -Wsuggest-final-methods
+    -Wint-to-pointer-cast
+    -Wunguarded-availability
+    -Wsuggest-override
   )
 
-set(COMMON_LINKER_ARGS
-  -fstack-protector-strong
-  -static-libstdc++
-  -static-libgcc
-  LINKER:-fstrict-return
-  LINKER:-z,now
-  LINKER:-z,relro
-  LINKER:-z,noexecstack
+  set(COMMON_LINKER_ARGS
+    -fstack-protector-strong
+    -static-libstdc++
+    -static-libgcc
+    LINKER:-fstrict-return
+    LINKER:-z,now
+    LINKER:-z,relro
+    LINKER:-z,noexecstack
   )
 
-if(COMPILER_DIAG_COLOR)
-  list(APPEND COMMON_COMPILER_ARGS -fdiagnostics-color=always)
-else()
-  list(APPEND COMMON_COMPILER_ARGS -fdiagnostics-color=auto)
-endif()
+  if(COMPILER_DIAG_COLOR)
+    list(APPEND COMMON_COMPILER_ARGS -fdiagnostics-color=always)
+  else()
+    list(APPEND COMMON_COMPILER_ARGS -fdiagnostics-color=auto)
+  endif()
+
+  if(IS_DEBUG)
+    list(APPEND COMMON_COMPILER_ARGS
+      -ggdb3
+      -fno-omit-frame-pointer
+      -O0
+    )
+  else()
+    list(APPEND COMMON_COMPILER_ARGS -fomit-frame-pointer -O2)
+  endif()
+else() # UNIX
+  set(COMMON_COMPILER_ARGS
+    /Qspectre
+    /sdl
+    /guard:cf
+    /Zi
+    /W3
+  )
+
+  set(COMMON_LINKER_ARGS
+    LINKER:/PROFILE
+    LINKER:/DYNAMICBASE
+    LINKER:/CETCOMPAT
+    LINKER:/guard:cf
+  )
+
+  if(IS_DEBUG)
+    list(APPEND COMMON_COMPILER_ARGS
+      /Od
+    )
+  else()
+    list(APPEND COMMON_COMPILER_ARGS
+      /Ot
+    )
+  endif()
+endif() # WIN32
 
 if(IS_DEBUG)
   add_compile_definitions(DEBUG)
-  list(APPEND COMMON_COMPILER_ARGS
-    -ggdb3
-    -fno-omit-frame-pointer
-    -O0
-    )
 else()
   add_compile_definitions(NDEBUG)
-  list(APPEND COMMON_COMPILER_ARGS -fomit-frame-pointer -O2)
 endif()
 
 foreach(flag ${COMMON_COMPILER_ARGS})

@@ -3,3 +3,7 @@
 	url = https://github.com/llvm/llvm-project.git
 	shallow = true
 	branch = release/13.x
+[submodule "cxxopts"]
+	path = external/cxxopts
+	url = https://github.com/jarro2783/cxxopts.git
+	branch = master
