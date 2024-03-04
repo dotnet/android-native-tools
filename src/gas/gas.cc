@@ -7,8 +7,10 @@
 
 #include "constants.hh"
 #include "gas.hh"
+#include "../shared/process.hh"
 #include "llvm_mc_runner.hh"
 
+using namespace xamarin::android::binutils;
 using namespace xamarin::android::gas;
 
 cxxopts::Options Gas::create_options ()
@@ -59,26 +61,17 @@ cxxopts::Options Gas::create_options ()
 	return options;
 }
 
-int Gas::usage (bool is_error, std::string const message)
+void Gas::usage_print_extra ([[maybe_unused]] bool is_error)
 {
-	if (!message.empty ()) {
-		std::cerr << message << Constants::newline << Constants::newline;
-	}
-
-	cxxopts::Options options = create_options ();
-
-	std::cerr << options.help () << std::endl << std::endl;
-	std::cerr << "`" << program_name () << "` takes a subset of arguments accepted by the GNU Assembler (gas) program." << Constants::newline
-	          << "Accepted options are limited to the ones used by Xamarin.Android and Mono/dotnet AOT, more can be added as-needed." << Constants::newline
-	          << "Some options are accepted but ignored, either because they are ignored by GAS as well or because they are used by" << Constants::newline
-	          << "Xamarin.Android or Mono/dotnet AOT, but not needed by `llvm-mc`.  All the unsupported options will cause the wrapper" << Constants::newline
-	          << "to fail with an error message." << Constants::newline
-	          << "Since `llvm-mc` does not support compiling multiple source files at the same time, this GAS behavior is emulated" << Constants::newline
-	          << "by running `llvm-mc` once per each input file and using the `ld` linker in the end to merge all the discrete output" << Constants::newline
-	          << "files into the single file indicated by the `-o` option." << Constants::newline << Constants::newline
-	          << "Command line options are compatibile with GAS version " << BINUTILS_VERSION << Constants::newline << Constants::newline;
-
-	return is_error ? 1 : 0;
+	std::cerr << "`" << program_name () << "` takes a subset of arguments accepted by the GNU Assembler (gas) program." << SharedConstants::newline
+	          << "Accepted options are limited to the ones used by Xamarin.Android and Mono/dotnet AOT, more can be added as-needed." << SharedConstants::newline
+	          << "Some options are accepted but ignored, either because they are ignored by GAS as well or because they are used by" << SharedConstants::newline
+	          << "Xamarin.Android or Mono/dotnet AOT, but not needed by `llvm-mc`.  All the unsupported options will cause the wrapper" << SharedConstants::newline
+	          << "to fail with an error message." << SharedConstants::newline
+	          << "Since `llvm-mc` does not support compiling multiple source files at the same time, this GAS behavior is emulated" << SharedConstants::newline
+	          << "by running `llvm-mc` once per each input file and using the `ld` linker in the end to merge all the discrete output" << SharedConstants::newline
+	          << "files into the single file indicated by the `-o` option." << SharedConstants::newline << SharedConstants::newline
+	          << "Command line options are compatibile with GAS version " << BINUTILS_VERSION << SharedConstants::newline << SharedConstants::newline;
 }
 
 int Gas::run (int argc, char **argv)
@@ -100,7 +93,7 @@ int Gas::run (int argc, char **argv)
 		arch_name = first_param + (sizeof(Constants::arch_hack_param) - 1);
 		lowercase_string (arch_name);
 	}
-	_program_name = arch_name;
+	set_program_name (arch_name);
 
 	std::unique_ptr<LlvmMcRunner> mc_runner;
 	std::string ld_name;
@@ -125,21 +118,21 @@ int Gas::run (int argc, char **argv)
 		message
 			.append (generic_gas_name)
 			.append ("), please use one of the ABI-prefixed names:")
-			.append (Constants::newline)
-			.append ("  ").append (arm64_gas_name.data ()).append (Constants::newline)
-			.append ("  ").append (arm32_gas_name.data ()).append (Constants::newline)
-			.append ("  ").append (x86_gas_name.data ()).append (Constants::newline)
-			.append ("  ").append (x64_gas_name.data ()).append (Constants::newline);
+			.append (SharedConstants::newline)
+			.append ("  ").append (arm64_gas_name.data ()).append (SharedConstants::newline)
+			.append ("  ").append (arm32_gas_name.data ()).append (SharedConstants::newline)
+			.append ("  ").append (x86_gas_name.data ()).append (SharedConstants::newline)
+			.append ("  ").append (x64_gas_name.data ()).append (SharedConstants::newline);
 		return usage (true /* is_error */, message);
 	} else {
 		std::string message { "Unknown program name '" };
-		message.append (arch_name).append ("'").append (Constants::newline);
+		message.append (arch_name).append ("'").append (SharedConstants::newline);
 		return usage (true /* is_error */, message);
 	}
 
 	auto&& [terminate, is_error] = parse_arguments (argc, argv, mc_runner);
 	if (terminate || is_error) {
-		return is_error ? Constants::wrapper_general_error_code : 0;
+		return is_error ? SharedConstants::wrapper_general_error_code : 0;
 	}
 
 	fs::path llvm_mc = program_dir () / Constants::llvm_mc_name;
@@ -186,9 +179,9 @@ int Gas::run (int argc, char **argv)
 		ld->append_program_argument (_gas_output_file.empty () ? Constants::default_output_name : _gas_output_file.string ());
 		ld->append_program_argument ("--relocatable");
 
-		std::cout << "Have multiple output files:" << Constants::newline;
+		std::cout << "Have multiple output files:" << SharedConstants::newline;
 		for (fs::path const& output : output_files) {
-			std::cout << "  " << output << Constants::newline;
+			std::cout << "  " << output << SharedConstants::newline;
 			ld->append_program_argument (output.string ());
 		}
 
@@ -198,11 +191,9 @@ int Gas::run (int argc, char **argv)
 	return 0;
 }
 
-Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner)
+ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner)
 {
 	cxxopts::Options options = create_options ();
-	bool terminate = false, is_error = false;
-	bool show_version = false;
 
 	options.parse_positional ("asmfile");
 	auto result = options.parse(argc, argv);
@@ -210,21 +201,22 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 		exit (usage (false /* is_error */));
 	}
 
+	bool is_error = false;
+	bool show_version = false;
+
 	if (result.count ("version") > 0) {
 		show_version = true;
-		terminate = true;
 	}
 
 	if (result.count ("V") > 0) {
 		show_version = true;
-		terminate = false;
 	}
 
 	if (show_version) {
-		std::cout << program_name () << " v" << XA_UTILS_VERSION << ", " << PROGRAM_DESCRIPTION << Constants::newline
-		          << "\tGAS version compatibility: " << BINUTILS_VERSION << Constants::newline
-		          << "\tllvm-mc version compatibility: " << LLVM_VERSION << Constants::newline << Constants::newline;
-		return {true, false};
+		std::cout << program_name () << " v" << XA_UTILS_VERSION << ", " << PROGRAM_DESCRIPTION << SharedConstants::newline
+		          << "\tGAS version compatibility: " << BINUTILS_VERSION << SharedConstants::newline
+		          << "\tllvm-mc version compatibility: " << LLVM_VERSION << SharedConstants::newline << SharedConstants::newline;
+		return {true /* terminate */, false /* is_error */};
 	}
 
 	if (result.count ("gen-debug") > 0) {
@@ -237,10 +229,6 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 
 	if (result.count ("o") > 0) {
 		_gas_output_file = result["o"].as<std::string> ();
-	}
-
-	if (terminate) {
-		return {terminate, is_error};
 	}
 
 	if (_gas_output_file.empty ()) {
@@ -256,5 +244,5 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 		}
 	}
 
- 	return {terminate, is_error};
+ 	return {false /* terminate */, is_error};
 }

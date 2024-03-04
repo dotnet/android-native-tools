@@ -3,14 +3,13 @@
 #define __LLVM_MC_RUNNER_HH
 
 #include <filesystem>
-#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "exceptions.hh"
 #include "gas.hh"
-#include "process.hh"
+#include "../shared/exceptions.hh"
+#include "../shared/process.hh"
 
 namespace xamarin::android::gas
 {
@@ -46,11 +45,11 @@ namespace xamarin::android::gas
 		void set_input_file_path (fs::path const& file_path, bool derive_output_file_name = true)
 		{
 			if (file_path.empty ()) {
-				throw invalid_argument_error { "Argument 'file_path' must not be empty" };
+				throw binutils::invalid_argument_error { "Argument 'file_path' must not be empty" };
 			}
 
 			if (!file_path.has_filename ()) {
-				throw invalid_argument_error { "Argument 'file_path' must have the file name portion" };
+				throw binutils::invalid_argument_error { "Argument 'file_path' must have the file name portion" };
 			}
 
 			input_file_path = file_path;
@@ -133,7 +132,7 @@ namespace xamarin::android::gas
 		{
 			if (argument == LlvmMcArgument::Arch) {
 				if (arguments.find (argument) != arguments.end ()) {
-					throw invalid_operation_error { "Architecture can be set only once" };
+					throw binutils::invalid_operation_error { "Architecture can be set only once" };
 				}
 			}
 
@@ -146,9 +145,9 @@ namespace xamarin::android::gas
 
 			auto iter = arguments.find (argument);
 			if (iter != arguments.end ()) {
-				std::get<Process::string_list> (arguments[argument]).push_back (value);
+				std::get<binutils::Process::string_list> (arguments[argument]).push_back (value);
 			} else {
-				arguments[argument] = Process::string_list { value };
+				arguments[argument] = binutils::Process::string_list { value };
 			}
 		}
 
@@ -156,7 +155,7 @@ namespace xamarin::android::gas
 		{
 			auto iter = known_options.find (argument);
 			if (iter == known_options.end ()) {
-				throw invalid_operation_error { "Unknown option" };
+				throw binutils::invalid_operation_error { "Unknown option" };
 			}
 
 			return iter->second;
@@ -175,7 +174,7 @@ namespace xamarin::android::gas
 		}
 
 	private:
-		std::unordered_map<LlvmMcArgument, Process::process_argument> arguments;
+		std::unordered_map<LlvmMcArgument, binutils::Process::process_argument> arguments;
 		fs::path input_file_path;
 		std::string triple;
 	};

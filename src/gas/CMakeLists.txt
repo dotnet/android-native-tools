@@ -6,7 +6,8 @@ set(GAS_DRIVER_SOURCES
   llvm_mc_runner_x64.cc
   llvm_mc_runner_x86.cc
   main.cc
-  process.cc
+  ../shared/app.cc
+  ../shared/process.cc
   )
 
 set(ARCH_PREFIXES
@@ -19,12 +20,14 @@ set(ARCH_PREFIXES
 if(WIN32)
   list(APPEND GAS_DRIVER_SOURCES
     gas.windows.cc
-    process.windows.cc
+    ../shared/app.windows.cc
+    ../shared/process.windows.cc
     )
 else()
   list(APPEND GAS_DRIVER_SOURCES
     gas.posix.cc
-    process.posix.cc
+    ../shared/app.posix.cc
+    ../shared/process.posix.cc
     )
 endif()
 

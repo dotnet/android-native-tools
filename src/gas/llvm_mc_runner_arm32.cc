@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-#include "exceptions.hh"
+#include "../shared/exceptions.hh"
 #include "llvm_mc_runner.hh"
 
+using namespace xamarin::android::binutils;
 using namespace xamarin::android::gas;
 
 // Mapping isn't complete, because it's not clear to me what some of the entries need to map to, but since most of them

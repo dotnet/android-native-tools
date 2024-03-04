@@ -4,7 +4,7 @@
 
 #include "process.hh"
 
-using namespace xamarin::android::gas;
+using namespace xamarin::android::binutils;
 
 void Process::print_process_command_line ()
 {

@@ -217,3 +217,4 @@ if(WIN32)
 endif()
 
 add_subdirectory(gas)
+add_subdirectory(llvm-strip)

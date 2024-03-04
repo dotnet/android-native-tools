@@ -9,9 +9,7 @@
 #include <string_view>
 #include <vector>
 
-#if __has_include (<concepts>)
-#include <concepts>
-#endif // has <concepts>
+#include "../shared/app.hh"
 
 namespace cxxopts {
 	class Options;
@@ -20,31 +18,6 @@ namespace cxxopts {
 namespace xamarin::android::gas
 {
 	namespace fs = std::filesystem;
-
-	template<class TFunc>
-#if __has_include (<concepts>) && !defined(__APPLE__) // Apple clang reports it supports concepts, but it breaks on the next line
-	requires std::invocable<TFunc>
-#endif // has <concepts>
-	class ScopeGuard
-	{
-	public:
-		explicit ScopeGuard (TFunc&& fn) noexcept
-			: fn (std::forward<TFunc> (fn))
-		{}
-
-		ScopeGuard (ScopeGuard const&) = delete;
-
-		~ScopeGuard ()
-		{
-			fn ();
-		}
-
-		ScopeGuard operator= (ScopeGuard const&) = delete;
-		ScopeGuard operator= (ScopeGuard &&) = delete;
-
-	private:
-		TFunc fn;
-	};
 
 	class LlvmMcRunner;
 
@@ -135,20 +108,9 @@ namespace xamarin::android::gas
 		return ret;
 	}
 
-	class Gas final
+	class Gas final : public binutils::App
 	{
 		static inline constexpr std::string_view PROGRAM_DESCRIPTION { "Xamarin.Android GAS adapter for llvm-mc" };
-
-		struct ParseArgsResult
-		{
-			const bool terminate;
-			const bool is_error;
-
-			ParseArgsResult (bool _terminate, bool _is_error) noexcept
-				: terminate (_terminate),
-				  is_error (_is_error)
-			{}
-		};
 
 		static constexpr char generic_gas_name[] = "as";
 		static constexpr char generic_ld_name[] =
@@ -165,22 +127,9 @@ namespace xamarin::android::gas
 		static constexpr char x64_arch_prefix[] = "x86_64-linux-android-";
 
 	public:
-		~Gas ()
-		{}
+		virtual ~Gas () = default;
 
-		void get_command_line (int &argc, char **&argv);
-
-		int run (int argc, char **argv);
-
-		const std::string& program_name () const noexcept
-		{
-			return _program_name;
-		}
-
-		const fs::path& program_dir () const noexcept
-		{
-			return _program_dir;
-		}
+		int run (int argc, char **argv) override final;
 
 		TargetArchitecture target_arch () const noexcept
 		{
@@ -188,12 +137,9 @@ namespace xamarin::android::gas
 		}
 
 	protected:
-		ParseArgsResult parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner);
-
-	private:
-		void determine_program_dir (int argc, char **argv);
-		int usage (bool is_error, std::string const message = "");
-		cxxopts::Options create_options ();
+		binutils::ParseArgsResult parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner);
+		void usage_print_extra (bool is_error) override final;
+		cxxopts::Options create_options () override final;
 
 	private:
 		static constexpr auto arm64_gas_name = concat_const (arm64_arch_prefix, generic_gas_name);
@@ -207,10 +153,7 @@ namespace xamarin::android::gas
 		static constexpr auto x64_ld_name    = concat_const (x64_arch_prefix, generic_ld_name);
 
 		std::vector<fs::path> input_files;
-
-		std::string         _program_name;
 		fs::path            _gas_output_file;
-		fs::path            _program_dir;
 		TargetArchitecture  _target_arch;
 	};
 }

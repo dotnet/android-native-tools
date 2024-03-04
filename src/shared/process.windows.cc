@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
+#include <iostream>
+#include <string>
+
 #include <windows.h>
 #include <synchapi.h>
 #include <tchar.h>
-//#include <unistd.h>
-#include <iostream>
 
-#include "constants.hh"
+#include "shared-constants.hh"
 #include "process.hh"
 
-using namespace xamarin::android::gas;
+using namespace xamarin::android::binutils;
 
 static std::string escape_argument (std::string arg)
 {
@@ -88,7 +89,7 @@ int Process::run (bool print_command_line)
 	delete[] wbinary;
 
 	if (!success) {
-		return Constants::wrapper_exec_failed_error_code;
+		return SharedConstants::wrapper_exec_failed_error_code;
 	}
 
 	// TODO: error handling below

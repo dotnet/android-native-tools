@@ -5,10 +5,10 @@
 #include <cerrno>
 #include <memory>
 
-#include "constants.hh"
 #include "llvm_mc_runner.hh"
-#include "process.hh"
+#include "../shared/process.hh"
 
+using namespace xamarin::android::binutils;
 using namespace xamarin::android::gas;
 
 // Value is `true` if the option can be set multiple times

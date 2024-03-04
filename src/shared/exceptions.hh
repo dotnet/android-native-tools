@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-#if !defined (__EXCEPTIONS_HH)
-#define __EXCEPTIONS_HH
+#if !defined (SHARED_EXCEPTIONS_HH)
+#define SHARED_EXCEPTIONS_HH
 
 #include <stdexcept>
 
-namespace xamarin::android::gas
+namespace xamarin::android::binutils
 {
 	class invalid_argument_error : public std::invalid_argument
 	{
@@ -30,4 +30,4 @@ namespace xamarin::android::gas
 		{}
 	};
 }
-#endif
+#endif // ndef SHARED_EXCEPTIONS_HH

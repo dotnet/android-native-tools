@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-#include <cstring>
 #include <cerrno>
+#include <cstring>
 #include <iostream>
 
 #include <sys/types.h>
@@ -8,10 +8,11 @@
 #include <signal.h>
 #include <unistd.h>
 
-#include "constants.hh"
+#include "shared-constants.hh"
 #include "process.hh"
+#include "scope-guard.hh"
 
-using namespace xamarin::android::gas;
+using namespace xamarin::android::binutils;
 
 int Process::run (bool print_command_line)
 {
@@ -33,15 +34,15 @@ int Process::run (bool print_command_line)
 
 	pid_t llvm_mc_pid = fork ();
 	if (llvm_mc_pid == -1) {
-		std::cerr << "Fork failed. " << std::strerror (errno) << Constants::newline;
-		return Constants::wrapper_fork_failed_error_code;
+		std::cerr << "Fork failed. " << std::strerror (errno) << SharedConstants::newline;
+		return SharedConstants::wrapper_fork_failed_error_code;
 	}
 
 	if (llvm_mc_pid == 0) {
 		if (execv (executable_path.c_str (), const_cast<char* const*>(exec_args.data ())) == -1) {
-			std::cerr << "Failed to run " << Constants::llvm_mc_name << ". " << std::strerror (errno) << Constants::newline;
+			std::cerr << "Failed to run " << executable_path << ". " << std::strerror (errno) << SharedConstants::newline;
 		}
-		_exit (Constants::wrapper_exec_failed_error_code);
+		_exit (SharedConstants::wrapper_exec_failed_error_code);
 	}
 
 	int wstatus = 0;
@@ -49,22 +50,22 @@ int Process::run (bool print_command_line)
 		pid_t result = waitpid (llvm_mc_pid,  &wstatus, WUNTRACED);
 
 		if (result == -1) {
-			std::cerr << "Failed to wait for " << Constants::llvm_mc_name << " to terminate. " << std::strerror (errno) << Constants::newline;
-			return Constants::wrapper_wait_failed_error_code;
+			std::cerr << "Failed to wait for " << executable_path << " to terminate. " << std::strerror (errno) << SharedConstants::newline;
+			return SharedConstants::wrapper_wait_failed_error_code;
 		}
 
 		if (WIFSIGNALED (wstatus)) {
-			std::cerr << Constants::llvm_mc_name << " was killed by signal " << WTERMSIG (wstatus) << Constants::newline;
-			return Constants::wrapper_llvm_mc_killed_error_code;
+			std::cerr << executable_path << " was killed by signal " << WTERMSIG (wstatus) << SharedConstants::newline;
+			return SharedConstants::wrapper_process_killed_error_code;
 		} else if (WIFSTOPPED (wstatus)) {
-			std::cerr << Constants::llvm_mc_name << " was stopped by signal " << WSTOPSIG (wstatus) << Constants::newline;
+			std::cerr << executable_path << " was stopped by signal " << WSTOPSIG (wstatus) << SharedConstants::newline;
 			kill (llvm_mc_pid, SIGKILL); // Let's not risk hanging indifinitely...
-			return Constants::wrapper_llvm_mc_stopped_error_code;
+			return SharedConstants::wrapper_process_stopped_error_code;
 		}
 	} while (!WIFEXITED(wstatus) && !WIFSIGNALED(wstatus));
 
 	if (WEXITSTATUS (wstatus) != 0) {
-		std::cerr << Constants::llvm_mc_name << " exited with status " << WEXITSTATUS (wstatus) << Constants::newline;
+		std::cerr << executable_path << " exited with status " << WEXITSTATUS (wstatus) << SharedConstants::newline;
 	}
 	return WEXITSTATUS (wstatus);
 }
