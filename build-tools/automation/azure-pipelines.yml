@@ -46,6 +46,10 @@ variables:
     value: android-llvm-toolchain-signed
   ${{ else }}:
     value: android-llvm-toolchain-unsigned
+- name: ApiScanSoftwareName
+  value: VS
+- name: ApiScanSoftwareVersion
+  value: 17.10
 - name: TeamName
   value: XamarinAndroid
 - name: BUILD_DIR
@@ -328,18 +332,18 @@ extends:
           inputs:
             Contents: |
               $(Build.SourcesDirectory)\binutils\windows\**\?(*.dll|*.exe|*.pdb)
-            TargetFolder: $(Build.StagingDirectory)\apiscan
+            TargetFolder: $(Agent.TempDirectory)\T
 
-        - powershell: Get-ChildItem -Path "$(Build.StagingDirectory)\apiscan" -Recurse
+        - powershell: Get-ChildItem -Path "$(Agent.TempDirectory)\T" -Recurse
           displayName: List Files for APIScan
 
         - task: APIScan@2
           displayName: Run APIScan
           inputs:
-            softwareFolder: $(Build.StagingDirectory)\apiscan
-            symbolsFolder: 'SRV*http://symweb;$(Build.StagingDirectory)\apiscan'
-            softwareName: $(ApiScanName)
-            softwareVersionNum: $(Build.SourceBranchName)-$(Build.SourceVersion)
+            softwareFolder: $(Agent.TempDirectory)\T
+            symbolsFolder: 'SRV*http://symweb;$(Agent.TempDirectory)\T'
+            softwareName: $(ApiScanSoftwareName)
+            softwareVersionNum: $(ApiScanSoftwareVersion)
             isLargeApp: true
             toolVersion: Latest
           env:
