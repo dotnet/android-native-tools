@@ -4,7 +4,7 @@ IF %ERRORLEVEL% GEQ 1 CALL:FAILED_CASE
 
 echo "VS path: %result%"
 
-CALL ".\build-llvm.cmd"
+CALL ".\build-xa-utils.cmd"
 IF %ERRORLEVEL% GEQ 1 CALL:FAILED_CASE
 GOTO END_CASE
 

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-#include <unistd.h>
-
 #include <cstring>
-#include <iostream>
 #include <filesystem>
+#include <iostream>
+
+#include <cxxopts.hpp>
 
 #include "constants.hh"
 #include "gas.hh"
@@ -11,12 +11,63 @@
 
 using namespace xamarin::android::gas;
 
+cxxopts::Options Gas::create_options ()
+{
+	cxxopts::Options options (program_name(), PROGRAM_DESCRIPTION.data ());
+	options
+		.positional_help ("[asmfile...]")
+		.set_width (80);
+
+	options.add_options ("Supported GAS arguments")
+		("o",           "name the object-file output `arg` (default a.out)", cxxopts::value<std::string>())
+		("warn",        "don't suppress warnings", cxxopts::value<bool>())
+		("g,gen-debug", "generate debugging information", cxxopts::value<bool>())
+		("asmfile",     "assembler source file(s)", cxxopts::value<std::vector<std::string>>());
+
+	options.add_options ("Wrapper options, not passed to `llvm-mc`")
+		("h,help", "show this help screen", cxxopts::value<bool>())
+		("V", "show version", cxxopts::value<bool>())
+		("version", "show version and exit", cxxopts::value<bool>());
+
+	options.add_options ("Ignored by GAS and this wrapper")
+		("divide", "ignored", cxxopts::value<bool>())
+		("k", "ignored", cxxopts::value<bool>())
+		("nocpp", "ignored", cxxopts::value<bool>())
+		("Qn", "ignored", cxxopts::value<bool>())
+		("Qy", "ignored", cxxopts::value<bool>())
+		("s", "ignored", cxxopts::value<bool>())
+		("w", "ignored", cxxopts::value<bool>())
+		("X", "ignored", cxxopts::value<bool>());
+
+	switch (target_arch ()) {
+		case TargetArchitecture::ARM32:
+			options.add_options ("Arm options")
+				("mfpu", "assemble for FPU architecture <fpu name>", cxxopts::value<std::string>());
+			break;
+
+		case TargetArchitecture::X86:
+		case TargetArchitecture::X64:
+			options.add_options ("x86/x64 options")
+				("32", "generate 32bit object", cxxopts::value<bool>())
+				("64", "generate 64bit object", cxxopts::value<bool>());
+			break;
+
+		default:
+			break;
+	}
+
+	return options;
+}
+
 int Gas::usage (bool is_error, std::string const message)
 {
 	if (!message.empty ()) {
 		std::cerr << message << Constants::newline << Constants::newline;
 	}
 
+	cxxopts::Options options = create_options ();
+
+	std::cerr << options.help () << std::endl << std::endl;
 	std::cerr << "`" << program_name () << "` takes a subset of arguments accepted by the GNU Assembler (gas) program." << Constants::newline
 	          << "Accepted options are limited to the ones used by Xamarin.Android and Mono/dotnet AOT, more can be added as-needed." << Constants::newline
 	          << "Some options are accepted but ignored, either because they are ignored by GAS as well or because they are used by" << Constants::newline
@@ -25,31 +76,7 @@ int Gas::usage (bool is_error, std::string const message)
 	          << "Since `llvm-mc` does not support compiling multiple source files at the same time, this GAS behavior is emulated" << Constants::newline
 	          << "by running `llvm-mc` once per each input file and using the `ld` linker in the end to merge all the discrete output" << Constants::newline
 	          << "files into the single file indicated by the `-o` option." << Constants::newline << Constants::newline
-	          << "Command line options are compatibile with GAS version " << BINUTILS_VERSION << Constants::newline << Constants::newline
-	          << "Currently supported options are:" << Constants::newline << Constants::newline
-	          << "All targets" << Constants::newline
-	          << "   -o FILE            path to the output object file" << Constants::newline
-	          << "  --warn              don't suppress warning messages" << Constants::newline
-	          << "   -g | --gen-debug   generate debug information in the output object file" << Constants::newline << Constants::newline
-	          << "x86/x86_64 targets" << Constants::newline
-	          << "  --32                output a 32-bit object [ignored, `llvm-mc` is always invoked for the right target]" << Constants::newline
-	          << "  --64                output a 64-bit object [ignored, as above]" << Constants::newline << Constants::newline
-	          << "armeabi/arm32 targets" << Constants::newline
-	          << "  -mfpu=FPU           select floating-point architecture for the target" << Constants::newline << Constants::newline
-	          << "Ignored by GAS and this wrapper" << Constants::newline
-	          << "  --divide" << Constants::newline
-	          << "   -k" << Constants::newline
-	          << "  --nocpp" << Constants::newline
-	          << "   -Qn" << Constants::newline
-	          << "   -Qy" << Constants::newline
-	          << "   -s" << Constants::newline
-	          << "   -w" << Constants::newline
-	          << "   -X" << Constants::newline << Constants::newline
-	          << "Wrapper options, not passed to `llvm-mc`" << Constants::newline
-	          << "   -h | --help        show this help screen" << Constants::newline
-	          << "   -V                 show version" << Constants::newline
-	          << "  --version           show version and exit " << Constants::newline
-	          << Constants::newline;
+	          << "Command line options are compatibile with GAS version " << BINUTILS_VERSION << Constants::newline << Constants::newline;
 
 	return is_error ? 1 : 0;
 }
@@ -171,124 +198,45 @@ int Gas::run (int argc, char **argv)
 	return 0;
 }
 
-std::vector<option> Gas::common_options {
-	// Arguments ignored by GAS, we shall ignore them silently too
-	{ "divide",    no_argument,       nullptr, OPTION_IGNORE },
-	{ "k",         no_argument,       nullptr, OPTION_IGNORE },
-	{ "nocpp",     no_argument,       nullptr, OPTION_IGNORE },
-	{ "Qn",        no_argument,       nullptr, OPTION_IGNORE },
-	{ "Qy",        no_argument,       nullptr, OPTION_IGNORE },
-	{ "s",         no_argument,       nullptr, OPTION_IGNORE },
-	{ "w",         no_argument,       nullptr, OPTION_IGNORE },
-	{ "X",         no_argument,       nullptr, OPTION_IGNORE },
-
-	// Global GAS arguments we support
-	{ "o",         required_argument, nullptr, OPTION_O },
-	{ "warn",      no_argument,       nullptr, OPTION_WARN },
-	{ "g",         no_argument,       nullptr, OPTION_G },
-	{ "gen-debug", no_argument,       nullptr, OPTION_G },
-
-	// Arguments handled by us, not passed to llvm-mc
-	{ "h",         no_argument,       nullptr, OPTION_HELP },
-	{ "help",      no_argument,       nullptr, OPTION_HELP },
-	{ "V",         no_argument,       nullptr, OPTION_VERSION },
-	{ "version",   no_argument,       nullptr, OPTION_VERSION_EXIT },
-};
-
-std::vector<option> Gas::x86_options {
-	{ "32", no_argument, nullptr, OPTION_IGNORE }, // llvm-mc doesn't need this
-	{ "64", no_argument, nullptr, OPTION_IGNORE }, // llvm-mc doesn't need this
-};
-
-std::vector<option> Gas::arm32_options {
-	{ "mfpu", required_argument, nullptr, OPTION_MFPU },
-};
-
 Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner)
 {
-	std::vector<option> long_options { common_options };
-
-	switch (target_arch ()) {
-		case TargetArchitecture::ARM32:
-			long_options.insert (long_options.end (), arm32_options.begin (), arm32_options.end ());
-			break;
-
-		case TargetArchitecture::X86:
-		case TargetArchitecture::X64:
-			long_options.insert (long_options.end (), x86_options.begin (), x86_options.end ());
-			break;
-
-		default:
-			break;
-	}
-	long_options.push_back ({ nullptr, 0, nullptr, 0 });
-
-	constexpr char PROGRAM_DESCRIPTION[] = "Xamarin.Android GAS adapter for llvm-mc";
-
+	cxxopts::Options options = create_options ();
 	bool terminate = false, is_error = false;
-	bool show_version = false, show_help = false;
+	bool show_version = false;
 
-	while (true) {
-		int opt_index = 0;
-		int c = getopt_long_only (argc, argv, "-", long_options.data (), &opt_index);
-
-		if (c == -1) {
-			break;
-		}
-
-		switch (c) {
-			case '?':
-				terminate = true;
-				is_error = true;
-				break;
-
-			case 1: // non-option argument
-			{
-				// Ignore the arch hack parameter
-				const char *ret = strstr (optarg, Constants::arch_hack_param);
-				if (ret == nullptr || ret != optarg) {
-					// char8_t* cast treats path string as utf8
-					input_files.emplace_back (reinterpret_cast<char8_t*>(optarg));
-				}
-			}
-			break;
-
-			case OPTION_VERSION:
-				show_version = true;
-				break;
-
-			case OPTION_VERSION_EXIT:
-				show_version = true;
-				terminate = true;
-				break;
-
-			case OPTION_HELP:
-				show_help = true;
-				terminate = true;
-				break;
-
-			case OPTION_O:
-				_gas_output_file = reinterpret_cast<char8_t*>(optarg);
-				break;
-
-			case OPTION_MFPU:
-				mc_runner->map_option ("mfpu", optarg);
-				break;
-
-			case OPTION_G:
-				mc_runner->generate_debug_info ();
-				break;
-		}
+	options.parse_positional ("asmfile");
+	auto result = options.parse(argc, argv);
+	if (result.count ("help") > 0) {
+		exit (usage (false /* is_error */));
 	}
 
-	if (show_help) {
-		usage (false /* is_error */);
-		return {true, false};
-	} else if (show_version) {
+	if (result.count ("version") > 0) {
+		show_version = true;
+		terminate = true;
+	}
+
+	if (result.count ("V") > 0) {
+		show_version = true;
+		terminate = false;
+	}
+
+	if (show_version) {
 		std::cout << program_name () << " v" << XA_UTILS_VERSION << ", " << PROGRAM_DESCRIPTION << Constants::newline
 		          << "\tGAS version compatibility: " << BINUTILS_VERSION << Constants::newline
 		          << "\tllvm-mc version compatibility: " << LLVM_VERSION << Constants::newline << Constants::newline;
 		return {true, false};
+	}
+
+	if (result.count ("gen-debug") > 0) {
+		mc_runner->generate_debug_info ();
+	}
+
+	if (result.count ("mfpu") > 0) {
+		mc_runner->map_option ("mfpu", result["mfpu"].as<std::string> ());
+	}
+
+	if (result.count ("o") > 0) {
+		_gas_output_file = result["o"].as<std::string> ();
 	}
 
 	if (terminate) {
@@ -297,6 +245,15 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 
 	if (_gas_output_file.empty ()) {
 		_gas_output_file = Constants::default_output_name;
+	}
+
+	if (result.count ("asmfile") > 0) {
+		for (std::string const& asmfile : result["asmfile"].as<std::vector<std::string>> ()) {
+			// Ignore the arch hack parameter
+			if (!asmfile.starts_with (Constants::arch_hack_param)) {
+				input_files.emplace_back (asmfile);
+			}
+		}
 	}
 
  	return {terminate, is_error};
