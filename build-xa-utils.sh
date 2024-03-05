@@ -21,7 +21,7 @@ function configure()
 	set -x
 	cmake -G Ninja \
 		  -DCMAKE_BUILD_TYPE="${CONFIGURATION}" \
-		  -DBINUTILS_VERSION="2.38" \
+		  -DBINUTILS_VERSION="2.42" \
 		  -DLLVM_VERSION="${LLVM_VERSION}" \
 		  "$@" \
 		  "${SOURCE_DIR}"
@@ -39,37 +39,15 @@ function configure_darwin()
               -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64'
 }
 
-function configure_windows()
-{
-	configure -DCMAKE_SYSTEM_NAME="Windows" \
-			  -DCMAKE_CROSSCOMPILING="True" \
-			  -DCMAKE_C_COMPILER="x86_64-w64-mingw32-gcc" \
-			  -DCMAKE_CXX_COMPILER="x86_64-w64-mingw32-g++" \
-			  -DCMAKE_RC_COMPILER="x86_64-w64-mingw32-windres" \
-			  -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM="NEVER" \
-			  -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY="ONLY" \
-			  -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE="ONLY"
-}
-
 function build()
 {
 	local host="${1}"
 
 	ninja -j${JOBS}
 
-	local exe
-	local cmd
-	if [ "${host}" == "windows" ]; then
-		exe=".exe"
-		cmd=".cmd"
-	fi
-
 	for b in ${XA_UTILS_BINARIES}; do
-		cp -P -a "${HOST_BIN_DIR}/${b}${exe}" "${HOST_ARTIFACTS_BIN_DIR}/${b}${exe}"
-
-		if [ "${host}" != "windows" ]; then
-			strip "${HOST_ARTIFACTS_BIN_DIR}/${b}"
-		fi
+		cp -P -a "${HOST_BIN_DIR}/${b}" "${HOST_ARTIFACTS_BIN_DIR}/${b}"
+		strip "${HOST_ARTIFACTS_BIN_DIR}/${b}"
 
 		if [ "${host}" == "linux" ]; then
 			compress_binary "${HOST_ARTIFACTS_BIN_DIR}/${b}"

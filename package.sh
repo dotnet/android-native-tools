@@ -84,11 +84,7 @@ function prepare()
 	for b in ${BINARIES}; do
 		src_pdb=""
 		dest_pdb=""
-		if [ "${b}" == "lld" ]; then
-			dest_b="ld"
-		else
-			dest_b="${b}"
-		fi
+		dest_b="${b}"
 
 		if [ -f "${artifacts_source_bin}/${b}${exe}" ]; then
 			src_pdb="${b}.pdb"

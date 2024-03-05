@@ -96,7 +96,6 @@ function build()
 	ninja -j${JOBS} lld
 	ninja -j${JOBS} llc
 
-	mv "${HOST_BIN_DIR}/llvm-objcopy" "${HOST_BIN_DIR}/llvm-strip"
 	grep 'CMAKE_PROJECT_VERSION:' "${MY_BUILD_DIR}/CMakeCache.txt" | cut -d '=' -f 2 > "${LLVM_VERSION_FILE}"
 
 	for b in ${LLVM_BINARIES}; do
