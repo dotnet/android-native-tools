@@ -18,8 +18,9 @@ namespace xamarin::android::binutils
 		using process_argument = std::variant<std::string, string_list>;
 
 	public:
-		explicit Process (fs::path const& executable_path)
-			: executable_path (executable_path.lexically_normal ())
+		explicit Process (fs::path const& executable_path, std::string_view override_program_name = "")
+			: executable_path (executable_path.lexically_normal ()),
+			  _program_name (override_program_name)
 		{}
 
 		int run (bool print_command_line = true);
@@ -51,6 +52,7 @@ namespace xamarin::android::binutils
 	private:
 		std::vector<std::string> _args;
 		fs::path const executable_path;
+		std::string _program_name;
 	};
 }
 #endif

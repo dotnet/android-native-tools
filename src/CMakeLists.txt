@@ -219,3 +219,4 @@ endif()
 
 add_subdirectory(gas)
 add_subdirectory(llvm-strip)
+add_subdirectory(ld)

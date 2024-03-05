@@ -19,7 +19,8 @@ std::vector<std::string::const_pointer> Process::make_exec_args ()
 {
 	std::vector<std::string::const_pointer> exec_args;
 
-	const char *const epath = executable_path.string ().c_str ();
+	const char *const epath = (_program_name.empty() ? executable_path.string () : _program_name).c_str ();
+
 	exec_args.push_back (
 #if defined(_WIN32)
 		_strdup (epath)

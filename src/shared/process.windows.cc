@@ -49,7 +49,7 @@ int Process::run (bool print_command_line)
 		print_process_command_line ();
 	}
 
-	std::string binary = executable_path.string ();
+	std::string binary = _program_name.empty() ? executable_path.string () : _program_name;
 	std::string args { escape_argument (binary) };
 	for (std::string const& a : _args) {
 		if (a.empty ()) {
@@ -65,7 +65,7 @@ int Process::run (bool print_command_line)
 
 	size =  MultiByteToWideChar (CP_UTF8, 0, binary.c_str (), -1, NULL , 0);
 	wchar_t* wbinary = new wchar_t [size];
-	MultiByteToWideChar (CP_UTF8, 0, binary.c_str (), -1, wbinary, size);
+	MultiByteToWideChar (CP_UTF8, 0, executable_path.c_str (), -1, wbinary, size);
 
 	PROCESS_INFORMATION pi {};
 	STARTUPINFOW si {};
