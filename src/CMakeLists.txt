@@ -205,6 +205,7 @@ endif()
 add_compile_definitions(XA_UTILS_VERSION="${PROJECT_VERSION}")
 add_compile_definitions(BINUTILS_VERSION="${BINUTILS_VERSION}")
 add_compile_definitions(LLVM_VERSION="${LLVM_VERSION}")
+add_compile_definitions(CXXOPTS_NO_REGEX)
 
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${XA_UTILS_CXX_FLAGS}>")
 add_compile_options("$<$<COMPILE_LANGUAGE:C>:${XA_UTILS_C_FLAGS}>")

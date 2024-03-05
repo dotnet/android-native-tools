@@ -37,7 +37,7 @@ std::vector<std::string::const_pointer> Process::make_exec_args ()
 void Process::append_program_argument (std::string const& option_name, std::string const& option_value)
 {
 	if (option_value.empty ()) {
-		_args.push_back (option_name);
+		_args.push_back (std::string { option_name });
 		return;
 	}
 

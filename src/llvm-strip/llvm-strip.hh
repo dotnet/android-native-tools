@@ -16,7 +16,11 @@
 #include "../shared/app.hh"
 
 namespace cxxopts {
-        class Options;
+    class Options;
+}
+
+namespace xamarin::android::binutils {
+	class Process;
 }
 
 namespace xamarin::android::llvm_strip {
@@ -30,7 +34,27 @@ namespace xamarin::android::llvm_strip {
 		int run (int argc, char **argv) override final;
 
 	protected:
-		binutils::ParseArgsResult parse_arguments (int argc, char **argv);
+		binutils::ParseArgsResult parse_arguments (int argc, char **argv, binutils::Process &llvm_objcopy);
+
+		std::string make_arg (std::string_view const& mark, std::string_view const& arg_name) const
+		{
+			std::string arg { mark };
+			arg.append (arg_name);
+
+			return arg;
+		}
+
+		std::string make_short_arg (std::string_view const& arg_name) const
+		{
+			constexpr std::string_view mark { "-" };
+			return make_arg (mark, arg_name);
+		}
+
+		std::string make_long_arg (std::string_view const& arg_name) const
+		{
+			constexpr std::string_view mark { "--" };
+			return make_arg (mark, arg_name);
+		}
 
 	private:
 		cxxopts::Options create_options () override final;
