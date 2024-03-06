@@ -35,7 +35,7 @@ namespace {
 			return check_option.data ();
 		}
 
-		constexpr std::string target_arg () const
+		std::string target_arg () const
 		{
 			std::string arg { target_option.length () == 1 ? short_arg_mark : long_arg_mark };
 			arg.append (target_option);
@@ -180,7 +180,7 @@ ParseArgsResult LlvmStrip::parse_arguments (int argc, char **argv, Process &llvm
 		return result.count (option.check()) > 0;
 	};
 
-	if (have_option (OPT_HELP) > 0) {
+	if (have_option (OPT_HELP)) {
 		exit (usage (false /* is_error */));
 	}
 

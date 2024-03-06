@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 #include <filesystem>
 
+#include <windows.h>
+#include <shlwapi.h>
+
 #include "app.hh"
 #include "exceptions.hh"
 

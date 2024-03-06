@@ -18,16 +18,16 @@ void Process::print_process_command_line ()
 std::vector<std::string::const_pointer> Process::make_exec_args ()
 {
 	std::vector<std::string::const_pointer> exec_args;
-
-	const char *const epath = (_program_name.empty() ? executable_path.string () : _program_name).c_str ();
+	std::string const& epath = _program_name.empty() ? executable_path.string () : _program_name;
 
 	exec_args.push_back (
 #if defined(_WIN32)
-		_strdup (epath)
+		_strdup (epath.c_str())
 #else
-		strdup (epath)
+		strdup (epath.c_str ())
 #endif
 	);
+
 	for (std::string const& arg : _args) {
 		exec_args.push_back (arg.c_str ());
 	}

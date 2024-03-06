@@ -19,13 +19,11 @@ set(ARCH_PREFIXES
 
 if(WIN32)
   list(APPEND GAS_DRIVER_SOURCES
-    gas.windows.cc
     ../shared/app.windows.cc
     ../shared/process.windows.cc
     )
 else()
   list(APPEND GAS_DRIVER_SOURCES
-    gas.posix.cc
     ../shared/app.posix.cc
     ../shared/process.posix.cc
     )
