@@ -28,6 +28,8 @@ resources:
     ref: refs/tags/release
 
 parameters:
+- name: ApiScanSourceBranch
+  default: refs/heads/main
 - name: SignArtifactsOverride
   default: false
 - name: Skip1ESComplianceTasks
@@ -44,6 +46,10 @@ variables:
     value: android-llvm-toolchain-signed
   ${{ else }}:
     value: android-llvm-toolchain-unsigned
+- name: ApiScanSoftwareName
+  value: VS
+- name: ApiScanSoftwareVersion
+  value: 17.10
 - name: TeamName
   value: XamarinAndroid
 - name: BUILD_DIR
@@ -296,3 +302,71 @@ extends:
           inputs:
             TargetFolders: $(Build.SourcesDirectory)\artifacts
             ExcludeSNVerify: true
+
+
+    - stage: Compliance
+      displayName: Compliance
+      dependsOn: package
+      condition: and(eq(dependencies.package.result, 'Succeeded'), eq(variables['Build.SourceBranch'], '${{ parameters.ApiScanSourceBranch }}'))
+      jobs:
+      - job: api_scan
+        displayName: API Scan
+        pool: $(MicroBuildPoolName)
+        timeoutInMinutes: 360
+        workspace:
+          clean: all
+        steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifactName: $(ToolchainArtifactName)
+            downloadPath: $(Build.StagingDirectory)\toolchain-zip
+
+        - task: ExtractFiles@1
+          displayName: Extract $(ToolchainArtifactName)
+          inputs:
+            archiveFilePatterns: $(Build.StagingDirectory)\**\*.zip
+            destinationFolder: $(Build.SourcesDirectory)\binutils
+
+        - task: CopyFiles@2
+          displayName: Collect Files for APIScan
+          inputs:
+            Contents: |
+              $(Build.SourcesDirectory)\binutils\windows\**\?(*.dll|*.exe|*.pdb)
+            TargetFolder: $(Agent.TempDirectory)\T
+
+        - powershell: Get-ChildItem -Path "$(Agent.TempDirectory)\T" -Recurse
+          displayName: List Files for APIScan
+
+        - task: APIScan@2
+          displayName: Run APIScan
+          inputs:
+            softwareFolder: $(Agent.TempDirectory)\T
+            symbolsFolder: 'SRV*http://symweb;$(Agent.TempDirectory)\T'
+            softwareName: $(ApiScanSoftwareName)
+            softwareVersionNum: $(ApiScanSoftwareVersion)
+            isLargeApp: true
+            toolVersion: Latest
+          env:
+            AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+
+        - task: SdtReport@2
+          displayName: Guardian Export - Security Report
+          inputs:
+            GdnExportAllTools: false
+            GdnExportGdnToolApiScan: true
+            GdnExportOutputSuppressionFile: apiscan.gdnsuppress
+
+        - task: PublishSecurityAnalysisLogs@3
+          displayName: Publish Guardian Artifacts
+          inputs:
+            ArtifactName: APIScan Logs
+            ArtifactType: Container
+            AllTools: false
+            APIScan: true
+            ToolLogsNotFoundAction: Warning
+
+        - task: PostAnalysis@2
+          displayName: Fail Build on Guardian Issues
+          inputs:
+            GdnBreakAllTools: false
+            GdnBreakGdnToolApiScan: true
