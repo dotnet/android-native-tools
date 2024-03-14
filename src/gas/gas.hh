@@ -2,20 +2,21 @@
 #if !defined (__GAS_HH)
 #define __GAS_HH
 
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+#include <getopt.h>
+
 #include <array>
 #include <filesystem>
+#include <iostream>
 #include <memory>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #if __has_include (<concepts>)
 #include <concepts>
 #endif // has <concepts>
-
-namespace cxxopts {
-	class Options;
-}
 
 namespace xamarin::android::gas
 {
@@ -137,8 +138,6 @@ namespace xamarin::android::gas
 
 	class Gas final
 	{
-		static inline constexpr std::string_view PROGRAM_DESCRIPTION { "Xamarin.Android GAS adapter for llvm-mc" };
-
 		struct ParseArgsResult
 		{
 			const bool terminate;
@@ -193,7 +192,6 @@ namespace xamarin::android::gas
 	private:
 		void determine_program_dir (int argc, char **argv);
 		int usage (bool is_error, std::string const message = "");
-		cxxopts::Options create_options ();
 
 	private:
 		static constexpr auto arm64_gas_name = concat_const (arm64_arch_prefix, generic_gas_name);
@@ -205,6 +203,10 @@ namespace xamarin::android::gas
 		static constexpr auto arm32_ld_name  = concat_const (arm32_arch_prefix, generic_ld_name);
 		static constexpr auto x86_ld_name    = concat_const (x86_arch_prefix, generic_ld_name);
 		static constexpr auto x64_ld_name    = concat_const (x64_arch_prefix, generic_ld_name);
+
+		static std::vector<option> common_options;
+		static std::vector<option> x86_options;
+		static std::vector<option> arm32_options;
 
 		std::vector<fs::path> input_files;
 

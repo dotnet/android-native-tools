@@ -107,6 +107,7 @@ function prepare()
 		else
 			cp -P -a "${artifacts_source_bin}/${b}" "${artifacts_dest_bin}/${dest_b}"
 		fi
+		chmod 755 "${artifacts_dest_bin}/${dest_b}"
 
 		if [ -n "${src_pdb}" -a -f "${artifacts_source_bin}/${src_pdb}" ]; then
 			cp -P -a "${artifacts_source_bin}/${src_pdb}" "${artifacts_dest_bin}/${dest_pdb}"
