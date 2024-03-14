@@ -18,6 +18,7 @@ set(ARCH_PREFIXES
 
 if(WIN32)
   list(APPEND GAS_DRIVER_SOURCES
+    ../compat/getopt.c
     gas.windows.cc
     process.windows.cc
     )
@@ -33,10 +34,13 @@ add_executable(
   ${GAS_DRIVER_SOURCES}
   )
 
-# SYSTEM disables warnings produced by cxxopts headers, which we can do nothing about
-target_include_directories(as SYSTEM PRIVATE ${CMAKE_SOURCE_DIR}/../external/cxxopts/include)
-
 if(WIN32)
+  target_include_directories(
+    as
+    PRIVATE
+    ../compat-include
+  )
+
   target_link_libraries(
     as
     shlwapi
