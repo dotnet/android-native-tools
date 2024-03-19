@@ -58,7 +58,9 @@ int Gas::usage (bool is_error, std::string const message)
 
 int Gas::run (int argc, char **argv)
 {
+	std::cout << "Gas::run" << std::endl;
 	determine_program_dir (argc, argv);
+	std::cout << "Program dir determined" << std::endl;
 
 	auto lowercase_string = [](std::string& s) {
 		std::transform (
@@ -69,12 +71,14 @@ int Gas::run (int argc, char **argv)
 		);
 	};
 
+	std::cout << "Determining arch name" << std::endl;
 	std::string arch_name { generic_gas_name };
 	const char *first_param = argc > 1 ? argv[1] : nullptr;
 	if (first_param != nullptr && strlen (first_param) > sizeof(Constants::arch_hack_param) && strstr (first_param, Constants::arch_hack_param) == first_param) {
 		arch_name = first_param + (sizeof(Constants::arch_hack_param) - 1);
 		lowercase_string (arch_name);
 	}
+	std::cout << "arch_name == " << arch_name << std::endl;
 	_program_name = arch_name;
 
 	std::unique_ptr<LlvmMcRunner> mc_runner;
@@ -112,12 +116,16 @@ int Gas::run (int argc, char **argv)
 		return usage (true /* is_error */, message);
 	}
 
+	std::cout << "About to parse arguments" << std::endl;
 	auto&& [terminate, is_error] = parse_arguments (argc, argv, mc_runner);
+	std::cout << "Arguments parsed; terminate == " << terminate << "; is_error == " << is_error << std::endl;
 	if (terminate || is_error) {
 		return is_error ? Constants::wrapper_general_error_code : 0;
 	}
 
+	std::cout << "Getting path to llvm_mc" << std::endl;
 	fs::path llvm_mc = program_dir () / Constants::llvm_mc_name;
+	std::wcout << "llvm_mc == " << llvm_mc.c_str () << std::endl;
 
 	bool multiple_input_files = false;
 	bool derive_output_file_name = false;
@@ -141,9 +149,11 @@ int Gas::run (int argc, char **argv)
 	}
 
 	for (fs::path const& input : input_files) {
+		std::wcout << "running llvm-mc for '" << input.c_str () << std::endl;
 		mc_runner->set_input_file_path (input, derive_output_file_name);
 		int ret = mc_runner->run (llvm_mc);
 		if (ret != 0) {
+			std::cout << "  mc_runner failed with " << ret << std::endl;
 			return ret;
 		}
 	}

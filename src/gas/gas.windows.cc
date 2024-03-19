@@ -2,12 +2,9 @@
 #include <windows.h>
 #include <shlwapi.h>
 
-#include <algorithm>
 #include <cstring>
 #include <iostream>
-#include <string>
 
-#include "constants.hh"
 #include "exceptions.hh"
 #include "gas.hh"
 
@@ -17,11 +14,27 @@ void Gas::get_command_line (int &argc, char **&argv)
 {
 	LPWSTR *argvw = CommandLineToArgvW (GetCommandLineW (), &argc);
 	argv = new char*[argc + 1];
-
+	memset (argv, 0, argc * sizeof(char*));
 	for (int i = 0; i < argc; i++) {
+		std::cout << "Argument " << i << std::endl;
 		int size = WideCharToMultiByte (CP_UTF8, 0, argvw [i], -1, NULL, 0, NULL, NULL);
+		std::cout << "  size: " << size << std::endl;
+		if (size <= 0) {
+			// An error, but we ignore it and try to get the other arguments converted.
+			argv[i] = _strdup ("");
+			continue;
+		}
+
 		argv [i] = new char [size];
+		memset (argv [i], 0, size * sizeof(char));
+		std::cout << "  copying" << std::endl;
 		WideCharToMultiByte (CP_UTF8, 0, argvw [i], -1, argv [i], size, NULL, NULL);
+		std::cout << "  copied" << std::endl;
+	}
+
+	std::cout << "Processed arguments: " << std::endl;
+	for (int i = 0; i < argc; i++) {
+		std::cout << "  [" << i << "] " << argv[i] << std::endl;
 	}
 
 	argv [argc] = NULL;

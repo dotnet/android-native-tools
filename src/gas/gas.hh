@@ -217,5 +217,4 @@ namespace xamarin::android::gas
 	};
 }
 
-extern xamarin::android::gas::Gas app;
 #endif // __GAS_HH
