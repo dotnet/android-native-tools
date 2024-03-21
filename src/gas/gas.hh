@@ -18,6 +18,9 @@
 #include <concepts>
 #endif // has <concepts>
 
+#include "command_line.hh"
+#include "constants.hh"
+
 namespace xamarin::android::gas
 {
 	namespace fs = std::filesystem;
@@ -48,14 +51,6 @@ namespace xamarin::android::gas
 	};
 
 	class LlvmMcRunner;
-
-	enum class TargetArchitecture
-	{
-		ARM32,
-		ARM64,
-		X86,
-		X64,
-	};
 
 	enum OptionValues
 	{
@@ -169,7 +164,7 @@ namespace xamarin::android::gas
 
 		void get_command_line (int &argc, char **&argv);
 
-		int run (int argc, char **argv);
+		int run (int argc, CommandLine::TArgType *argv);
 
 		const std::string& program_name () const noexcept
 		{
@@ -187,7 +182,7 @@ namespace xamarin::android::gas
 		}
 
 	protected:
-		ParseArgsResult parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner);
+		ParseArgsResult parse_arguments (int argc, CommandLine::TArgType *argv, std::unique_ptr<LlvmMcRunner>& mc_runner);
 
 	private:
 		void determine_program_dir (int argc, char **argv);

@@ -1,4 +1,5 @@
 set(GAS_DRIVER_SOURCES
+  command_line.cc
   gas.cc
   llvm_mc_runner.cc
   llvm_mc_runner_arm32.cc

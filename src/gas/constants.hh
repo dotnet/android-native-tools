@@ -23,5 +23,14 @@ namespace xamarin::android::gas
 		static constexpr int wrapper_exec_failed_error_code     = wrapper_general_error_code + 4;
 		static constexpr int wrapper_wait_failed_error_code     = wrapper_general_error_code + 5;
 	};
+
+	enum class TargetArchitecture
+	{
+		Any,
+		ARM32,
+		ARM64,
+		X86,
+		X64,
+	};
 }
 #endif

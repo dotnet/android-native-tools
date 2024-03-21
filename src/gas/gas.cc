@@ -3,10 +3,12 @@
 #include <unistd.h>
 #endif
 
+#include <array>
 #include <cstring>
 #include <iostream>
 #include <filesystem>
 
+#include "command_line.hh"
 #include "constants.hh"
 #include "gas.hh"
 #include "llvm_mc_runner.hh"
@@ -183,6 +185,41 @@ int Gas::run (int argc, char **argv)
 	return 0;
 }
 
+constexpr std::array<CommandLineOption, 21> all_options {{
+	// Arguments ignored by GAS, we shall ignore them silently too
+	{ CLISTR("divide"),    OPTION_IGNORE },
+	{ CLISTR("k"),         OPTION_IGNORE },
+	{ CLISTR("nocpp"),     OPTION_IGNORE },
+	{ CLISTR("Qn"),        OPTION_IGNORE },
+	{ CLISTR("Qy"),        OPTION_IGNORE },
+	{ CLISTR("s"),         OPTION_IGNORE },
+	{ CLISTR("w"),         OPTION_IGNORE },
+	{ CLISTR("X"),         OPTION_IGNORE },
+
+	// Global GAS arguments we support
+	{ CLISTR("o"),         OPTION_O,              Argument::Required },
+	{ CLISTR("warn"),      OPTION_WARN },
+	{ CLISTR("g"),         OPTION_G },
+	{ CLISTR("gen-debug"), OPTION_G },
+
+	// Arguments handled by us, not passed to llvm-mc
+	{ CLISTR("h"),         OPTION_HELP },
+	{ CLISTR("help"),      OPTION_HELP },
+	{ CLISTR("V"),         OPTION_VERSION },
+	{ CLISTR("version"),   OPTION_VERSION_EXIT },
+
+	// x86 arguments
+	{ CLISTR("32"),        OPTION_IGNORE,         TargetArchitecture::X86 }, // llvm-mc doesn't need this
+	{ CLISTR("64"),        OPTION_IGNORE,         TargetArchitecture::X86 }, // llvm-mc doesn't need this
+
+	// x64 arguments
+	{ CLISTR("32"),        OPTION_IGNORE,         TargetArchitecture::X64 }, // llvm-mc doesn't need this
+	{ CLISTR("64"),        OPTION_IGNORE,         TargetArchitecture::X64 }, // llvm-mc doesn't need this
+
+	// Arm32 arguments
+	{ CLISTR("mfpu"),      OPTION_MFPU,           Argument::Required, TargetArchitecture::ARM32 },
+}};
+
 std::vector<option> Gas::common_options {
 	// Arguments ignored by GAS, we shall ignore them silently too
 	{ "divide",    no_argument,       nullptr, OPTION_IGNORE },
@@ -216,8 +253,22 @@ std::vector<option> Gas::arm32_options {
 	{ "mfpu", required_argument, nullptr, OPTION_MFPU },
 };
 
-Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_ptr<LlvmMcRunner>& mc_runner)
+Gas::ParseArgsResult Gas::parse_arguments (int argc, CommandLine::TArgType *argv, std::unique_ptr<LlvmMcRunner>& mc_runner)
 {
+	bool terminate = false, is_error = false;
+	bool show_version = false, show_help = false;
+
+	auto handle_arg = [&](CommandLine::TCallbackOption option, CommandLine::TOptionValue val) {
+		if (std::holds_alternative<uint32_t> (option)) {
+			// Positional argument
+			std::cout << "Positional argument no. " << std::get<uint32_t> (option) << ": " << std::get<CommandLine::TOptionString> (val) << "\n";
+			return;
+		}
+	};
+
+	CommandLine cmdline { target_arch () };
+	bool valid = cmdline.parse (all_options, argc, argv, handle_arg);
+
 	std::vector<option> long_options { common_options };
 
 	switch (target_arch ()) {
@@ -236,9 +287,6 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, char **argv, std::unique_pt
 	long_options.push_back ({ nullptr, 0, nullptr, 0 });
 
 	constexpr char PROGRAM_DESCRIPTION[] = "Xamarin.Android GAS adapter for llvm-mc";
-
-	bool terminate = false, is_error = false;
-	bool show_version = false, show_help = false;
 
 	while (true) {
 		int opt_index = 0;
