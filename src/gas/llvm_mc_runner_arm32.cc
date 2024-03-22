@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+#include "command_line.hh"
 #include "exceptions.hh"
 #include "llvm_mc_runner.hh"
 
@@ -14,53 +15,53 @@ using namespace xamarin::android::gas;
 //
 //   llvm-mc --arch=arm --mattr=help < /dev/null
 //
-std::unordered_map<std::string, std::vector<std::string>> LlvmMcRunnerARM32::fpu_type_map {
-	{ "arm1020e",               {}},
-	{ "arm1020t",               {}},
-	{ "arm1136jf-s",            {}},
-	{ "arm7500fe",              {}},
-	{ "crypto-neon-fp-armv8",   {"+crypto", "+neon", "+armv8-a"}},
-	{ "crypto-neon-fp-armv8.1", {"+crypto", "+neon", "+armv8.1-a"}},
-	{ "fp-armv8",               {"+armv8-a"}},
-	{ "fpa",                    {}},
-	{ "fpa10",                  {}},
-	{ "fpa11",                  {}},
-	{ "fpe",                    {}},
-	{ "fpe2",                   {}},
-	{ "fpe3",                   {}},
-	{ "fpv4-sp-d16",            {}},
-	{ "fpv5-d16",               {}},
-	{ "fpv5-sp-d16",            {}},
-	{ "maverick",               {}},
-	{ "neon",                   {"+neon"}},
-	{ "neon-fp-armv8",          {"+neon", "+armv8-a", "+fp-armv8"}},
-	{ "neon-fp-armv8.1",        {"+neon", "+armv8.1-a", "+fp-armv8"}},
-	{ "neon-fp16",              {"+neon", "+fp16"}},
-	{ "neon-vfpv3",             {"+neon", "+vfp3"}},
-	{ "neon-vfpv4",             {"+neon", "+vfp4"}},
-	{ "softfpa",                {"+soft-float"}},
-	{ "softvfp",                {}}, // no llvm-mc equivalent?
-	{ "softvfp+vfp",            {}}, // no llvm-mc equivalent?
-	{ "vfp",                    {}}, // no llvm-mc equivalent?
-	{ "vfp10",                  {}}, // no llvm-mc equivalent?
-	{ "vfp10-r0",               {}}, // no llvm-mc equivalent?
-	{ "vfp9",                   {}}, // no llvm-mc equivalent?
-	{ "vfpv2",                  {"+vfp2"}},
-	{ "vfpv3",                  {"+vfp3"}},
-	{ "vfp3",                   {"+vfp3"}}, // undocumented GAS option, alias for vfpv3 above
-	{ "vfpv3-d16",              {"+vfp3d16"}},
-	{ "vfpv3-d16-fp16",         {"vfp3d16,+fp16"}},
-	{ "vfpv3-fp16",             {"+vfp3,+fp16"}},
-	{ "vfpv3xd",                {}}, // no llvm-mc equivalent?
-	{ "vfpv3xd-d16",            {}}, // no llvm-mc equivalent?
-	{ "vfpv4",                  {"+vfp4"}},
-	{ "vfpv4-d16",              {"+vfp4d16"}},
-	{ "vfpxd",                  {}}, // no llvm-mc equivalent?
+std::unordered_map<platform::string, std::vector<platform::string>> LlvmMcRunnerARM32::fpu_type_map {
+	{ PSTR("arm1020e"),               {}},
+	{ PSTR("arm1020t"),               {}},
+	{ PSTR("arm1136jf-s"),            {}},
+	{ PSTR("arm7500fe"),              {}},
+	{ PSTR("crypto-neon-fp-armv8"),   {PSTR("+crypto"), PSTR("+neon"), PSTR("+armv8-a")}},
+	{ PSTR("crypto-neon-fp-armv8.1"), {PSTR("+crypto"), PSTR("+neon"), PSTR("+armv8.1-a")}},
+	{ PSTR("fp-armv8"),               {PSTR("+armv8-a")}},
+	{ PSTR("fpa"),                    {}},
+	{ PSTR("fpa10"),                  {}},
+	{ PSTR("fpa11"),                  {}},
+	{ PSTR("fpe"),                    {}},
+	{ PSTR("fpe2"),                   {}},
+	{ PSTR("fpe3"),                   {}},
+	{ PSTR("fpv4-sp-d16"),            {}},
+	{ PSTR("fpv5-d16"),               {}},
+	{ PSTR("fpv5-sp-d16"),            {}},
+	{ PSTR("maverick"),               {}},
+	{ PSTR("neon"),                   {PSTR("+neon")}},
+	{ PSTR("neon-fp-armv8"),          {PSTR("+neon"), PSTR("+armv8-a"), PSTR("+fp-armv8")}},
+	{ PSTR("neon-fp-armv8.1"),        {PSTR("+neon"), PSTR("+armv8.1-a"), PSTR("+fp-armv8")}},
+	{ PSTR("neon-fp16"),              {PSTR("+neon"), PSTR("+fp16")}},
+	{ PSTR("neon-vfpv3"),             {PSTR("+neon"), PSTR("+vfp3")}},
+	{ PSTR("neon-vfpv4"),             {PSTR("+neon"), PSTR("+vfp4")}},
+	{ PSTR("softfpa"),                {PSTR("+soft-float")}},
+	{ PSTR("softvfp"),                {}}, // no llvm-mc equivalent?
+	{ PSTR("softvfp+vfp"),            {}}, // no llvm-mc equivalent?
+	{ PSTR("vfp"),                    {}}, // no llvm-mc equivalent?
+	{ PSTR("vfp10"),                  {}}, // no llvm-mc equivalent?
+	{ PSTR("vfp10-r0"),               {}}, // no llvm-mc equivalent?
+	{ PSTR("vfp9"),                   {}}, // no llvm-mc equivalent?
+	{ PSTR("vfpv2"),                  {PSTR("+vfp2")}},
+	{ PSTR("vfpv3"),                  {PSTR("+vfp3")}},
+	{ PSTR("vfp3"),                   {PSTR("+vfp3")}}, // undocumented GAS option, alias for vfpv3 above
+	{ PSTR("vfpv3-d16"),              {PSTR("+vfp3d16")}},
+	{ PSTR("vfpv3-d16-fp16"),         {PSTR("vfp3d16,+fp16")}},
+	{ PSTR("vfpv3-fp16"),             {PSTR("+vfp3,+fp16")}},
+	{ PSTR("vfpv3xd"),                {}}, // no llvm-mc equivalent?
+	{ PSTR("vfpv3xd-d16"),            {}}, // no llvm-mc equivalent?
+	{ PSTR("vfpv4"),                  {PSTR("+vfp4")}},
+	{ PSTR("vfpv4-d16"),              {PSTR("+vfp4d16")}},
+	{ PSTR("vfpxd"),                  {}}, // no llvm-mc equivalent?
 };
 
-void LlvmMcRunnerARM32::map_option (std::string const& gas_name, std::string const& value)
+void LlvmMcRunnerARM32::map_option (platform::string const& gas_name, platform::string const& value)
 {
-	if (gas_name != "mfpu") {
+	if (gas_name != PSTR("mfpu")) {
 		return;
 	}
 
@@ -70,11 +71,16 @@ void LlvmMcRunnerARM32::map_option (std::string const& gas_name, std::string con
 
 	auto mc_fpu = fpu_type_map.find (value);
 	if (mc_fpu == fpu_type_map.end ()) {
-		throw invalid_argument_error { "Unknown GAS FPU type: " + value };
+		platform::string message { PSTR("Unknown GAS FPU type: ") };
+		message.append (value);
+		throw invalid_argument_error { message };
 	}
 
 	if (mc_fpu->second.empty ()) {
-		throw invalid_operation_error {"Unable to map known GAS FPU type '" + value + "' to llvm-mc value" };
+		platform::string message { PSTR("Unable to map known GAS FPU type '") };
+		message.append (value);
+		message.append (PSTR("' to llvm-mc value"));
+		throw invalid_operation_error { message };
 	}
 
 	append_attributes (mc_fpu->second);

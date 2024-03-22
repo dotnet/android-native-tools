@@ -15,47 +15,52 @@
 #endif
 
 #include "constants.hh"
+#include "platform.hh"
 
 namespace xamarin::android::gas
 {
-#if !defined (_WIN32)
-	using CommandLineString = std::string;
-	using CommandLineStringView = std::string_view;
-#else
-	using CommandLineString = std::wstring;
-	using CommandLineStringView = std::wstring_view;
-#endif
-
-	enum class Argument
+	enum class ArgumentValue
 	{
 		Required,
 		NotRequired,
 	};
 
+	enum class OptionId : uint32_t
+	{
+		Ignore = 100,
+		O,
+		Warn,
+		G,
+		MFPU,
+		Version,
+		VersionExit,
+		Help,
+	};
+
 	struct CommandLineOption
 	{
-		CommandLineStringView name;
-		uint32_t id;
-		Argument argument;
+		platform::string_view name;
+		OptionId id;
+		ArgumentValue argument;
 		TargetArchitecture arch;
 
-		constexpr CommandLineOption (CommandLineStringView const& _name, uint32_t _id, Argument _argument, TargetArchitecture _arch)
+		constexpr CommandLineOption (platform::string_view const& _name, OptionId _id, ArgumentValue _argument, TargetArchitecture _arch)
 			: name (_name),
 			  id (_id),
 			  argument (_argument),
 			  arch (_arch)
 		{}
 
-		constexpr CommandLineOption (CommandLineStringView const& _name, uint32_t _id, TargetArchitecture _arch)
-			: CommandLineOption (_name, _id, Argument::NotRequired, _arch)
+		constexpr CommandLineOption (platform::string_view const& _name, OptionId _id, TargetArchitecture _arch)
+			: CommandLineOption (_name, _id, ArgumentValue::NotRequired, _arch)
 		{}
 
-		constexpr CommandLineOption (CommandLineStringView const& _name, uint32_t _id, Argument _argument)
+		constexpr CommandLineOption (platform::string_view const& _name, OptionId _id, ArgumentValue _argument)
 			: CommandLineOption (_name, _id, _argument, TargetArchitecture::Any)
 		{}
 
-		constexpr CommandLineOption (CommandLineStringView const& _name, uint32_t _id)
-			: CommandLineOption (_name, _id, Argument::NotRequired, TargetArchitecture::Any)
+		constexpr CommandLineOption (platform::string_view const& _name, OptionId _id)
+			: CommandLineOption (_name, _id, ArgumentValue::NotRequired, TargetArchitecture::Any)
 		{}
 	};
 
@@ -70,14 +75,12 @@ namespace xamarin::android::gas
 	public:
 #if !defined(_WIN32)
 		using TArgType = char*;
-		using TOptionString = std::string;
 
 	private:
 		static inline constexpr char DASH = '-';
 		static inline constexpr char EQUALS = '=';
 #else
 		using TArgType = LPWSTR;
-		using TOptionString = std::wstring;
 
 	private:
 		static inline constexpr wchar_t DASH = L'-';
@@ -85,7 +88,7 @@ namespace xamarin::android::gas
 #endif
 
 	public:
-		using TOptionValue = std::variant<bool, TOptionString>;
+		using TOptionValue = std::variant<bool, platform::string>;
 		using TCallbackOption = std::variant<uint32_t, const CommandLineOption>;
 		using OptionCallbackFn = std::function<void(TCallbackOption option, TOptionValue val)>;
 
@@ -103,33 +106,17 @@ namespace xamarin::android::gas
 	private:
 		bool parse (std::span<const CommandLineOption> options, int argc, TArgType *argv, OptionCallbackFn option_cb);
 
-		static constexpr auto& stdout () noexcept
-		{
-			if constexpr (is_windows) {
-				return std::wcout;
-			} else {
-				return std::cout;
-			}
-		}
-
-		static constexpr auto& stderr () noexcept
-		{
-			if constexpr (is_windows) {
-				return std::wcerr;
-			} else {
-				return std::cerr;
-			}
-		}
-
 	private:
 		TargetArchitecture target_arch;
 	};
 }
 
+#define CLISTR(_str_lit_) PSTR((_str_lit_))
+
 #if !defined (_WIN32)
-#define CLISTR(_str_lit_) std::string_view { _str_lit_ }
+#define CLIPARAM(_str_lit_) std::string_view { _str_lit_ }
 #else
-#define CLISTR(_str_lit_) std::wstring_view { L##_str_lit_ }
+#define CLIPARAM(_str_lit_) std::wstring_view { L##_str_lit_ }
 #endif
 
 #endif // ndef GAS_COMMAND_LINE_HH

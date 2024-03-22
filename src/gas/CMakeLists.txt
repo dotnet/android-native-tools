@@ -19,7 +19,6 @@ set(ARCH_PREFIXES
 
 if(WIN32)
   list(APPEND GAS_DRIVER_SOURCES
-    ../compat/getopt.c
     gas.windows.cc
     process.windows.cc
     )

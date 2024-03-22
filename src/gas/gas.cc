@@ -15,13 +15,13 @@
 
 using namespace xamarin::android::gas;
 
-int Gas::usage (bool is_error, std::string const message)
+int Gas::usage (bool is_error, platform::string const message)
 {
 	if (!message.empty ()) {
-		std::cerr << message << Constants::newline << Constants::newline;
+		STDERR << message << Constants::newline << Constants::newline;
 	}
 
-	std::cerr << "`" << program_name () << "` takes a subset of arguments accepted by the GNU Assembler (gas) program." << Constants::newline
+	STDERR << "`" << program_name () << "` takes a subset of arguments accepted by the GNU Assembler (gas) program." << Constants::newline
 	          << "Accepted options are limited to the ones used by Xamarin.Android and Mono/dotnet AOT, more can be added as-needed." << Constants::newline
 	          << "Some options are accepted but ignored, either because they are ignored by GAS as well or because they are used by" << Constants::newline
 	          << "Xamarin.Android or Mono/dotnet AOT, but not needed by `llvm-mc`.  All the unsupported options will cause the wrapper" << Constants::newline
@@ -58,13 +58,13 @@ int Gas::usage (bool is_error, std::string const message)
 	return is_error ? 1 : 0;
 }
 
-int Gas::run (int argc, char **argv)
+int Gas::run (int argc, CommandLine::TArgType *argv)
 {
-	std::cout << "Gas::run" << std::endl;
+	STDOUT << "Gas::run" << std::endl;
 	determine_program_dir (argc, argv);
-	std::cout << "Program dir determined" << std::endl;
+	STDOUT << "Program dir determined" << std::endl;
 
-	auto lowercase_string = [](std::string& s) {
+	auto lowercase_string = [](platform::string& s) {
 		std::transform (
 			s.begin (),
 			s.end (),
@@ -73,18 +73,18 @@ int Gas::run (int argc, char **argv)
 		);
 	};
 
-	std::cout << "Determining arch name" << std::endl;
-	std::string arch_name { generic_gas_name };
-	const char *first_param = argc > 1 ? argv[1] : nullptr;
-	if (first_param != nullptr && strlen (first_param) > sizeof(Constants::arch_hack_param) && strstr (first_param, Constants::arch_hack_param) == first_param) {
-		arch_name = first_param + (sizeof(Constants::arch_hack_param) - 1);
+	STDOUT << "Determining arch name" << std::endl;
+	platform::string arch_name { generic_gas_name };
+	platform::string first_param { argc > 1 ? argv[1] : PSTR("") };
+	if (!first_param.empty () && first_param.length () > Constants::arch_hack_param.size () && first_param.find (Constants::arch_hack_param) == 0) {
+		arch_name = first_param.substr (Constants::arch_hack_param.size ());
 		lowercase_string (arch_name);
 	}
-	std::cout << "arch_name == " << arch_name << std::endl;
+	STDOUT << "arch_name == " << arch_name << std::endl;
 	_program_name = arch_name;
 
 	std::unique_ptr<LlvmMcRunner> mc_runner;
-	std::string ld_name;
+	platform::string ld_name;
 	if (arch_name.compare (arm64_gas_name.data ()) == 0) {
 		_target_arch = TargetArchitecture::ARM64;
 		mc_runner = std::make_unique<LlvmMcRunnerARM64> ();
@@ -102,38 +102,38 @@ int Gas::run (int argc, char **argv)
 		mc_runner = std::make_unique<LlvmMcRunnerX64> ();
 		ld_name = x64_ld_name.data ();
 	} else if (arch_name.compare (generic_gas_name) == 0) {
-		std::string message { "Program invoked via its generic name (" };
+		platform::string message { PSTR("Program invoked via its generic name (") };
 		message
 			.append (generic_gas_name)
-			.append ("), please use one of the ABI-prefixed names:")
+			.append (PSTR("), please use one of the ABI-prefixed names:"))
 			.append (Constants::newline)
-			.append ("  ").append (arm64_gas_name.data ()).append (Constants::newline)
-			.append ("  ").append (arm32_gas_name.data ()).append (Constants::newline)
-			.append ("  ").append (x86_gas_name.data ()).append (Constants::newline)
-			.append ("  ").append (x64_gas_name.data ()).append (Constants::newline);
+			.append (PSTR("  ")).append (arm64_gas_name.data ()).append (Constants::newline)
+			.append (PSTR("  ")).append (arm32_gas_name.data ()).append (Constants::newline)
+			.append (PSTR("  ")).append (x86_gas_name.data ()).append (Constants::newline)
+			.append (PSTR("  ")).append (x64_gas_name.data ()).append (Constants::newline);
 		return usage (true /* is_error */, message);
 	} else {
-		std::string message { "Unknown program name '" };
-		message.append (arch_name).append ("'").append (Constants::newline);
+		platform::string message { PSTR("Unknown program name '") };
+		message.append (arch_name).append (PSTR("'")).append (Constants::newline);
 		return usage (true /* is_error */, message);
 	}
 
-	std::cout << "About to parse arguments" << std::endl;
+	STDOUT << "About to parse arguments" << std::endl;
 	auto&& [terminate, is_error] = parse_arguments (argc, argv, mc_runner);
-	std::cout << "Arguments parsed; terminate == " << terminate << "; is_error == " << is_error << std::endl;
+	STDOUT << "Arguments parsed; terminate == " << terminate << "; is_error == " << is_error << std::endl;
 	if (terminate || is_error) {
 		return is_error ? Constants::wrapper_general_error_code : 0;
 	}
 
-	std::cout << "Getting path to llvm_mc" << std::endl;
+	STDOUT << "Getting path to llvm_mc" << std::endl;
 	fs::path llvm_mc = program_dir () / Constants::llvm_mc_name;
-	std::wcout << "llvm_mc == " << llvm_mc.c_str () << std::endl;
+	STDOUT << "llvm_mc == " << llvm_mc.c_str () << std::endl;
 
 	bool multiple_input_files = false;
 	bool derive_output_file_name = false;
 	switch (input_files.size ()) {
 		case 0:
-			return usage (true, "missing input files on command line");
+			return usage (true, PSTR("missing input files on command line"));
 
 		case 1:
 			// We should always have a value here since `a.out` is the default, but... :)
@@ -151,11 +151,11 @@ int Gas::run (int argc, char **argv)
 	}
 
 	for (fs::path const& input : input_files) {
-		std::wcout << "running llvm-mc for '" << input.c_str () << std::endl;
+		STDOUT << "running llvm-mc for '" << input.c_str () << std::endl;
 		mc_runner->set_input_file_path (input, derive_output_file_name);
 		int ret = mc_runner->run (llvm_mc);
 		if (ret != 0) {
-			std::cout << "  mc_runner failed with " << ret << std::endl;
+			STDOUT << "  mc_runner failed with " << ret << std::endl;
 			return ret;
 		}
 	}
@@ -169,14 +169,14 @@ int Gas::run (int argc, char **argv)
 		fs::path ld_path { program_dir () };
 		ld_path /= ld_name;
 		auto ld = std::make_unique<Process> (ld_path);
-		ld->append_program_argument ("-o");
-		ld->append_program_argument (_gas_output_file.empty () ? Constants::default_output_name : _gas_output_file.string ());
-		ld->append_program_argument ("--relocatable");
+		ld->append_program_argument (PSTR("-o"));
+		ld->append_program_argument (_gas_output_file.empty () ? platform::string (Constants::default_output_name) : _gas_output_file.native ());
+		ld->append_program_argument (PSTR("--relocatable"));
 
-		std::cout << "Have multiple output files:" << Constants::newline;
+		STDOUT << "Have multiple output files:" << Constants::newline;
 		for (fs::path const& output : output_files) {
-			std::cout << "  " << output << Constants::newline;
-			ld->append_program_argument (output.string ());
+			STDOUT << "  " << output << Constants::newline;
+			ld->append_program_argument (output.native ());
 		}
 
 		return ld->run ();
@@ -187,71 +187,38 @@ int Gas::run (int argc, char **argv)
 
 constexpr std::array<CommandLineOption, 21> all_options {{
 	// Arguments ignored by GAS, we shall ignore them silently too
-	{ CLISTR("divide"),    OPTION_IGNORE },
-	{ CLISTR("k"),         OPTION_IGNORE },
-	{ CLISTR("nocpp"),     OPTION_IGNORE },
-	{ CLISTR("Qn"),        OPTION_IGNORE },
-	{ CLISTR("Qy"),        OPTION_IGNORE },
-	{ CLISTR("s"),         OPTION_IGNORE },
-	{ CLISTR("w"),         OPTION_IGNORE },
-	{ CLISTR("X"),         OPTION_IGNORE },
+	{ CLIPARAM("divide"),    OptionId::Ignore },
+	{ CLIPARAM("k"),         OptionId::Ignore },
+	{ CLIPARAM("nocpp"),     OptionId::Ignore },
+	{ CLIPARAM("Qn"),        OptionId::Ignore },
+	{ CLIPARAM("Qy"),        OptionId::Ignore },
+	{ CLIPARAM("s"),         OptionId::Ignore },
+	{ CLIPARAM("w"),         OptionId::Ignore },
+	{ CLIPARAM("X"),         OptionId::Ignore },
 
 	// Global GAS arguments we support
-	{ CLISTR("o"),         OPTION_O,              Argument::Required },
-	{ CLISTR("warn"),      OPTION_WARN },
-	{ CLISTR("g"),         OPTION_G },
-	{ CLISTR("gen-debug"), OPTION_G },
+	{ CLIPARAM("o"),         OptionId::O,              ArgumentValue::Required },
+	{ CLIPARAM("warn"),      OptionId::Warn },
+	{ CLIPARAM("g"),         OptionId::G },
+	{ CLIPARAM("gen-debug"), OptionId::G },
 
 	// Arguments handled by us, not passed to llvm-mc
-	{ CLISTR("h"),         OPTION_HELP },
-	{ CLISTR("help"),      OPTION_HELP },
-	{ CLISTR("V"),         OPTION_VERSION },
-	{ CLISTR("version"),   OPTION_VERSION_EXIT },
+	{ CLIPARAM("h"),         OptionId::Help },
+	{ CLIPARAM("help"),      OptionId::Help },
+	{ CLIPARAM("V"),         OptionId::Version },
+	{ CLIPARAM("version"),   OptionId::VersionExit },
 
 	// x86 arguments
-	{ CLISTR("32"),        OPTION_IGNORE,         TargetArchitecture::X86 }, // llvm-mc doesn't need this
-	{ CLISTR("64"),        OPTION_IGNORE,         TargetArchitecture::X86 }, // llvm-mc doesn't need this
+	{ CLIPARAM("32"),        OptionId::Ignore,         TargetArchitecture::X86 }, // llvm-mc doesn't need this
+	{ CLIPARAM("64"),        OptionId::Ignore,         TargetArchitecture::X86 }, // llvm-mc doesn't need this
 
 	// x64 arguments
-	{ CLISTR("32"),        OPTION_IGNORE,         TargetArchitecture::X64 }, // llvm-mc doesn't need this
-	{ CLISTR("64"),        OPTION_IGNORE,         TargetArchitecture::X64 }, // llvm-mc doesn't need this
+	{ CLIPARAM("32"),        OptionId::Ignore,         TargetArchitecture::X64 }, // llvm-mc doesn't need this
+	{ CLIPARAM("64"),        OptionId::Ignore,         TargetArchitecture::X64 }, // llvm-mc doesn't need this
 
 	// Arm32 arguments
-	{ CLISTR("mfpu"),      OPTION_MFPU,           Argument::Required, TargetArchitecture::ARM32 },
+	{ CLIPARAM("mfpu"),      OptionId::MFPU,           ArgumentValue::Required, TargetArchitecture::ARM32 },
 }};
-
-std::vector<option> Gas::common_options {
-	// Arguments ignored by GAS, we shall ignore them silently too
-	{ "divide",    no_argument,       nullptr, OPTION_IGNORE },
-	{ "k",         no_argument,       nullptr, OPTION_IGNORE },
-	{ "nocpp",     no_argument,       nullptr, OPTION_IGNORE },
-	{ "Qn",        no_argument,       nullptr, OPTION_IGNORE },
-	{ "Qy",        no_argument,       nullptr, OPTION_IGNORE },
-	{ "s",         no_argument,       nullptr, OPTION_IGNORE },
-	{ "w",         no_argument,       nullptr, OPTION_IGNORE },
-	{ "X",         no_argument,       nullptr, OPTION_IGNORE },
-
-	// Global GAS arguments we support
-	{ "o",         required_argument, nullptr, OPTION_O },
-	{ "warn",      no_argument,       nullptr, OPTION_WARN },
-	{ "g",         no_argument,       nullptr, OPTION_G },
-	{ "gen-debug", no_argument,       nullptr, OPTION_G },
-
-	// Arguments handled by us, not passed to llvm-mc
-	{ "h",         no_argument,       nullptr, OPTION_HELP },
-	{ "help",      no_argument,       nullptr, OPTION_HELP },
-	{ "V",         no_argument,       nullptr, OPTION_VERSION },
-	{ "version",   no_argument,       nullptr, OPTION_VERSION_EXIT },
-};
-
-std::vector<option> Gas::x86_options {
-	{ "32", no_argument, nullptr, OPTION_IGNORE }, // llvm-mc doesn't need this
-	{ "64", no_argument, nullptr, OPTION_IGNORE }, // llvm-mc doesn't need this
-};
-
-std::vector<option> Gas::arm32_options {
-	{ "mfpu", required_argument, nullptr, OPTION_MFPU },
-};
 
 Gas::ParseArgsResult Gas::parse_arguments (int argc, CommandLine::TArgType *argv, std::unique_ptr<LlvmMcRunner>& mc_runner)
 {
@@ -260,92 +227,77 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, CommandLine::TArgType *argv
 
 	auto handle_arg = [&](CommandLine::TCallbackOption option, CommandLine::TOptionValue val) {
 		if (std::holds_alternative<uint32_t> (option)) {
+			platform::string arg = std::get<platform::string> (val);
 			// Positional argument
-			std::cout << "Positional argument no. " << std::get<uint32_t> (option) << ": " << std::get<CommandLine::TOptionString> (val) << "\n";
+			STDOUT << "Positional argument no. " << std::get<uint32_t> (option) << ": " << arg << "\n";
+			if (arg.starts_with (Constants::arch_hack_param)) {
+				// Arch hack, ignore
+				STDOUT << "  arch hack param, ignored\n";
+				return;
+			}
+
+			STDOUT << "  input file\n";
+			input_files.emplace_back (arg);
 			return;
 		}
-	};
 
-	CommandLine cmdline { target_arch () };
-	bool valid = cmdline.parse (all_options, argc, argv, handle_arg);
-
-	std::vector<option> long_options { common_options };
-
-	switch (target_arch ()) {
-		case TargetArchitecture::ARM32:
-			long_options.insert (long_options.end (), arm32_options.begin (), arm32_options.end ());
-			break;
-
-		case TargetArchitecture::X86:
-		case TargetArchitecture::X64:
-			long_options.insert (long_options.end (), x86_options.begin (), x86_options.end ());
-			break;
-
-		default:
-			break;
-	}
-	long_options.push_back ({ nullptr, 0, nullptr, 0 });
-
-	constexpr char PROGRAM_DESCRIPTION[] = "Xamarin.Android GAS adapter for llvm-mc";
-
-	while (true) {
-		int opt_index = 0;
-		int c = getopt_long_only (argc, argv, "-", long_options.data (), &opt_index);
-
-		if (c == -1) {
-			break;
+		const auto opt = std::get<const CommandLineOption> (option);
+		STDOUT << "Option argument: " << platform::string (opt.name) << "\n";
+		if (opt.id == OptionId::Ignore) {
+			STDOUT << "  ignored\n";
+			return;
 		}
 
-		switch (c) {
-			case '?':
-				terminate = true;
-				is_error = true;
-				break;
+		if (std::holds_alternative<bool> (val)) {
+			STDOUT << "  boolean\n";
+		} else {
+			STDOUT << "  value: " << std::get<platform::string> (val) << "\n";
+		}
 
-			case 1: // non-option argument
-			{
-				// Ignore the arch hack parameter
-				const char *ret = strstr (optarg, Constants::arch_hack_param);
-				if (ret == nullptr || ret != optarg) {
-					// char8_t* cast treats path string as utf8
-					input_files.emplace_back (reinterpret_cast<char8_t*>(optarg));
-				}
-			}
-			break;
-
-			case OPTION_VERSION:
+		switch (opt.id) {
+			case OptionId::Version:
 				show_version = true;
 				break;
 
-			case OPTION_VERSION_EXIT:
+			case OptionId::VersionExit:
 				show_version = true;
 				terminate = true;
 				break;
 
-			case OPTION_HELP:
+			case OptionId::Help:
 				show_help = true;
 				terminate = true;
 				break;
 
-			case OPTION_O:
-				_gas_output_file = reinterpret_cast<char8_t*>(optarg);
+			case OptionId::O:
+				_gas_output_file = std::get<platform::string> (val);
 				break;
 
-			case OPTION_MFPU:
-				mc_runner->map_option ("mfpu", optarg);
+			case OptionId::MFPU:
+				mc_runner->map_option (PSTR("mfpu"), std::get<platform::string> (val));
 				break;
 
-			case OPTION_G:
+			case OptionId::G:
 				mc_runner->generate_debug_info ();
 				break;
+
+			default:
+				break;
 		}
+	};
+
+	CommandLine cmdline { target_arch () };
+	if (!cmdline.parse (all_options, argc, argv, handle_arg)) {
+		terminate = true;
+		is_error = true;
 	}
 
+	constexpr platform::string_view PROGRAM_DESCRIPTION { PSTR("Xamarin.Android GAS adapter for llvm-mc") };
 	if (show_help) {
 		usage (false /* is_error */);
 		return {true, false};
 	} else if (show_version) {
-		std::cout << program_name () << " v" << XA_UTILS_VERSION << ", " << PROGRAM_DESCRIPTION << Constants::newline
+		STDOUT << program_name () << " v" << XA_UTILS_VERSION << ", " << PROGRAM_DESCRIPTION << Constants::newline
 		          << "\tGAS version compatibility: " << BINUTILS_VERSION << Constants::newline
 		          << "\tllvm-mc version compatibility: " << LLVM_VERSION << Constants::newline << Constants::newline;
 		return {true, false};

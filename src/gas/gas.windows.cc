@@ -40,7 +40,7 @@ void Gas::get_command_line (int &argc, char **&argv)
 	argv [argc] = NULL;
 }
 
-void Gas::determine_program_dir ([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
+void Gas::determine_program_dir ([[maybe_unused]] int argc, [[maybe_unused]] CommandLine::TArgType *argv)
 {
 	TCHAR buffer[MAX_PATH + 1]{};
 	constexpr DWORD bufSize = sizeof(buffer) / sizeof(*buffer);
