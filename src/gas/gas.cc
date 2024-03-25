@@ -58,10 +58,10 @@ int Gas::usage (bool is_error, platform::string const message)
 	return is_error ? 1 : 0;
 }
 
-int Gas::run (int argc, CommandLine::TArgType *argv)
+int Gas::run (std::vector<platform::string> args)
 {
 	STDOUT << "Gas::run" << std::endl;
-	determine_program_dir (argc, argv);
+	determine_program_dir (args);
 	STDOUT << "Program dir determined" << std::endl;
 
 	auto lowercase_string = [](platform::string& s) {
@@ -69,13 +69,13 @@ int Gas::run (int argc, CommandLine::TArgType *argv)
 			s.begin (),
 			s.end (),
 			s.begin (),
-			[](unsigned char c) { return std::tolower(c); }
+			[](platform::string::value_type c) { return std::tolower(c); }
 		);
 	};
 
 	STDOUT << "Determining arch name" << std::endl;
 	platform::string arch_name { generic_gas_name };
-	platform::string first_param { argc > 1 ? argv[1] : PSTR("") };
+	platform::string first_param { args.size () > 1 ? args[1] : PSTR("") };
 	if (!first_param.empty () && first_param.length () > Constants::arch_hack_param.size () && first_param.find (Constants::arch_hack_param) == 0) {
 		arch_name = first_param.substr (Constants::arch_hack_param.size ());
 		lowercase_string (arch_name);
@@ -119,7 +119,7 @@ int Gas::run (int argc, CommandLine::TArgType *argv)
 	}
 
 	STDOUT << "About to parse arguments" << std::endl;
-	auto&& [terminate, is_error] = parse_arguments (argc, argv, mc_runner);
+	auto&& [terminate, is_error] = parse_arguments (args, mc_runner);
 	STDOUT << "Arguments parsed; terminate == " << terminate << "; is_error == " << is_error << std::endl;
 	if (terminate || is_error) {
 		return is_error ? Constants::wrapper_general_error_code : 0;
@@ -220,7 +220,7 @@ constexpr std::array<CommandLineOption, 21> all_options {{
 	{ CLIPARAM("mfpu"),      OptionId::MFPU,           ArgumentValue::Required, TargetArchitecture::ARM32 },
 }};
 
-Gas::ParseArgsResult Gas::parse_arguments (int argc, CommandLine::TArgType *argv, std::unique_ptr<LlvmMcRunner>& mc_runner)
+Gas::ParseArgsResult Gas::parse_arguments (std::vector<platform::string> &args, std::unique_ptr<LlvmMcRunner>& mc_runner)
 {
 	bool terminate = false, is_error = false;
 	bool show_version = false, show_help = false;
@@ -287,7 +287,7 @@ Gas::ParseArgsResult Gas::parse_arguments (int argc, CommandLine::TArgType *argv
 	};
 
 	CommandLine cmdline { target_arch () };
-	if (!cmdline.parse (all_options, argc, argv, handle_arg)) {
+	if (!cmdline.parse (all_options, args, handle_arg)) {
 		terminate = true;
 		is_error = true;
 	}

@@ -9,7 +9,7 @@
 using namespace xamarin::android::gas;
 namespace ranges = std::ranges;
 
-bool CommandLine::parse (std::span<const CommandLineOption> options, int argc, TArgType *argv, OptionCallbackFn option_cb)
+bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector<platform::string> &args, OptionCallbackFn option_cb)
 {
 	STDOUT << "Got " << options.size() << " options\n" << "Passed args:\n";
 
@@ -17,8 +17,8 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, int argc, T
 	bool next_arg_is_value = false;
 	std::optional<CommandLineOption> last_opt;
 
-	for (int i = 1; i < argc; i++) {
-		platform::string option { argv[i] };
+	for (size_t i = 1; i < args.size (); i++) {
+		platform::string &option = args[i];
 		if (option.empty ()) {
 			continue;
 		}

@@ -13,26 +13,7 @@ void Process::print_process_command_line ()
 	for (platform::string const& arg : _args) {
 		STDOUT << " " << arg;
 	}
-	STDOUT << "\n";
-}
-
-std::vector<platform::string::const_pointer> Process::make_exec_args ()
-{
-	std::vector<platform::string::const_pointer> exec_args;
-
-	const char *const epath = executable_path.string ().c_str ();
-	exec_args.push_back (
-#if defined(_WIN32)
-		_strdup (epath)
-#else
-		strdup (epath)
-#endif
-	);
-	for (platform::string const& arg : _args) {
-		exec_args.push_back (arg.c_str ());
-	}
-
-	return exec_args;
+	STDOUT << Constants::newline;
 }
 
 void Process::append_program_argument (platform::string const& option_name, platform::string const& option_value)

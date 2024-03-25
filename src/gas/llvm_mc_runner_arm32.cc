@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: MIT
+
+#include <locale>
+
 #include "command_line.hh"
 #include "exceptions.hh"
 #include "llvm_mc_runner.hh"
@@ -69,17 +72,33 @@ void LlvmMcRunnerARM32::map_option (platform::string const& gas_name, platform::
 		throw invalid_argument_error { "The `-mfpu` option requires a value, argument `value` must not be empty" };
 	}
 
+	auto to_utf8 = [](platform::string const& s) -> std::string {
+#if !defined(_WIN32)
+		return s;
+#else
+		std::string ret (s.length (), 0);
+		std::transform (
+			s.begin (),
+			s.end (),
+			ret.begin (),
+			[](platform::string::value_type ch) {
+				return static_cast<std::string::value_type>(ch); }
+		);
+		return ret;
+#endif
+	};
+
 	auto mc_fpu = fpu_type_map.find (value);
 	if (mc_fpu == fpu_type_map.end ()) {
-		platform::string message { PSTR("Unknown GAS FPU type: ") };
-		message.append (value);
+		std::string message { "Unknown GAS FPU type: " };
+		message.append (to_utf8 (value));
 		throw invalid_argument_error { message };
 	}
 
 	if (mc_fpu->second.empty ()) {
-		platform::string message { PSTR("Unable to map known GAS FPU type '") };
-		message.append (value);
-		message.append (PSTR("' to llvm-mc value"));
+		std::string message { "Unable to map known GAS FPU type '" };
+		message.append (to_utf8 (value));
+		message.append ("' to llvm-mc value");
 		throw invalid_operation_error { message };
 	}
 

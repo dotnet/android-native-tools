@@ -13,6 +13,25 @@
 
 using namespace xamarin::android::gas;
 
+std::vector<platform::string::const_pointer> Process::make_exec_args ()
+{
+	std::vector<platform::string::const_pointer> exec_args;
+
+	const char *const epath = executable_path.string ().c_str ();
+	exec_args.push_back (
+#if defined(_WIN32)
+		_strdup (epath)
+#else
+		strdup (epath)
+#endif
+	);
+	for (platform::string const& arg : _args) {
+		exec_args.push_back (arg.c_str ());
+	}
+
+	return exec_args;
+}
+
 int Process::run (bool print_command_line)
 {
 	if (print_command_line) {

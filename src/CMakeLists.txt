@@ -144,6 +144,7 @@ else() # UNIX
     /guard:cf
     /Zi
     /W3
+    /utf-8
   )
 
   set(COMMON_LINKER_ARGS
@@ -213,6 +214,7 @@ add_link_options("$<$<COMPILE_LANGUAGE:CXX>:${XA_UTILS_CXX_LINKER_FLAGS}>")
 add_link_options("$<$<COMPILE_LANGUAGE:C>:${XA_UTILS_C_LINKER_FLAGS}>")
 
 if(WIN32)
+  add_compile_definitions(_UNICODE)
   include_directories(compat)
 endif()
 

@@ -17,6 +17,7 @@
 
 #include "command_line.hh"
 #include "constants.hh"
+#include "platform.hh"
 
 namespace xamarin::android::gas
 {
@@ -60,7 +61,7 @@ namespace xamarin::android::gas
 
 		size_t i = 0;
 		for (auto const& sv : {parts...}) {
-			for (const char ch : sv) {
+			for (platform::string_view::value_type ch : sv) {
 				ret[i] = ch;
 				i++;
 			}
@@ -111,9 +112,9 @@ namespace xamarin::android::gas
 		~Gas ()
 		{}
 
-		void get_command_line (int &argc, char **&argv);
+		std::vector<platform::string> get_command_line (int &argc, char **&argv);
 
-		int run (int argc, CommandLine::TArgType *argv);
+		int run (std::vector<platform::string> args);
 
 		const platform::string& program_name () const noexcept
 		{
@@ -131,10 +132,10 @@ namespace xamarin::android::gas
 		}
 
 	protected:
-		ParseArgsResult parse_arguments (int argc, CommandLine::TArgType *argv, std::unique_ptr<LlvmMcRunner>& mc_runner);
+		ParseArgsResult parse_arguments (std::vector<platform::string> &args, std::unique_ptr<LlvmMcRunner>& mc_runner);
 
 	private:
-		void determine_program_dir (int argc, CommandLine::TArgType *argv);
+		void determine_program_dir (std::vector<platform::string> args);
 		int usage (bool is_error, platform::string const message = PSTR(""));
 
 	private:

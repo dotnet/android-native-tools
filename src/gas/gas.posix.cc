@@ -1,18 +1,30 @@
 // SPDX-License-Identifier: MIT
-#include <libgen.h>
+
 #include <cstring>
+#include <vector>
+
+#include <libgen.h>
 
 #include "gas.hh"
+#include "platform.hh"
 
 using namespace xamarin::android::gas;
 
-void Gas::get_command_line ([[maybe_unused]] int &argc, [[maybe_unused]] char **&argv)
+std::vector<platform::string> Gas::get_command_line (int &argc, char **&argv)
 {
+	std::vector<platform::string> ret;
+
+	for (int i = 0; i < argc; i++) {
+		ret.emplace_back (argv[i]);
+	}
+
+	return ret;
 }
 
-void Gas::determine_program_dir ([[maybe_unused]] int argc, char **argv)
+void Gas::determine_program_dir (std::vector<platform::string> args)
 {
-	fs::path program_path { argv[0] };
+	STDOUT << args[0] << std::endl;
+	fs::path program_path { args[0] };
 
 	_program_name = program_path.filename ();
 	if (program_path.is_absolute ()) {

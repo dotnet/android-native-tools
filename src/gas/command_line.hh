@@ -98,13 +98,13 @@ namespace xamarin::android::gas
 		{}
 
 		template<size_t NElem>
-		bool parse (std::array<CommandLineOption, NElem> const& options, int argc, TArgType *argv, OptionCallbackFn option_cb)
+		bool parse (std::array<CommandLineOption, NElem> const& options, std::vector<platform::string> &args, OptionCallbackFn option_cb)
 		{
-			return parse (std::span (options.data(), options.size()), argc, argv, option_cb);
+			return parse (std::span (options.data(), options.size()), args, option_cb);
 		}
 
 	private:
-		bool parse (std::span<const CommandLineOption> options, int argc, TArgType *argv, OptionCallbackFn option_cb);
+		bool parse (std::span<const CommandLineOption> options, std::vector<platform::string> &args, OptionCallbackFn option_cb);
 
 	private:
 		TargetArchitecture target_arch;
