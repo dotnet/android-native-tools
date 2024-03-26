@@ -73,7 +73,7 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 		auto match = ranges::find_if (options, matching_option);
 #else
 		// C++ standard library on mac CI doesn't have std::ranges::find_if
-		auto match = std::find_if (options. matching_option);
+		auto match = std::find_if (options.begin (), options.end (), matching_option);
 #endif
 		if (match == options.end ()) {
 			STDERR << "Uncrecognized option '" << option << "'\n";
