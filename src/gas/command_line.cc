@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 
 #include <algorithm>
-#include <iostream>
 #include <optional>
+#include <vector>
 
 #include "command_line.hh"
 #include "exceptions.hh"
+#include "platform.hh"
 
 using namespace xamarin::android::gas;
 namespace ranges = std::ranges;
