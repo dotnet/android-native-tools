@@ -3,5 +3,5 @@
 
 using namespace xamarin::android::gas;
 
-void LlvmMcRunnerARM64::map_option ([[maybe_unused]] std::string const& gas_name, [[maybe_unused]] std::string const& value)
+void LlvmMcRunnerARM64::map_option ([[maybe_unused]] platform::string const& gas_name, [[maybe_unused]] platform::string const& value)
 {}

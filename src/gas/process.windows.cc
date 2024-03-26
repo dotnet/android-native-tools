@@ -6,15 +6,16 @@
 #include <iostream>
 
 #include "constants.hh"
+#include "platform.hh"
 #include "process.hh"
 
 using namespace xamarin::android::gas;
 
-static std::string escape_argument (std::string arg)
+static platform::string escape_argument (platform::string arg)
 {
 	bool needs_quote = false;
 
-	for (std::string::value_type const& c : arg) {
+	for (platform::string::value_type const& c : arg) {
 		if (isalpha (c) || isdigit (c) ||
 		    c == '.' || c == '_' || c == '-' ||
 		    c == '+' || c == '/') {
@@ -29,16 +30,16 @@ static std::string escape_argument (std::string arg)
 		return arg;
 	}
 
-	std::string result = "\"";
-	for (std::string::const_reference c : arg) {
-		if (c == '\"' || c == '\\') {
-			result.append ("\\");
+	platform::string result = PSTR("\"");
+	for (platform::string::const_reference c : arg) {
+		if (c == PCHAR('\"') || c == PCHAR('\\')) {
+			result.append (PCHAR("\\"));
 		}
 
 		result += c;
 	}
 
-	result.append ("\"");
+	result.append (PSTR("\""));
 	return result;
 }
 
@@ -48,13 +49,13 @@ int Process::run (bool print_command_line)
 		print_process_command_line ();
 	}
 
-	std::string binary = executable_path.string ();
-	std::string args { escape_argument (binary) };
-	for (std::string const& a : _args) {
+	platform::string binary = executable_path.string ();
+	platform::string args { escape_argument (binary) };
+	for (platform::string const& a : _args) {
 		if (a.empty ()) {
 			continue;
 		}
-		args.append (" ");
+		args.append (PCHAR(" "));
 		args.append (escape_argument (a));
 	}
 

@@ -1,4 +1,5 @@
 set(GAS_DRIVER_SOURCES
+  command_line.cc
   gas.cc
   llvm_mc_runner.cc
   llvm_mc_runner_arm32.cc
@@ -18,7 +19,6 @@ set(ARCH_PREFIXES
 
 if(WIN32)
   list(APPEND GAS_DRIVER_SOURCES
-    ../compat/getopt.c
     gas.windows.cc
     process.windows.cc
     )

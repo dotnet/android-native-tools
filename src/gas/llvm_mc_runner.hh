@@ -3,13 +3,12 @@
 #define __LLVM_MC_RUNNER_HH
 
 #include <filesystem>
-#include <functional>
-#include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "exceptions.hh"
 #include "gas.hh"
+#include "platform.hh"
 #include "process.hh"
 
 namespace xamarin::android::gas
@@ -64,7 +63,7 @@ namespace xamarin::android::gas
 		fs::path make_output_file_path (fs::path const& input_file)
 		{
 			fs::path out_path = input_file;
-			return out_path.replace_extension (".o").make_preferred ();
+			return out_path.replace_extension (PSTR(".o")).make_preferred ();
 		}
 
 		void set_output_file_path (fs::path const& file_path)
@@ -86,50 +85,50 @@ namespace xamarin::android::gas
 			set_option (LlvmMcArgument::GenerateDebug);
 		}
 
-		virtual void map_option (std::string const& gas_name, std::string const& value = "") = 0;
+		virtual void map_option (platform::string const& gas_name, platform::string const& value = PSTR("")) = 0;
 		int run (fs::path const& executable_path);
 
 	protected:
 		LlvmMcRunner (LlvmMcArchitecture arch)
 		{
-			set_option (LlvmMcArgument::FileType, "obj");
+			set_option (LlvmMcArgument::FileType, PSTR("obj"));
 
-			std::string architecture;
-			std::string triple_prefix;
+			platform::string architecture;
+			platform::string triple_prefix;
 			switch (arch) {
 				case LlvmMcArchitecture::ARM64:
-					triple_prefix = architecture = "aarch64";
+					triple_prefix = architecture = PSTR("aarch64");
 					break;
 
 				case LlvmMcArchitecture::ARM32:
-					triple_prefix = architecture = "arm";
+					triple_prefix = architecture = PSTR("arm");
 					break;
 
 				case LlvmMcArchitecture::X86:
-					triple_prefix = architecture = "x86";
+					triple_prefix = architecture = PSTR("x86");
 					break;
 
 				case LlvmMcArchitecture::X64:
-					architecture = "x86-64";
-					triple_prefix = "x86_64";
+					architecture = PSTR("x86-64");
+					triple_prefix = PSTR("x86_64");
 					break;
 			}
 
 			set_arch (architecture);
-			triple = triple_prefix + "-linux-gnu";
+			triple = triple_prefix + PSTR("-linux-gnu");
 		}
 
-		void set_arch (std::string const& arch)
+		void set_arch (platform::string const& arch)
 		{
 			set_option (LlvmMcArgument::Arch, arch);
 		}
 
-		void set_mcpu (std::string const& cpu)
+		void set_mcpu (platform::string const& cpu)
 		{
 			set_option (LlvmMcArgument::Mcpu, cpu);
 		}
 
-		void set_option (LlvmMcArgument argument, std::string const& value = "")
+		void set_option (LlvmMcArgument argument, platform::string const& value = PSTR(""))
 		{
 			if (argument == LlvmMcArgument::Arch) {
 				if (arguments.find (argument) != arguments.end ()) {
@@ -162,14 +161,14 @@ namespace xamarin::android::gas
 			return iter->second;
 		}
 
-		void append_attribute (std::string const& new_attr)
+		void append_attribute (platform::string const& new_attr)
 		{
 			set_option (LlvmMcArgument::Mattr, new_attr);
 		}
 
-		void append_attributes (std::vector<std::string> const& new_attrs)
+		void append_attributes (std::vector<platform::string> const& new_attrs)
 		{
-			for (std::string const& attr : new_attrs) {
+			for (platform::string const& attr : new_attrs) {
 				append_attribute (attr);
 			}
 		}
@@ -177,7 +176,7 @@ namespace xamarin::android::gas
 	private:
 		std::unordered_map<LlvmMcArgument, Process::process_argument> arguments;
 		fs::path input_file_path;
-		std::string triple;
+		platform::string triple;
 	};
 
 	class LlvmMcRunnerARM64 final : public LlvmMcRunner
@@ -190,7 +189,7 @@ namespace xamarin::android::gas
 		virtual ~LlvmMcRunnerARM64 ()
 		{}
 
-		virtual void map_option (std::string const& gas_name, std::string const& value = "") override final;
+		virtual void map_option (platform::string const& gas_name, platform::string const& value = PSTR("")) override final;
 	};
 
 	class LlvmMcRunnerARM32 final : public LlvmMcRunner
@@ -200,16 +199,16 @@ namespace xamarin::android::gas
 			: LlvmMcRunner (LlvmMcArchitecture::ARM32)
 		{
 			// We always target ARMv7-a
-			append_attribute ("+armv7-a");
+			append_attribute (PSTR("+armv7-a"));
 		}
 
 		virtual ~LlvmMcRunnerARM32 ()
 		{}
 
-		virtual void map_option (std::string const& gas_name, std::string const& value = "") override final;
+		virtual void map_option (platform::string const& gas_name, platform::string const& value = PSTR("")) override final;
 
 	private:
-		static std::unordered_map<std::string, std::vector<std::string>> fpu_type_map;
+		static std::unordered_map<platform::string, std::vector<platform::string>> fpu_type_map;
 	};
 
 	class LlvmMcRunnerX64 final : public LlvmMcRunner
@@ -222,7 +221,7 @@ namespace xamarin::android::gas
 		virtual ~LlvmMcRunnerX64 ()
 		{}
 
-		virtual void map_option (std::string const& gas_name, std::string const& value = "") override final;
+		virtual void map_option (platform::string const& gas_name, platform::string const& value = PSTR("")) override final;
 	};
 
 	class LlvmMcRunnerX86 final : public LlvmMcRunner
@@ -235,7 +234,7 @@ namespace xamarin::android::gas
 		virtual ~LlvmMcRunnerX86 ()
 		{}
 
-		virtual void map_option (std::string const& gas_name, std::string const& value = "") override final;
+		virtual void map_option (platform::string const& gas_name, platform::string const& value = PSTR("")) override final;
 	};
 }
 #endif // __LLVM_MC_RUNNER_HH

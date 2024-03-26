@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: MIT
-#include "gas.hh"
+#include <iostream>
+#include <vector>
 
-xamarin::android::gas::Gas app;
+#include "gas.hh"
+#include "platform.hh"
 
 int main (int argc, char **argv)
 {
-	// On windows this obtains the utf8 version of args
-	app.get_command_line (argc, argv);
+	xamarin::android::gas::Gas app;
+
+	std::vector<platform::string> args = app.get_command_line (argc, argv);
+
 	// TODO: handle exceptions here (use backward for stacktrace perhaps?)
-	return app.run (argc, argv);
+	return app.run (args);
 }
