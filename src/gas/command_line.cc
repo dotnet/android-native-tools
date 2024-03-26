@@ -42,8 +42,6 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 			continue;
 		}
 
-		platform::string_view option_name;
-		platform::string_view option_value;
 		if (iter == option.cbegin ()) { // positional
 			option_cb ({ positional_count++ }, { option });
 			continue;
@@ -54,11 +52,12 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 			iter++;
 		}
 
-		option_name = { name_start, iter };
+		platform::string_view option_name (name_start, iter);
+		platform::string_view option_value;
 
 		if (iter != option.cend ()) { // has a value
 			iter++;
-			option_value = { iter, option.cend () };
+			option_value = platform::string_view (iter, option.cend ());
 		}
 
 		auto matching_option = [this, &option_name] (CommandLineOption const& o) -> bool {
