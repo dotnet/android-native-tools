@@ -52,12 +52,20 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 			iter++;
 		}
 
-		platform::string_view option_name (name_start, iter);
+#if !defined (__APPLE__)
+		platform::string_view option_name { name_start, iter };
+#else
+		platform::string_view option_name (option.data () + (name_start - option.cbegin ()), iter - name_start);
+#endif
 		platform::string_view option_value;
 
 		if (iter != option.cend ()) { // has a value
 			iter++;
-			option_value = platform::string_view (iter, option.cend ());
+#if !defined (__APPLE__)
+			option_value = { iter, option.cend () };
+#else
+			option_value = platform::string_view (option.data () + (iter - option.cbegin ()), option.cend () - iter);
+#endif
 		}
 
 		auto matching_option = [this, &option_name] (CommandLineOption const& o) -> bool {
