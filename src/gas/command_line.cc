@@ -68,7 +68,12 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 			return o.arch == TargetArchitecture::Any || o.arch == target_arch;
 		};
 
+#if !defined(__APPLE__)
 		auto match = ranges::find_if (options, matching_option);
+#else
+		// C++ standard library on mac CI doesn't have std::ranges::find_if
+		auto match = std::find_if (options. matching_option);
+#endif
 		if (match == options.end ()) {
 			STDERR << "Uncrecognized option '" << option << "'\n";
 			continue;
