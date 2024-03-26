@@ -10,8 +10,8 @@ namespace xamarin::android::gas
 	{
 	public:
 #if defined (_WIN32)
-		static constexpr platform::string_view newline { L"\r\n" };
-		static constexpr platform::string_view llvm_mc_name { L"llvm-mc.exe" };
+		static constexpr platform::string_view newline { PSTR("\r\n") };
+		static constexpr platform::string_view llvm_mc_name { PSTR("llvm-mc.exe") };
 #else
 		static constexpr platform::string_view newline { "\n" };
 		static constexpr platform::string_view llvm_mc_name { "llvm-mc" };

@@ -3,7 +3,6 @@
 #define __LLVM_MC_RUNNER_HH
 
 #include <filesystem>
-#include <functional>
 #include <unordered_map>
 #include <vector>
 
@@ -69,7 +68,7 @@ namespace xamarin::android::gas
 
 		void set_output_file_path (fs::path const& file_path)
 		{
-			set_option (LlvmMcArgument::Output, file_path.native ());
+			set_option (LlvmMcArgument::Output, file_path.string ());
 		}
 
 		void add_include_path (fs::path const& include_path)
@@ -78,7 +77,7 @@ namespace xamarin::android::gas
 				return;
 			}
 
-			set_option (LlvmMcArgument::IncludeDir, include_path.native ());
+			set_option (LlvmMcArgument::IncludeDir, include_path.string ());
 		}
 
 		void generate_debug_info ()

@@ -58,12 +58,20 @@ int Gas::usage (bool is_error, platform::string const message)
 	return is_error ? 1 : 0;
 }
 
+std::vector<platform::string> Gas::get_command_line (int &argc, char **&argv)
+{
+	std::vector<platform::string> ret;
+
+	for (int i = 0; i < argc; i++) {
+		ret.emplace_back (argv[i]);
+	}
+
+	return ret;
+}
+
 int Gas::run (std::vector<platform::string> args)
 {
-	STDOUT << "Gas::run" << std::endl;
 	determine_program_dir (args);
-	STDOUT << "Program dir determined" << std::endl;
-
 	auto lowercase_string = [](platform::string& s) {
 		std::transform (
 			s.begin (),
@@ -73,14 +81,12 @@ int Gas::run (std::vector<platform::string> args)
 		);
 	};
 
-	STDOUT << "Determining arch name" << std::endl;
 	platform::string arch_name { generic_gas_name };
 	platform::string first_param { args.size () > 1 ? args[1] : PSTR("") };
 	if (!first_param.empty () && first_param.length () > Constants::arch_hack_param.size () && first_param.find (Constants::arch_hack_param) == 0) {
 		arch_name = first_param.substr (Constants::arch_hack_param.size ());
 		lowercase_string (arch_name);
 	}
-	STDOUT << "arch_name == " << arch_name << std::endl;
 	_program_name = arch_name;
 
 	std::unique_ptr<LlvmMcRunner> mc_runner;
@@ -114,21 +120,19 @@ int Gas::run (std::vector<platform::string> args)
 		return usage (true /* is_error */, message);
 	} else {
 		platform::string message { PSTR("Unknown program name '") };
-		message.append (arch_name).append (PSTR("'")).append (Constants::newline);
+		message
+			.append (arch_name)
+			.append (PSTR("'"))
+			.append (Constants::newline);
 		return usage (true /* is_error */, message);
 	}
 
-	STDOUT << "About to parse arguments" << std::endl;
 	auto&& [terminate, is_error] = parse_arguments (args, mc_runner);
-	STDOUT << "Arguments parsed; terminate == " << terminate << "; is_error == " << is_error << std::endl;
 	if (terminate || is_error) {
 		return is_error ? Constants::wrapper_general_error_code : 0;
 	}
 
-	STDOUT << "Getting path to llvm_mc" << std::endl;
 	fs::path llvm_mc = program_dir () / Constants::llvm_mc_name;
-	STDOUT << "llvm_mc == " << llvm_mc.c_str () << std::endl;
-
 	bool multiple_input_files = false;
 	bool derive_output_file_name = false;
 	switch (input_files.size ()) {
@@ -151,11 +155,10 @@ int Gas::run (std::vector<platform::string> args)
 	}
 
 	for (fs::path const& input : input_files) {
-		STDOUT << "running llvm-mc for '" << input.c_str () << std::endl;
 		mc_runner->set_input_file_path (input, derive_output_file_name);
 		int ret = mc_runner->run (llvm_mc);
 		if (ret != 0) {
-			STDOUT << "  mc_runner failed with " << ret << std::endl;
+			STDERR << "  mc_runner failed with error code " << ret << Constants::newline;
 			return ret;
 		}
 	}
@@ -170,13 +173,11 @@ int Gas::run (std::vector<platform::string> args)
 		ld_path /= ld_name;
 		auto ld = std::make_unique<Process> (ld_path);
 		ld->append_program_argument (PSTR("-o"));
-		ld->append_program_argument (_gas_output_file.empty () ? platform::string (Constants::default_output_name) : _gas_output_file.native ());
+		ld->append_program_argument (_gas_output_file.empty () ? platform::string (Constants::default_output_name) : _gas_output_file.string ());
 		ld->append_program_argument (PSTR("--relocatable"));
 
-		STDOUT << "Have multiple output files:" << Constants::newline;
 		for (fs::path const& output : output_files) {
-			STDOUT << "  " << output << Constants::newline;
-			ld->append_program_argument (output.native ());
+			ld->append_program_argument (output.string ());
 		}
 
 		return ld->run ();
@@ -229,29 +230,18 @@ Gas::ParseArgsResult Gas::parse_arguments (std::vector<platform::string> &args, 
 		if (std::holds_alternative<uint32_t> (option)) {
 			platform::string arg = std::get<platform::string> (val);
 			// Positional argument
-			STDOUT << "Positional argument no. " << std::get<uint32_t> (option) << ": " << arg << "\n";
 			if (arg.starts_with (Constants::arch_hack_param)) {
 				// Arch hack, ignore
-				STDOUT << "  arch hack param, ignored\n";
 				return;
 			}
 
-			STDOUT << "  input file\n";
 			input_files.emplace_back (arg);
 			return;
 		}
 
 		const auto opt = std::get<const CommandLineOption> (option);
-		STDOUT << "Option argument: " << platform::string (opt.name) << "\n";
 		if (opt.id == OptionId::Ignore) {
-			STDOUT << "  ignored\n";
 			return;
-		}
-
-		if (std::holds_alternative<bool> (val)) {
-			STDOUT << "  boolean\n";
-		} else {
-			STDOUT << "  value: " << std::get<platform::string> (val) << "\n";
 		}
 
 		switch (opt.id) {
@@ -298,8 +288,8 @@ Gas::ParseArgsResult Gas::parse_arguments (std::vector<platform::string> &args, 
 		return {true, false};
 	} else if (show_version) {
 		STDOUT << program_name () << " v" << XA_UTILS_VERSION << ", " << PROGRAM_DESCRIPTION << Constants::newline
-		          << "\tGAS version compatibility: " << BINUTILS_VERSION << Constants::newline
-		          << "\tllvm-mc version compatibility: " << LLVM_VERSION << Constants::newline << Constants::newline;
+		       << "\tGAS version compatibility: " << BINUTILS_VERSION << Constants::newline
+		       << "\tllvm-mc version compatibility: " << LLVM_VERSION << Constants::newline << Constants::newline;
 		return {true, false};
 	}
 

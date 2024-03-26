@@ -77,14 +77,14 @@ namespace xamarin::android::gas
 		using TArgType = char*;
 
 	private:
-		static inline constexpr char DASH = '-';
-		static inline constexpr char EQUALS = '=';
+		static inline constexpr char DASH = PCHAR('-');
+		static inline constexpr char EQUALS = PCHAR('=');
 #else
 		using TArgType = LPWSTR;
 
 	private:
-		static inline constexpr wchar_t DASH = L'-';
-		static inline constexpr wchar_t EQUALS = L'=';
+		static inline constexpr wchar_t DASH = PCHAR('-');
+		static inline constexpr wchar_t EQUALS = PCHAR('=');
 #endif
 
 	public:
@@ -116,7 +116,7 @@ namespace xamarin::android::gas
 #if !defined (_WIN32)
 #define CLIPARAM(_str_lit_) std::string_view { _str_lit_ }
 #else
-#define CLIPARAM(_str_lit_) std::wstring_view { L##_str_lit_ }
+#define CLIPARAM(_str_lit_) std::string_view { _str_lit_ }
 #endif
 
 #endif // ndef GAS_COMMAND_LINE_HH

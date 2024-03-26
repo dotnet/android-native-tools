@@ -5,14 +5,13 @@
 #include <optional>
 
 #include "command_line.hh"
+#include "exceptions.hh"
 
 using namespace xamarin::android::gas;
 namespace ranges = std::ranges;
 
 bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector<platform::string> &args, OptionCallbackFn option_cb)
 {
-	STDOUT << "Got " << options.size() << " options\n" << "Passed args:\n";
-
 	uint32_t positional_count = 0;
 	bool next_arg_is_value = false;
 	std::optional<CommandLineOption> last_opt;
@@ -23,10 +22,7 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 			continue;
 		}
 
-		STDOUT << "  [" << i << "] " << option << "\n";
-
 		platform::string::const_iterator iter = option.cbegin ();
-
 		while (iter != option.cend () && *iter == DASH) {
 			iter++;
 		}
@@ -37,7 +33,7 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 			if (last_opt.has_value ()) {
 				option_cb (last_opt.value (), option);
 			} else {
-				// TODO: throw, probably
+				throw invalid_argument_error { "Option '" + option + "' requires an argument." };
 			}
 
 			next_arg_is_value = false;
@@ -45,12 +41,9 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 			continue;
 		}
 
-		bool positional = iter == option.cbegin ();
-		STDOUT << std::boolalpha << "    Positional? " << positional << "\n";
-
 		platform::string_view option_name;
 		platform::string_view option_value;
-		if (positional) {
+		if (iter == option.cbegin ()) { // positional
 			option_cb ({ positional_count++ }, { option });
 			continue;
 		}
@@ -62,16 +55,10 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 
 		option_name = { name_start, iter };
 
-		bool has_value = iter != option.cend ();
-		STDOUT << "    Has value? " << has_value << "\n";
-
-		if (has_value) {
+		if (iter != option.cend ()) { // has a value
 			iter++;
 			option_value = { iter, option.cend () };
 		}
-
-		STDOUT << "     Option name: " << platform::string (option_name) << "\n";
-		STDOUT << "    Option value: " << platform::string (option_value) << "\n";
 
 		auto matching_option = [this, &option_name] (CommandLineOption const& o) -> bool {
 			if (o.name != option_name) {
@@ -82,9 +69,7 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 		};
 
 		auto match = ranges::find_if (options, matching_option);
-		if (match != options.end ()) {
-			STDOUT << "    found matching option\n";
-		} else {
+		if (match == options.end ()) {
 			STDERR << "Uncrecognized option '" << option << "'\n";
 			continue;
 		}
@@ -100,8 +85,11 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 	}
 
 	if (last_opt.has_value ()) {
-		STDERR << "Option '" << last_opt.value ().name << "' requires an argument" << std::endl;
-		return false;
+		platform::string message { "Option '" };
+		message
+			.append (last_opt.value ().name)
+			.append ("' requires an argument.");
+		throw invalid_operation_error {message};
 	}
 
 	return true;

@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-#include <locale>
-
-#include "command_line.hh"
 #include "exceptions.hh"
 #include "llvm_mc_runner.hh"
+#include "platform.hh"
 
 using namespace xamarin::android::gas;
 

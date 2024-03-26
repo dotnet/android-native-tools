@@ -5,17 +5,13 @@
 #if !defined(_WIN32)
 #include <unistd.h>
 #endif
-#include <getopt.h>
 
 #include <array>
 #include <concepts>
 #include <filesystem>
-#include <iostream>
 #include <memory>
-#include <string>
 #include <vector>
 
-#include "command_line.hh"
 #include "constants.hh"
 #include "platform.hh"
 
@@ -171,5 +167,4 @@ namespace xamarin::android::gas
 		TargetArchitecture  _target_arch;
 	};
 }
-
 #endif // __GAS_HH
