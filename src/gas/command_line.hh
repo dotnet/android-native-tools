@@ -113,8 +113,8 @@ namespace xamarin::android::gas
 
 #define CLISTR(_str_lit_) PSTR((_str_lit_))
 
-#if !defined (_WIN32)
-#define CLIPARAM(_str_lit_) std::string_view { _str_lit_ }
+#if defined (_WIN32)
+#define CLIPARAM(_str_lit_) std::wstring_view { L ## _str_lit_ }
 #else
 #define CLIPARAM(_str_lit_) std::string_view { _str_lit_ }
 #endif

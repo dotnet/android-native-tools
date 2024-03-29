@@ -49,7 +49,7 @@ int Process::run (bool print_command_line)
 		print_process_command_line ();
 	}
 
-	platform::string binary = executable_path.string ();
+	platform::string binary = executable_path.native ();
 	platform::string args { escape_argument (binary) };
 	for (platform::string const& a : _args) {
 		if (a.empty ()) {
@@ -59,21 +59,14 @@ int Process::run (bool print_command_line)
 		args.append (escape_argument (a));
 	}
 
-	int size =  MultiByteToWideChar (CP_UTF8, 0, args.c_str (), -1, NULL , 0);
-	wchar_t* wargs = new wchar_t [size];
-	MultiByteToWideChar (CP_UTF8, 0, args.c_str (), -1, wargs, size);
-
-	size =  MultiByteToWideChar (CP_UTF8, 0, binary.c_str (), -1, NULL , 0);
-	wchar_t* wbinary = new wchar_t [size];
-	MultiByteToWideChar (CP_UTF8, 0, binary.c_str (), -1, wbinary, size);
-
 	PROCESS_INFORMATION pi {};
 	STARTUPINFOW si {};
 	si.cb = sizeof(si);
 
 	DWORD creation_flags = CREATE_UNICODE_ENVIRONMENT;
+	wchar_t* wargs = _wcsdup(args.c_str());
 	BOOL success = CreateProcessW (
-		wbinary,
+		binary.c_str (),
 		wargs,
 		nullptr, // process security attributes
 		nullptr, // primary thread security attributes
@@ -84,24 +77,28 @@ int Process::run (bool print_command_line)
 		&si,
 		&pi
 	);
-
-	delete[] wargs;
-	delete[] wbinary;
+	free (wargs);
 
 	if (!success) {
 		return Constants::wrapper_exec_failed_error_code;
 	}
 
 	// TODO: error handling below
+	int ret = 0;
 	DWORD result = WaitForSingleObject (pi.hProcess, INFINITE);
 	if (result == 0) {
 		DWORD retcode = 0;
 		if (GetExitCodeProcess (pi.hProcess, &retcode)) {
-			return retcode;
+			ret = retcode;
+		} else {
+			ret = 128;
 		}
-
-		return 128;
+	} else {
+		ret = 1;
 	}
 
-	return 1;
+	CloseHandle (pi.hProcess);
+	CloseHandle (pi.hThread);
+
+	return ret;
 }

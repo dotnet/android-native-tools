@@ -26,7 +26,7 @@ std::unordered_map<LlvmMcArgument, bool> LlvmMcRunner::known_options {
 int LlvmMcRunner::run (fs::path const& executable_path)
 {
 	if (!fs::exists (executable_path)) {
-		STDERR << "Executable '" << executable_path.string () << "' does not exist." << Constants::newline;
+		STDERR << "Executable '" << executable_path.native () << "' does not exist." << Constants::newline;
 		return Constants::wrapper_exec_failed_error_code;
 	}
 
@@ -59,8 +59,8 @@ int LlvmMcRunner::run (fs::path const& executable_path)
 		process->append_program_argument (PSTR("-o"), opt->second);
 	}
 
-	platform::string input_file { PSTR("\"") + input_file_path.make_preferred ().string () + PSTR("\"") };
-	process->append_program_argument (input_file_path.make_preferred ().string ());
+	platform::string input_file { PSTR("\"") + input_file_path.make_preferred ().native () + PSTR("\"") };
+	process->append_program_argument (input_file_path.make_preferred ().native ());
 
 	return process->run ();
 }

@@ -58,7 +58,7 @@ int Gas::usage (bool is_error, platform::string const message)
 	return is_error ? 1 : 0;
 }
 
-std::vector<platform::string> Gas::get_command_line (int &argc, char **&argv)
+std::vector<platform::string> Gas::get_command_line (int argc, argv_char **argv)
 {
 	std::vector<platform::string> ret;
 
@@ -173,11 +173,11 @@ int Gas::run (std::vector<platform::string> args)
 		ld_path /= ld_name;
 		auto ld = std::make_unique<Process> (ld_path);
 		ld->append_program_argument (PSTR("-o"));
-		ld->append_program_argument (_gas_output_file.empty () ? platform::string (Constants::default_output_name) : _gas_output_file.string ());
+		ld->append_program_argument (_gas_output_file.empty () ? platform::string (Constants::default_output_name) : _gas_output_file.native ());
 		ld->append_program_argument (PSTR("--relocatable"));
 
 		for (fs::path const& output : output_files) {
-			ld->append_program_argument (output.string ());
+			ld->append_program_argument (output.native ());
 		}
 
 		return ld->run ();

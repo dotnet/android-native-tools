@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "command_line.hh"
-#include "exceptions.hh"
 #include "platform.hh"
 
 using namespace xamarin::android::gas;
@@ -34,7 +33,8 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 			if (last_opt.has_value ()) {
 				option_cb (last_opt.value (), option);
 			} else {
-				throw invalid_argument_error { "Option '" + option + "' requires an argument." };
+				STDERR << "Option '" << option << "' requires an argument.";
+				return false;
 			}
 
 			next_arg_is_value = false;
@@ -83,7 +83,7 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 		auto match = std::find_if (options.begin (), options.end (), matching_option);
 #endif
 		if (match == options.end ()) {
-			STDERR << "Uncrecognized option '" << option << "'\n";
+			STDERR << "Unrecognized option '" << option << Constants::newline;
 			continue;
 		}
 
@@ -98,11 +98,8 @@ bool CommandLine::parse (std::span<const CommandLineOption> options, std::vector
 	}
 
 	if (last_opt.has_value ()) {
-		platform::string message { "Option '" };
-		message
-			.append (last_opt.value ().name)
-			.append ("' requires an argument.");
-		throw invalid_operation_error {message};
+		STDERR << "Option '" << last_opt.value().name << "' requires an argument." << std::endl;
+		return false;
 	}
 
 	return true;
