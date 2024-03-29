@@ -108,7 +108,9 @@ namespace xamarin::android::gas
 		~Gas ()
 		{}
 
-		std::vector<platform::string> get_command_line (int &argc, char **&argv);
+		void dump_command_line_args (int argc, argv_char **argv);
+		static void platform_setup ();
+		std::vector<platform::string> get_command_line (int argc, argv_char **argv);
 
 		int run (std::vector<platform::string> args);
 

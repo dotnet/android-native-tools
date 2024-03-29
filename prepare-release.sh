@@ -6,8 +6,7 @@ MY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 source common.sh
 
 WORK_DIR="${MY_DIR}/prep"
-ARTIFACT_TARBALL="${DIST_PACKAGE_NAME_BASE}.tar.bz2"
-ARTIFACTS_DIR="${WORK_DIR}/artifacts"
+ARTIFACTS_DIR="${WORK_DIR}"
 
 ARTIFACT_ZIP="${1}"
 XA_TAG_COMPONENT="${2}"
@@ -38,12 +37,6 @@ function prepare()
 	echo Unpacking artifact ZIP
 	unzip "${ARTIFACT_ZIP}"
 
-	if [ ! -f "${ARTIFACT_TARBALL}" ]; then
-		die Build artifact tarball $(pwd)/${ARTIFACT_TARBALL} not found
-	fi
-
-	echo Unpacking binaries tarball
-	tar xf "${ARTIFACT_TARBALL}"
 	if [ ! -d "${ARTIFACTS_DIR}" ]; then
 		die Artifacts directory ${ARTIFACTS_DIR} does not exist
 	fi

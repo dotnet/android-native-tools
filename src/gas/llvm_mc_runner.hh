@@ -68,7 +68,7 @@ namespace xamarin::android::gas
 
 		void set_output_file_path (fs::path const& file_path)
 		{
-			set_option (LlvmMcArgument::Output, file_path.string ());
+			set_option (LlvmMcArgument::Output, file_path.native ());
 		}
 
 		void add_include_path (fs::path const& include_path)
@@ -77,7 +77,7 @@ namespace xamarin::android::gas
 				return;
 			}
 
-			set_option (LlvmMcArgument::IncludeDir, include_path.string ());
+			set_option (LlvmMcArgument::IncludeDir, include_path.native ());
 		}
 
 		void generate_debug_info ()

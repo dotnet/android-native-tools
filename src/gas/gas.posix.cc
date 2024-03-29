@@ -10,6 +10,12 @@
 
 using namespace xamarin::android::gas;
 
+void Gas::dump_command_line_args ([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
+{}
+
+void Gas::platform_setup()
+{}
+
 void Gas::determine_program_dir (std::vector<platform::string> args)
 {
 	fs::path program_path { args[0] };
