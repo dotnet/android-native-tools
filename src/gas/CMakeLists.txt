@@ -1,4 +1,5 @@
 set(GAS_DRIVER_SOURCES
+  command_line.cc
   gas.cc
   llvm_mc_runner.cc
   llvm_mc_runner_arm32.cc
@@ -33,10 +34,13 @@ add_executable(
   ${GAS_DRIVER_SOURCES}
   )
 
-# SYSTEM disables warnings produced by cxxopts headers, which we can do nothing about
-target_include_directories(as SYSTEM PRIVATE ${CMAKE_SOURCE_DIR}/../external/cxxopts/include)
-
 if(WIN32)
+  target_include_directories(
+    as
+    PRIVATE
+    ../compat-include
+  )
+
   target_link_libraries(
     as
     shlwapi

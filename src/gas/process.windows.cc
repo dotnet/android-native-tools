@@ -6,15 +6,16 @@
 #include <iostream>
 
 #include "constants.hh"
+#include "platform.hh"
 #include "process.hh"
 
 using namespace xamarin::android::gas;
 
-static std::string escape_argument (std::string arg)
+static platform::string escape_argument (platform::string arg)
 {
 	bool needs_quote = false;
 
-	for (std::string::value_type const& c : arg) {
+	for (platform::string::value_type const& c : arg) {
 		if (isalpha (c) || isdigit (c) ||
 		    c == '.' || c == '_' || c == '-' ||
 		    c == '+' || c == '/') {
@@ -29,16 +30,16 @@ static std::string escape_argument (std::string arg)
 		return arg;
 	}
 
-	std::string result = "\"";
-	for (std::string::const_reference c : arg) {
-		if (c == '\"' || c == '\\') {
-			result.append ("\\");
+	platform::string result = PSTR("\"");
+	for (platform::string::const_reference c : arg) {
+		if (c == PCHAR('\"') || c == PCHAR('\\')) {
+			result.append (PCHAR("\\"));
 		}
 
 		result += c;
 	}
 
-	result.append ("\"");
+	result.append (PSTR("\""));
 	return result;
 }
 
@@ -48,31 +49,24 @@ int Process::run (bool print_command_line)
 		print_process_command_line ();
 	}
 
-	std::string binary = executable_path.string ();
-	std::string args { escape_argument (binary) };
-	for (std::string const& a : _args) {
+	platform::string binary = executable_path.native ();
+	platform::string args { escape_argument (binary) };
+	for (platform::string const& a : _args) {
 		if (a.empty ()) {
 			continue;
 		}
-		args.append (" ");
+		args.append (PCHAR(" "));
 		args.append (escape_argument (a));
 	}
-
-	int size =  MultiByteToWideChar (CP_UTF8, 0, args.c_str (), -1, NULL , 0);
-	wchar_t* wargs = new wchar_t [size];
-	MultiByteToWideChar (CP_UTF8, 0, args.c_str (), -1, wargs, size);
-
-	size =  MultiByteToWideChar (CP_UTF8, 0, binary.c_str (), -1, NULL , 0);
-	wchar_t* wbinary = new wchar_t [size];
-	MultiByteToWideChar (CP_UTF8, 0, binary.c_str (), -1, wbinary, size);
 
 	PROCESS_INFORMATION pi {};
 	STARTUPINFOW si {};
 	si.cb = sizeof(si);
 
 	DWORD creation_flags = CREATE_UNICODE_ENVIRONMENT;
+	wchar_t* wargs = _wcsdup(args.c_str());
 	BOOL success = CreateProcessW (
-		wbinary,
+		binary.c_str (),
 		wargs,
 		nullptr, // process security attributes
 		nullptr, // primary thread security attributes
@@ -83,24 +77,28 @@ int Process::run (bool print_command_line)
 		&si,
 		&pi
 	);
-
-	delete[] wargs;
-	delete[] wbinary;
+	free (wargs);
 
 	if (!success) {
 		return Constants::wrapper_exec_failed_error_code;
 	}
 
 	// TODO: error handling below
+	int ret = 0;
 	DWORD result = WaitForSingleObject (pi.hProcess, INFINITE);
 	if (result == 0) {
 		DWORD retcode = 0;
 		if (GetExitCodeProcess (pi.hProcess, &retcode)) {
-			return retcode;
+			ret = retcode;
+		} else {
+			ret = 128;
 		}
-
-		return 128;
+	} else {
+		ret = 1;
 	}
 
-	return 1;
+	CloseHandle (pi.hProcess);
+	CloseHandle (pi.hThread);
+
+	return ret;
 }
