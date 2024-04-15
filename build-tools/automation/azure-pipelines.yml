@@ -121,14 +121,14 @@ extends:
 
         - script: ./build-llvm.sh
           env:
-            CC: gcc-13
-            CXX: g++-13
+            CC: gcc-10
+            CXX: g++-10
           displayName: Build LLVM
 
         - script: ./build-xa-utils.sh
           env:
-            CC: gcc-13
-            CXX: g++-13
+            CC: gcc-10
+            CXX: g++-10
           displayName: Build utilities
 
         - script: |
