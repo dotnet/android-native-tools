@@ -57,7 +57,7 @@ variables:
 - name: WindowsPoolImage1ESPT
   value: 1ESPT-Windows2022
 - name: LinuxPoolImage1ESPT
-  value: 1ESPT-Ubuntu22.04
+  value: 1ESPT-Ubuntu20.04
 - name: MicroBuildPoolName
   value: VSEngSS-MicroBuild2022-1ES
 
@@ -121,14 +121,14 @@ extends:
 
         - script: ./build-llvm.sh
           env:
-            CC: gcc-13
-            CXX: g++-13
+            CC: gcc-10
+            CXX: g++-10
           displayName: Build LLVM
 
         - script: ./build-xa-utils.sh
           env:
-            CC: gcc-13
-            CXX: g++-13
+            CC: gcc-10
+            CXX: g++-10
           displayName: Build utilities
 
         - script: |
