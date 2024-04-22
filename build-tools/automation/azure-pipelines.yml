@@ -96,7 +96,7 @@ extends:
           - output: pipelineArtifact
             displayName: Upload logs
             condition: always()
-            artifactName: build-logs-linux
+            artifactName: build-logs-linux-$(System.JobAttempt)
             targetPath: $(Build.StagingDirectory)
             sbomEnabled: false
           - output: pipelineArtifact
@@ -153,7 +153,7 @@ extends:
           - output: pipelineArtifact
             displayName: Upload logs
             condition: always()
-            artifactName: build-logs-macos
+            artifactName: build-logs-macos-$(System.JobAttempt)
             targetPath: $(Build.StagingDirectory)
             sbomEnabled: false
           - output: pipelineArtifact
