@@ -1,0 +1,15 @@
+paths:
+  exclude:
+    # we don't ship lldb
+    - external/llvm/lldb
+    # we don't ship clang docs
+    - external/llvm/clang/docs
+    # we don't ship tests
+    - external/llvm/compiler-rt/test
+    # we don't ship these either
+    - external/llvm/clang/tools
+    - external/llvm/llvm/tools
+    - external/llvm/llvm/utils/
+    - external/llvm/clang/utils/CaptureCmd # not used by anything?!
+    # we don't ship "rando" tools either
+    - external/llvm/llvm/tools
