@@ -4,7 +4,7 @@ set SOURCE_DIR=%MY_DIR%external\llvm\llvm
 
 set PROJECTS=lld
 set TARGETS=X86;ARM;AArch64
-set BINARIES=llvm-mc.exe llvm-strip.exe lld.exe llc.exe
+set BINARIES=llvm-mc.exe llvm-objcopy.exe llvm-strip.exe lld.exe llc.exe
 set PDBS=llvm-mc.pdb llvm-objcopy.pdb llvm-strip.pdb lld.pdb llc.pdb
 
 set HOST_BUILD_DIR=%BUILD_DIR%\%HOST%\llvm
