@@ -65,10 +65,12 @@ function prepare()
 
 		cp -P -a "${artifacts_source_bin}/llvm-objcopy.pdb" "${artifacts_dest_bin}/llvm-objcopy.pdb"
 		cp -P -a "${artifacts_source_bin}/lld.pdb" "${artifacts_dest_bin}/lld.pdb"
+		make_windows_wrapper_scripts "scripts/llvm-objcopy.cmd.in" "${artifacts_source_bin}" "objcopy"
 		make_windows_wrapper_scripts "scripts/llvm-strip.cmd.in" "${artifacts_source_bin}" "strip"
 		make_windows_wrapper_scripts "scripts/gas.cmd.in" "${artifacts_source_bin}" "as"
 		make_windows_wrapper_scripts "scripts/ld.cmd.in" "${artifacts_source_bin}" "ld"
 	else
+		make_unix_wrapper_scripts "scripts/llvm-objcopy.sh" "${artifacts_source_bin}" "objcopy"
 		make_unix_wrapper_scripts "scripts/llvm-strip.sh" "${artifacts_source_bin}" "strip"
 		make_unix_wrapper_scripts "scripts/gas.sh" "${artifacts_source_bin}" "as"
 		make_unix_wrapper_scripts "scripts/ld.sh" "${artifacts_source_bin}" "ld"

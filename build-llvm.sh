@@ -46,6 +46,7 @@ function configure()
 		  -DLLVM_ENABLE_THREADS=OFF \
 		  -DLLVM_ENABLE_ZLIB=OFF \
 		  -DLLVM_ENABLE_ZSTD=OFF \
+		  -DLLVM_USE_STATIC_ZSTD=ON \
 		  -DLLVM_INCLUDE_BENCHMARKS=OFF \
 		  -DLLVM_INCLUDE_EXAMPLES=OFF \
 		  -DLLVM_INCLUDE_TESTS=OFF \
@@ -96,7 +97,7 @@ function build()
 	ninja -j${JOBS} lld
 	ninja -j${JOBS} llc
 
-	mv "${HOST_BIN_DIR}/llvm-objcopy" "${HOST_BIN_DIR}/llvm-strip"
+	cp -P -a "${HOST_BIN_DIR}/llvm-objcopy" "${HOST_BIN_DIR}/llvm-strip"
 	grep 'CMAKE_PROJECT_VERSION:' "${MY_BUILD_DIR}/CMakeCache.txt" | cut -d '=' -f 2 > "${LLVM_VERSION_FILE}"
 
 	for b in ${LLVM_BINARIES}; do

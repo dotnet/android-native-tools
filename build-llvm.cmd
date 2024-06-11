@@ -4,14 +4,13 @@ set SOURCE_DIR=%MY_DIR%external\llvm\llvm
 
 set PROJECTS=lld
 set TARGETS=X86;ARM;AArch64
-set BINARIES=llvm-mc.exe llvm-strip.exe lld.exe llc.exe
+set BINARIES=llvm-mc.exe llvm-objcopy.exe llvm-strip.exe lld.exe llc.exe
 set PDBS=llvm-mc.pdb llvm-objcopy.pdb llvm-strip.pdb lld.pdb llc.pdb
 
 set HOST_BUILD_DIR=%BUILD_DIR%\%HOST%\llvm
 set HOST_BIN_DIR=%HOST_BUILD_DIR%\Release\bin
 
 set LLVM_VERSION_FILE=%HOST_ARTIFACTS_DIR%\llvm-version.txt
-set CXXFLAGS="/Qspectre /sdl /guard:cf"
 
 if exist %HOST_BUILD_DIR% (rmdir /S /Q %HOST_BUILD_DIR%)
 mkdir %HOST_BUILD_DIR%
@@ -44,6 +43,8 @@ cmake -G "%CMAKE_VS_GENERATOR%" -A x64 ^
  -DLLVM_ENABLE_TERMINFO=OFF ^
  -DLLVM_ENABLE_THREADS=OFF ^
  -DLLVM_ENABLE_ZLIB=OFF ^
+ -DLLVM_ENABLE_ZSTD=OFF ^
+ -DLLVM_USE_STATIC_ZSTD=ON ^
  -DLLVM_INCLUDE_BENCHMARKS=OFF ^
  -DLLVM_INCLUDE_EXAMPLES=OFF ^
  -DLLVM_INCLUDE_TESTS=OFF ^
@@ -68,7 +69,7 @@ IF %ERRORLEVEL% GEQ 1 EXIT /B 4
 msbuild /p:Configuration=Release /m tools\llc\llc.vcxproj
 IF %ERRORLEVEL% GEQ 1 EXIT /B 5
 
-move %HOST_BIN_DIR%\llvm-objcopy.exe %HOST_BIN_DIR%\llvm-strip.exe
+copy %HOST_BIN_DIR%\llvm-objcopy.exe %HOST_BIN_DIR%\llvm-strip.exe
 IF %ERRORLEVEL% GEQ 1 EXIT /B 6
 
 copy %HOST_BIN_DIR%\llvm-objcopy.pdb %HOST_BIN_DIR%\llvm-strip.pdb
