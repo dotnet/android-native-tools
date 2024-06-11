@@ -11,7 +11,7 @@ set HOST_BUILD_DIR=%BUILD_DIR%\%HOST%\llvm
 set HOST_BIN_DIR=%HOST_BUILD_DIR%\Release\bin
 
 set LLVM_VERSION_FILE=%HOST_ARTIFACTS_DIR%\llvm-version.txt
-set CXXFLAGS="/Qspectre /sdl /guard:cf"
+set CXXFLAGS=/Qspectre /sdl /guard:cf
 
 if exist %HOST_BUILD_DIR% (rmdir /S /Q %HOST_BUILD_DIR%)
 mkdir %HOST_BUILD_DIR%
