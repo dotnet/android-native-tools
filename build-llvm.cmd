@@ -70,7 +70,7 @@ IF %ERRORLEVEL% GEQ 1 EXIT /B 4
 msbuild /p:Configuration=Release /m tools\llc\llc.vcxproj
 IF %ERRORLEVEL% GEQ 1 EXIT /B 5
 
-move %HOST_BIN_DIR%\llvm-objcopy.exe %HOST_BIN_DIR%\llvm-strip.exe
+copy %HOST_BIN_DIR%\llvm-objcopy.exe %HOST_BIN_DIR%\llvm-strip.exe
 IF %ERRORLEVEL% GEQ 1 EXIT /B 6
 
 copy %HOST_BIN_DIR%\llvm-objcopy.pdb %HOST_BIN_DIR%\llvm-strip.pdb
