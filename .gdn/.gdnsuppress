@@ -56,6 +56,17 @@
       ],
       "justification": "Unable to resolve BA2007 identified in external LLVM CMake configuration.",
       "createdDate": "2024-02-15 00:04:36Z"
+    },
+    "02dc21533e1f4f27353d0c34284a2ebf6d7357c7f7d0f9879fed4993728069e3": {
+      "signature": "02dc21533e1f4f27353d0c34284a2ebf6d7357c7f7d0f9879fed4993728069e3",
+      "alternativeSignatures": [
+        "6b50835be7f05c09d9c68d8cc7e3a0e3316c84e040b919b2ab7dbc4e228323fe"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "justification": "Unable to resolve BA2007 identified in external LLVM CMake configuration.",
+      "createdDate": "2024-06-11 17:44:37Z"
     }
   }
 }
