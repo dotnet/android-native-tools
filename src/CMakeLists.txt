@@ -12,8 +12,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "" FORCE)
 project(
   xa-utilities
   VERSION ${XA_UTILS_VERSION}
-  DESCRIPTION "Xamarin.Android toolchain utilities"
-  HOMEPAGE_URL "https://github.com/xamarin/xamarin-android-binutils"
+  DESCRIPTION ".NET for Android toolchain utilities"
+  HOMEPAGE_URL "https://github.com/dotnet/android-native-tools"
   LANGUAGES C CXX
   )
 
