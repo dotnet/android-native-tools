@@ -68,7 +68,7 @@ function prepare()
 	cat <<EOF
 Next steps:
 
-  * Go to https://github.com/xamarin/xamarin-android-binutils/releases
+  * Go to https://github.com/dotnet/android-native-tools/releases
   * Create new release using the '${tag_name}' tag
   * Upload ${dest_archive} to that release
 EOF

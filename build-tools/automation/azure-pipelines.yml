@@ -19,7 +19,7 @@ resources:
     endpoint: xamarin
   - repository: xa-yaml
     type: github
-    name: xamarin/xamarin-android
+    name: dotnet/android
     ref: refs/heads/main
     endpoint: xamarin
   - repository: 1esPipelines
@@ -145,8 +145,10 @@ extends:
             name: Azure Pipelines
             vmImage: macOS-latest
           ${{ else }}:
-            name: VSEng-Xamarin-RedmondMac-Android-Untrusted
-            demands: macOS.Name -equals Monterey
+            name: VSEng-VSMac-Xamarin-Shared
+            demands:
+            - macOS.Name -equals Ventura
+            - macOS.Architecture -equals x64
           os: macOS
         templateContext:
           outputs:

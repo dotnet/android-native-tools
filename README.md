@@ -1,4 +1,4 @@
-[![CI](https://github.com/xamarin/xamarin-android-binutils/actions/workflows/ci.yml/badge.svg)](https://github.com/xamarin/xamarin-android-binutils/actions/workflows/ci.yml)
+[![CI](https://devdiv.visualstudio.com/DevDiv/_apis/build/status%2FXamarin%2FAndroid%2Fxamarin-android-binutils?repoName=dotnet%2Fandroid-native-tools&branchName=main)](https://devdiv.visualstudio.com/DevDiv/_build/latest?definitionId=17684&repoName=dotnet%2Fandroid-native-tools&branchName=main)
 
 # Binary utilities for Xamarin.Android 
 
