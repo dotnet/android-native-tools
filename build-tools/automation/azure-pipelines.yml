@@ -113,7 +113,7 @@ extends:
             lsb-release patchutils diffstat xz-utils python3-dev libedit-dev libncurses5-dev swig
             python3-six python3-sphinx binutils-dev libxml2-dev libjsoncpp-dev pkg-config lcov
             procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
-            python3-setuptools libz3-dev ccache libzstd-dev
+            python3-setuptools libz3-dev ccache
           displayName: Install LLVM build dependencies
 
         - script: sudo apt-get -f -u install mingw-w64 libz-mingw-w64-dev
@@ -171,7 +171,7 @@ extends:
             export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install cmake ninja ccache
           displayName: Install LLVM build dependencies
 
-        - script: export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install make xz zstd
+        - script: export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install make xz
           displayName: Install Xamarin.Android Utilities build dependencies
 
         - script: bash ./build-llvm.sh
