@@ -12,11 +12,11 @@ pipelines:
         armory:
           lastModifiedDate: 2024-08-23
         psscriptanalyzer:
-          lastModifiedDate: 2024-08-23
+          lastModifiedDate: 2024-08-26
       binary:
         credscan:
           lastModifiedDate: 2024-08-23
         binskim:
           lastModifiedDate: 2024-08-23
         spotbugs:
-          lastModifiedDate: 2024-08-23
+          lastModifiedDate: 2024-08-26
