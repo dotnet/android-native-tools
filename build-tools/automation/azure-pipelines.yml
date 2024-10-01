@@ -224,6 +224,10 @@ extends:
           vmImage: macOS-latest
           os: macOS
         templateContext:
+          sdl:
+          codeql:
+            compiled:
+              enabled: false
           outputParentDirectory: $(Build.StagingDirectory)
           outputs:
           - output: pipelineArtifact
