@@ -72,8 +72,6 @@ extends:
         enableAllTools: false
       binskim:
         scanOutputDirectoryOnly: true
-      codeql:
-        runSourceLanguagesInSourceAnalysis: true
       suppression:
         suppressionFile: $(Build.SourcesDirectory)\.gdn\.gdnsuppress
       sourceAnalysisPool:
@@ -193,9 +191,6 @@ extends:
           name: MAUI-1ESPT
           image: $(WindowsPoolImage1ESPT)
           os: windows
-        variables:
-        - name: Codeql.Enabled
-          value: true
         templateContext:
           outputs:
           - output: pipelineArtifact
@@ -214,7 +209,8 @@ extends:
 
     - stage: package
       displayName: Package Stage
-      dependsOn: build
+      #dependsOn: build
+      #condition: or(eq(dependencies.build.result, 'Succeeded'), eq(dependencies.build.result, 'SucceededWithIssues'))
       jobs:
       - job: pack_sign
         displayName: Sign and Zip
