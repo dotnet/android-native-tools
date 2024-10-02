@@ -209,9 +209,8 @@ extends:
 
     - stage: package
       displayName: Package Stage
-      #dependsOn: build
-      dependsOn: []
-      #condition: or(eq(dependencies.build.result, 'Succeeded'), eq(dependencies.build.result, 'SucceededWithIssues'))
+      dependsOn: build
+      condition: or(eq(dependencies.build.result, 'Succeeded'), eq(dependencies.build.result, 'SucceededWithIssues'))
       jobs:
       - job: pack_sign
         displayName: Sign and Zip
