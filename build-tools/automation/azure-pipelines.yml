@@ -239,11 +239,9 @@ extends:
         # Run CodeQL init and finalize before signing to avoid timeouts and conflicts with the codeql and signing tooling
         - task: CodeQL3000Init@0
           displayName: CodeQL 3000 Init
-          #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
         - task: CodeQL3000Finalize@0
           displayName: CodeQL 3000 Finalize
-          #condition: and(succeededOrFailed(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
         - template: build-tools/automation/yaml-templates/install-microbuild-tooling.yaml@xa-yaml
           parameters:
