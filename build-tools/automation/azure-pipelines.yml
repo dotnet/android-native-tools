@@ -89,6 +89,9 @@ extends:
           name: MAUI-1ESPT
           image: $(LinuxPoolImage1ESPT)
           os: linux
+        variables:
+        - name: Codeql.BuildIdentifier
+          value: build_linux
         templateContext:
           outputs:
           - output: pipelineArtifact
@@ -148,6 +151,9 @@ extends:
             - macOS.Name -equals Ventura
             - macOS.Architecture -equals x64
           os: macOS
+        variables:
+        - name: Codeql.BuildIdentifier
+          value: build_macos
         templateContext:
           outputs:
           - output: pipelineArtifact
@@ -191,6 +197,9 @@ extends:
           name: MAUI-1ESPT
           image: $(WindowsPoolImage1ESPT)
           os: windows
+        variables:
+        - name: Codeql.BuildIdentifier
+          value: build_windows
         templateContext:
           outputs:
           - output: pipelineArtifact
@@ -212,12 +221,15 @@ extends:
       dependsOn: []
       #dependsOn: build
       #condition: or(eq(dependencies.build.result, 'Succeeded'), eq(dependencies.build.result, 'SucceededWithIssues'))
-      templateContext:
-        sdl:
-          codeql:
-            compiled:
-              enabled: false
-              justificationForDisabling: CodeQL is causing issues with signing and is only enabled in build stages
+      variables:
+      - name: Codeql.SkipTaskAutoInjection
+        value: true
+      #templateContext:
+      #  sdl:
+      #    codeql:
+      #      compiled:
+      #        enabled: false
+      #        justificationForDisabling: CodeQL is causing issues with signing and is only enabled in build stages
       jobs:
       - job: pack_sign
         displayName: Sign and Zip
