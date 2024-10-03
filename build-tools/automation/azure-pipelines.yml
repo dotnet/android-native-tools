@@ -209,8 +209,15 @@ extends:
 
     - stage: package
       displayName: Package Stage
-      dependsOn: build
-      condition: or(eq(dependencies.build.result, 'Succeeded'), eq(dependencies.build.result, 'SucceededWithIssues'))
+      dependsOn: []
+      #dependsOn: build
+      #condition: or(eq(dependencies.build.result, 'Succeeded'), eq(dependencies.build.result, 'SucceededWithIssues'))
+      templateContext:
+        sdl:
+          codeql:
+            compiled:
+              enabled: false
+              justificationForDisabling: CodeQL is causing issues with signing and is only enabled in build stages
       jobs:
       - job: pack_sign
         displayName: Sign and Zip
@@ -235,17 +242,6 @@ extends:
         steps:
         - checkout: self
           submodules: recursive
-
-        # Run CodeQL init and finalize before signing to avoid timeouts and conflicts with the codeql and signing tooling
-        - task: CodeQL3000Init@0
-          displayName: CodeQL 3000 Init
-
-        - task: CodeQL3000Finalize@0
-          displayName: CodeQL 3000 Finalize
-
-        - template: build-tools/automation/yaml-templates/install-microbuild-tooling.yaml@xa-yaml
-          parameters:
-            condition: and(succeeded(), eq(variables['MicroBuildSignType'], 'Real'))
 
         - task: DownloadPipelineArtifact@2
           inputs:
@@ -275,7 +271,7 @@ extends:
             arguments: >-
               -t:Build,ZipOutput
               -p:SignType=$(MicroBuildSignType)
-              -bl:$(Build.StagingDirectory)/binlogs/sign-macos.binlog
+              -bl:$(Build.StagingDirectory)/binlogs/sign-macos.binlog -v:n
 
         - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
           parameters:
