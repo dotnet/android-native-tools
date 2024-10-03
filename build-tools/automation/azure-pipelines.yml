@@ -60,6 +60,8 @@ variables:
   value: 1ESPT-Ubuntu20.04
 - name: MicroBuildPoolName
   value: VSEngSS-MicroBuild2022-1ES
+- name: Codeql.Enabled
+  value: false
 
 extends:
   ${{ if or(eq(variables['Build.Reason'], 'PullRequest'), eq('${{ parameters.Skip1ESComplianceTasks }}', 'true')) }}:
@@ -90,6 +92,8 @@ extends:
           image: $(LinuxPoolImage1ESPT)
           os: linux
         variables:
+        - name: Codeql.Enabled
+          value: true
         - name: Codeql.BuildIdentifier
           value: build_linux
         templateContext:
@@ -152,6 +156,8 @@ extends:
             - macOS.Architecture -equals x64
           os: macOS
         variables:
+        - name: Codeql.Enabled
+          value: true
         - name: Codeql.BuildIdentifier
           value: build_macos
         templateContext:
@@ -198,6 +204,8 @@ extends:
           image: $(WindowsPoolImage1ESPT)
           os: windows
         variables:
+        - name: Codeql.Enabled
+          value: true
         - name: Codeql.BuildIdentifier
           value: build_windows
         templateContext:
@@ -229,9 +237,6 @@ extends:
           name: Azure Pipelines
           vmImage: macOS-latest
           os: macOS
-        variables:
-        - name: Codeql.SkipTaskAutoInjection
-          value: true
         templateContext:
           #sdl:
           #  codeql:
