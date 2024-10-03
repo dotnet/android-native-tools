@@ -247,16 +247,31 @@ extends:
           inputs:
             artifactName: artifacts-linux-unsigned
             downloadPath: artifacts
+            buildType: 'specific'
+            project: 'DevDiv'
+            definition: 17684
+            buildVersionToDownload: 'specific'
+            pipelineId: 10108866
 
         - task: DownloadPipelineArtifact@2
           inputs:
             artifactName: artifacts-macos-unsigned
             downloadPath: artifacts
+            buildType: 'specific'
+            project: 'DevDiv'
+            definition: 17684
+            buildVersionToDownload: 'specific'
+            pipelineId: 10108866
 
         - task: DownloadPipelineArtifact@2
           inputs:
             artifactName: artifacts-windows-unsigned
             downloadPath: artifacts
+            buildType: 'specific'
+            project: 'DevDiv'
+            definition: 17684
+            buildVersionToDownload: 'specific'
+            pipelineId: 10108866
 
         - task: CmdLine@2
           inputs:
