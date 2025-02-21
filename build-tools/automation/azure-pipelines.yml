@@ -24,7 +24,7 @@ parameters:
   default: false
 
 variables:
-- template: /build-tools/automation/variables.yml@self
+- template: /build-tools/automation/yaml-templates/variables.yml@self
 - name: MicroBuildSignType
   ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.SignArtifactsOverride, 'true')) }}:
     value: Real
@@ -57,9 +57,9 @@ extends:
         image: $(WindowsPoolImage1ESPT)
         os: windows
     stages:
-    - template: /yaml-templates/stage-build.yml@self
+    - template: /build-tools/automation/yaml-templates/stage-build.yml@self
 
-    - template: /yaml-templates/stage-package.yml@self
+    - template: /build-tools/automation/yaml-templates/stage-package.yml@self
 
     - stage: Compliance
       displayName: Compliance

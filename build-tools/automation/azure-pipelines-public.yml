@@ -6,15 +6,15 @@ pr:
 
 
 variables:
-- template: /build-tools/automation/variables.yml
+- template: /build-tools/automation/yaml-templates/variables.yml
 - name: ToolchainArtifactName
   value: android-llvm-toolchain-unsigned
 
 stages:
-- template: /yaml-templates/stage-build.yml
+- template: /build-tools/automation/yaml-templates/stage-build.yml
   parameters:
     use1ESTemplate: false
 
-- template: /yaml-templates/stage-package.yml
+- template: /build-tools/automation/yaml-templates/stage-package.yml
   parameters:
     use1ESTemplate: false
