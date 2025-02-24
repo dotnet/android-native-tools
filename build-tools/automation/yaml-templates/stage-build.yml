@@ -29,8 +29,9 @@ stages:
           targetPath: artifacts
     ${{ else }}:
       pool:
-        name: Azure Pipelines
-        vmImage: $(LinuxPoolImageHosted)
+        name: $(NetCorePublicPoolName)
+        demands:
+        - ImageOverride -equals $(LinuxPoolImageNetCorePublic)
     steps:
     - checkout: self
       submodules: recursive
@@ -153,8 +154,9 @@ stages:
           targetPath: artifacts
     ${{ else }}:
       pool:
-        name: Azure Pipelines
-        vmImage: $(WindowsPoolImageHosted)
+        name: $(NetCorePublicPoolName)
+        demands:
+        - ImageOverride -equals $(WindowsPoolImageNetCorePublic)
     steps:
     - checkout: self
       submodules: recursive

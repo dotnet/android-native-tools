@@ -11,3 +11,9 @@ variables:
   value: ubuntu-22.04
 - name: MicroBuildPoolName
   value: VSEngSS-MicroBuild2022-1ES
+- name: NetCorePublicPoolName
+  value: NetCore-Public-XL
+- name: WindowsPoolImageNetCorePublic
+  value: windows.vs2022.amd64.open
+- name: LinuxPoolImageNetCorePublic
+  value: build.ubuntu.2204.amd64.open
