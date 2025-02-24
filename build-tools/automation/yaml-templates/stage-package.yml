@@ -67,12 +67,22 @@ stages:
     - ${{ if eq(parameters.use1ESTemplate, true) }}:
       - task: DotNetCoreCLI@2
         displayName: Sign and zip files
+        condition: and(succeeded(), eq(variables['MicroBuildSignType'], 'Real'))
         inputs:
           projects: build-tools/automation/sign.proj
           arguments: >-
             -t:Build,ZipOutput
             -p:SignType=$(MicroBuildSignType)
             -bl:$(Build.StagingDirectory)/binlogs/sign-macos.binlog -v:n
+
+    - ${{ else }}:
+      - task: DotNetCoreCLI@2
+          displayName: Zip files
+          inputs:
+            projects: build-tools/automation/sign.proj
+            arguments: >-
+              -t:ZipOutput
+              -bl:$(Build.StagingDirectory)/binlogs/zip-macos.binlog -v:n
 
     - script: >
         mkdir -p $(Build.StagingDirectory)/toolchain &&
@@ -91,7 +101,7 @@ stages:
     - job: sign_verify
       displayName: Verify Signing
       dependsOn: pack_sign
-      condition: eq(dependencies.pack_sign.result, 'Succeeded')
+      condition: and(eq(dependencies.pack_sign.result, 'Succeeded'), eq(variables['MicroBuildSignType'], 'Real'))
       timeoutInMinutes: 240
       pool: $(MicroBuildPoolName)
       templateContext:
