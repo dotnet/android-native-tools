@@ -77,12 +77,12 @@ stages:
 
     - ${{ else }}:
       - task: DotNetCoreCLI@2
-          displayName: Zip files
-          inputs:
-            projects: build-tools/automation/sign.proj
-            arguments: >-
-              -t:ZipOutput
-              -bl:$(Build.StagingDirectory)/binlogs/zip-macos.binlog -v:n
+        displayName: Zip files
+        inputs:
+          projects: build-tools/automation/sign.proj
+          arguments: >-
+            -t:ZipOutput
+            -bl:$(Build.StagingDirectory)/binlogs/zip-macos.binlog -v:n
 
     - script: >
         mkdir -p $(Build.StagingDirectory)/toolchain &&
