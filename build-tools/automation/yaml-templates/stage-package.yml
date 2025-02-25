@@ -75,14 +75,14 @@ stages:
             -p:SignType=$(MicroBuildSignType)
             -bl:$(Build.StagingDirectory)/binlogs/sign-macos.binlog -v:n
 
-    - ${{ else }}:
-      - task: DotNetCoreCLI@2
-        displayName: Zip files
-        inputs:
-          projects: build-tools/automation/sign.proj
-          arguments: >-
-            -t:ZipOutput
-            -bl:$(Build.StagingDirectory)/binlogs/zip-macos.binlog -v:n
+    - task: DotNetCoreCLI@2
+      displayName: Zip files
+      condition: and(succeeded(), ne(variables['MicroBuildSignType'], 'Real'))
+      inputs:
+        projects: build-tools/automation/sign.proj
+        arguments: >-
+          -t:ZipOutput
+          -bl:$(Build.StagingDirectory)/binlogs/zip-macos.binlog -v:n
 
     - script: >
         mkdir -p $(Build.StagingDirectory)/toolchain &&
