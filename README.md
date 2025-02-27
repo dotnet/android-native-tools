@@ -44,7 +44,7 @@ as well.
      release workflow after it times out if needed.
   4. After approving the release stage a new GitHub release should be
      created with the relevant build artifacts from the pipeline.
-     The tag will generated based on the binutils version and
+     The tag will be generated based on the binutils version and
      LLVM version.
   5. Edit the automatically created GitHub release to fill in any
      relevent release notes or other information.

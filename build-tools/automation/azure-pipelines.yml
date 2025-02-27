@@ -115,7 +115,7 @@ extends:
             tagSource: userSpecifiedTag
             tag: $(GitTagValue)
             title: android-native-tools $(GitTagValue)
-            assets: $(Build.SourcesDirectory)android-native-tools-$(GitTagValue).7z
+            assets: $(Build.SourcesDirectory)/android-native-tools-$(GitTagValue).7z
 
     - stage: Compliance
       displayName: Compliance
