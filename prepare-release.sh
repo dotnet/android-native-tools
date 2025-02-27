@@ -9,7 +9,7 @@ WORK_DIR="${MY_DIR}/prep"
 ARTIFACTS_DIR="${WORK_DIR}"
 
 ARTIFACT_ZIP="${1}"
-XA_TAG_COMPONENT="${2}"
+XA_TAG_COMPONENT="${XA_UTILS_VERSION}"
 
 function die()
 {
@@ -20,14 +20,12 @@ function die()
 function usage()
 {
 	cat <<EOF
-Usage: ${MY_NAME} ARTIFACT_ZIP XA_TAG_COMPONENT
+Usage: ${MY_NAME} ARTIFACT_ZIP
 
 where
 
   ARTIFACT_ZIP is a path to the artifact produced by the commit you want to release.
                The file must be downloaded manually from the build artifacts area.
-  XA_TAG_COMPONENT will be combined with LLVM versionin the following manner: {LLVM_VERSION}-{XA_TAG_COMPONENT}
-  and the resulting string will be used as the new tag name
 EOF
 	exit 0
 }
@@ -65,6 +63,11 @@ function prepare()
 	echo
 	echo Release archive: ${dest_archive}
 	echo
+	echo Setting variable 'LlvmVersion' to ${llvm_version}
+	echo "##vso[task.setvariable variable=LlvmVersion]${llvm_version}"
+	echo Setting variable 'GitTagValue' to ${tag_name}
+	echo "##vso[task.setvariable variable=GitTagValue]${tag_name}"
+	echo
 	cat <<EOF
 Next steps:
 
@@ -74,7 +77,7 @@ Next steps:
 EOF
 }
 
-if [ -z "${ARTIFACT_ZIP}" -o -z "${XA_TAG_COMPONENT}" ]; then
+if [ -z "${ARTIFACT_ZIP}" ]; then
 	usage
 fi
 
