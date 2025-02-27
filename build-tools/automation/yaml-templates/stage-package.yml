@@ -1,0 +1,126 @@
+parameters:
+- name: use1ESTemplate
+  type: boolean
+  default: true
+
+stages:
+- stage: package
+  displayName: Package Stage
+  dependsOn: build
+  condition: or(eq(dependencies.build.result, 'Succeeded'), eq(dependencies.build.result, 'SucceededWithIssues'))
+  variables:
+  # Disable CodeQL on the signing stage to avoid timeouts and conflicts with the codeql and signing tooling
+  - name: ONEES_ENFORCED_CODEQL_ENABLED
+    value: false
+  jobs:
+  - job: pack_sign
+    displayName: Sign and Zip
+    timeoutInMinutes: 480
+    pool:
+      name: Azure Pipelines
+      vmImage: macOS-latest
+      os: macOS
+    ${{ if eq(parameters.use1ESTemplate, true) }}:
+      templateContext:
+        mb:
+          signing:
+            enabled: true
+            signType: $(MicroBuildSignType)
+            zipSources: false
+        outputParentDirectory: $(Build.StagingDirectory)
+        outputs:
+        - output: pipelineArtifact
+          displayName: Upload signing logs
+          condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
+          artifactName: sign-macos-binlog-$(System.JobAttempt)
+          targetPath: $(Build.StagingDirectory)/binlogs/sign-macos.binlog
+          sbomEnabled: false
+        - output: pipelineArtifact
+          displayName: Upload toolchain artifact
+          artifactName: $(ToolchainArtifactName)
+          targetPath: $(Build.StagingDirectory)/toolchain
+    steps:
+    - checkout: self
+      submodules: recursive
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: artifacts-linux-unsigned
+        downloadPath: artifacts
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: artifacts-macos-unsigned
+        downloadPath: artifacts
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: artifacts-windows-unsigned
+        downloadPath: artifacts
+
+    - task: CmdLine@2
+      inputs:
+        script: ./package.sh
+        workingDirectory: $(Build.SourcesDirectory)
+      displayName: Package artifacts
+
+    - ${{ if eq(parameters.use1ESTemplate, true) }}:
+      - task: DotNetCoreCLI@2
+        displayName: Sign and zip files
+        condition: and(succeeded(), eq(variables['MicroBuildSignType'], 'Real'))
+        inputs:
+          projects: build-tools/automation/sign.proj
+          arguments: >-
+            -t:Build,ZipOutput
+            -p:SignType=$(MicroBuildSignType)
+            -bl:$(Build.StagingDirectory)/binlogs/sign-macos.binlog -v:n
+
+    - task: DotNetCoreCLI@2
+      displayName: Zip files
+      condition: and(succeeded(), ne(variables['MicroBuildSignType'], 'Real'))
+      inputs:
+        projects: build-tools/automation/sign.proj
+        arguments: >-
+          -t:ZipOutput
+          -bl:$(Build.StagingDirectory)/binlogs/zip-macos.binlog -v:n
+
+    - script: >
+        mkdir -p $(Build.StagingDirectory)/toolchain &&
+        ln artifacts/android-llvm-toolchain*.zip $(Build.StagingDirectory)/toolchain
+      displayName: copy toolchain artifact
+
+    - ${{ if ne(parameters.use1ESTemplate, true) }}:
+      - task: PublishPipelineArtifact@1
+        displayName: Upload toolchain artifact
+        inputs:
+          artifactName: $(ToolchainArtifactName)
+          targetPath: $(Build.StagingDirectory)/toolchain
+
+
+  - ${{ if eq(parameters.use1ESTemplate, true) }}:
+    - job: sign_verify
+      displayName: Verify Signing
+      dependsOn: pack_sign
+      condition: and(eq(dependencies.pack_sign.result, 'Succeeded'), eq(variables['MicroBuildSignType'], 'Real'))
+      timeoutInMinutes: 240
+      pool: $(MicroBuildPoolName)
+      templateContext:
+        mb:
+          signing:
+            enabled: true
+            signType: $(MicroBuildSignType)
+            zipSources: false
+      steps:
+      - checkout: self
+        submodules: recursive
+
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          artifactName: $(ToolchainArtifactName)
+          downloadPath: $(Build.SourcesDirectory)\artifacts
+
+      - task: MicroBuildCodesignVerify@3
+        displayName: verify signed content
+        inputs:
+          TargetFolders: $(Build.SourcesDirectory)\artifacts
+          ExcludeSNVerify: true

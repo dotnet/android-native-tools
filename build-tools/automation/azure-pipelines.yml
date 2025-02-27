@@ -7,25 +7,13 @@ trigger:
     include:
     - '*'
 
-pr:
-- main
+pr: none
 
 resources:
   repositories:
-  - repository: yaml-templates
-    type: github
-    name: xamarin/yaml-templates
-    ref: refs/heads/main
-    endpoint: xamarin
-  - repository: xa-yaml
-    type: github
-    name: dotnet/android
-    ref: refs/heads/main
-    endpoint: xamarin
-  - repository: 1esPipelines
+  - repository: MicroBuildTemplate
     type: git
-    name: 1ESPipelineTemplates/1ESPipelineTemplates
-    ref: refs/tags/release
+    name: 1ESPipelineTemplates/MicroBuildTemplate
 
 parameters:
 - name: ApiScanSourceBranch
@@ -36,6 +24,7 @@ parameters:
   default: false
 
 variables:
+- template: /build-tools/automation/yaml-templates/variables.yml@self
 - name: MicroBuildSignType
   ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.SignArtifactsOverride, 'true')) }}:
     value: Real
@@ -52,20 +41,9 @@ variables:
   value: 17.10
 - name: TeamName
   value: XamarinAndroid
-- name: BUILD_DIR
-  value: xa-build
-- name: WindowsPoolImage1ESPT
-  value: 1ESPT-Windows2022
-- name: LinuxPoolImage1ESPT
-  value: 1ESPT-Ubuntu20.04
-- name: MicroBuildPoolName
-  value: VSEngSS-MicroBuild2022-1ES
 
 extends:
-  ${{ if or(eq(variables['Build.Reason'], 'PullRequest'), eq('${{ parameters.Skip1ESComplianceTasks }}', 'true')) }}:
-    template: v1/1ES.Unofficial.PipelineTemplate.yml@1esPipelines
-  ${{ else }}:
-    template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
+  template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
   parameters:
     sdl:
       ${{ if eq('${{ parameters.Skip1ESComplianceTasks }}', 'true') }}:
@@ -79,232 +57,9 @@ extends:
         image: $(WindowsPoolImage1ESPT)
         os: windows
     stages:
-    - stage: build
-      displayName: Build Stage
-      jobs:
-      - job: build_linux
-        displayName: Build Linux
-        timeoutInMinutes: 480
-        pool:
-          name: MAUI-1ESPT
-          image: $(LinuxPoolImage1ESPT)
-          os: linux
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            displayName: Upload logs
-            condition: always()
-            artifactName: build-logs-linux-$(System.JobAttempt)
-            targetPath: $(Build.StagingDirectory)
-            sbomEnabled: false
-          - output: pipelineArtifact
-            displayName: Upload linux-unsigned artifacts
-            artifactName: artifacts-linux-unsigned
-            targetPath: artifacts
-        steps:
-        - checkout: self
-          submodules: recursive
+    - template: /build-tools/automation/yaml-templates/stage-build.yml@self
 
-        - script: >-
-            sudo apt-get update;
-            sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
-            lsb-release patchutils diffstat xz-utils python3-dev libedit-dev libncurses5-dev swig
-            python3-six python3-sphinx binutils-dev libxml2-dev libjsoncpp-dev pkg-config lcov
-            procps help2man zlib1g-dev g++-multilib libjs-mathjax python3-recommonmark libpfm4-dev
-            python3-setuptools libz3-dev ccache
-          displayName: Install LLVM build dependencies
-
-        - script: sudo apt-get -f -u install mingw-w64 libz-mingw-w64-dev
-          displayName: Install Xamarin.Android Utilities build dependencies
-
-        - script: ./build-llvm.sh
-          env:
-            CC: gcc-10
-            CXX: g++-10
-          displayName: Build LLVM
-
-        - script: ./build-xa-utils.sh
-          env:
-            CC: gcc-10
-            CXX: g++-10
-          displayName: Build utilities
-
-        - script: |
-            rsync -avm --include 'config.*' --include '*.log' --include '*.txt' --include='*/' --exclude='*' $(BUILD_DIR) $(Build.StagingDirectory)
-          displayName: Copy logs
-          condition: always()
-
-
-      - job: build_macos
-        displayName: Build macOS
-        timeoutInMinutes: 480
-        pool:
-          ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.SignArtifactsOverride, 'true')) }}:
-            name: Azure Pipelines
-            vmImage: macOS-latest
-          ${{ else }}:
-            name: VSEng-VSMac-Xamarin-Shared
-            demands:
-            - macOS.Name -equals Ventura
-            - macOS.Architecture -equals x64
-          os: macOS
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            displayName: Upload logs
-            condition: always()
-            artifactName: build-logs-macos-$(System.JobAttempt)
-            targetPath: $(Build.StagingDirectory)
-            sbomEnabled: false
-          - output: pipelineArtifact
-            displayName: Upload macos-unsigned artifacts
-            artifactName: artifacts-macos-unsigned
-            targetPath: artifacts
-        steps:
-        - checkout: self
-          submodules: recursive
-
-        - script: |
-            brew update
-            export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install cmake ninja ccache
-          displayName: Install LLVM build dependencies
-
-        - script: export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install make xz
-          displayName: Install Xamarin.Android Utilities build dependencies
-
-        - script: bash ./build-llvm.sh
-          displayName: build LLVM
-
-        - script: bash ./build-xa-utils.sh
-          displayName: Build utilities
-
-        - script: |
-            rsync -avm --include 'config.*' --include '*.log' --include '*.txt' --include='*/' --exclude='*' $(BUILD_DIR) $(Build.StagingDirectory)
-          displayName: Copy logs
-          condition: always()
-
-
-      - job: build_windows
-        displayName: Build Windows
-        timeoutInMinutes: 600
-        pool:
-          name: MAUI-1ESPT
-          image: $(WindowsPoolImage1ESPT)
-          os: windows
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            displayName: Upload windows-unsigned artifacts
-            artifactName: artifacts-windows-unsigned
-            targetPath: artifacts
-        steps:
-        - checkout: self
-          submodules: recursive
-
-        - script: ./build-xa-utils-azure.cmd
-          displayName: Build utilities
-
-        - script: ./build-llvm-azure.cmd
-          displayName: Build Windows LLVM
-
-    - stage: package
-      displayName: Package Stage
-      dependsOn: build
-      condition: or(eq(dependencies.build.result, 'Succeeded'), eq(dependencies.build.result, 'SucceededWithIssues'))
-      variables:
-      # Disable CodeQL on the signing stage to avoid timeouts and conflicts with the codeql and signing tooling
-      - name: ONEES_ENFORCED_CODEQL_ENABLED
-        value: false
-      jobs:
-      - job: pack_sign
-        displayName: Sign and Zip
-        timeoutInMinutes: 480
-        pool:
-          name: Azure Pipelines
-          vmImage: macOS-latest
-          os: macOS
-        templateContext:
-          outputParentDirectory: $(Build.StagingDirectory)
-          outputs:
-          - output: pipelineArtifact
-            displayName: Upload signing logs
-            condition: succeededOrFailed()
-            artifactName: sign-macos-binlog-$(System.JobAttempt)
-            targetPath: $(Build.StagingDirectory)/binlogs/sign-macos.binlog
-            sbomEnabled: false
-          - output: pipelineArtifact
-            displayName: Upload toolchain artifact
-            artifactName: $(ToolchainArtifactName)
-            targetPath: $(Build.StagingDirectory)/toolchain
-        steps:
-        - checkout: self
-          submodules: recursive
-
-        - template: build-tools/automation/yaml-templates/install-microbuild-tooling.yaml@xa-yaml
-          parameters:
-            condition: and(succeeded(), eq(variables['MicroBuildSignType'], 'Real'))
-
-        - task: DownloadPipelineArtifact@2
-          inputs:
-            artifactName: artifacts-linux-unsigned
-            downloadPath: artifacts
-
-        - task: DownloadPipelineArtifact@2
-          inputs:
-            artifactName: artifacts-macos-unsigned
-            downloadPath: artifacts
-
-        - task: DownloadPipelineArtifact@2
-          inputs:
-            artifactName: artifacts-windows-unsigned
-            downloadPath: artifacts
-
-        - task: CmdLine@2
-          inputs:
-            script: ./package.sh
-            workingDirectory: $(Build.SourcesDirectory)
-          displayName: Package artifacts
-
-        - task: DotNetCoreCLI@2
-          displayName: Sign and zip files
-          inputs:
-            projects: build-tools/automation/sign.proj
-            arguments: >-
-              -t:Build,ZipOutput
-              -p:SignType=$(MicroBuildSignType)
-              -bl:$(Build.StagingDirectory)/binlogs/sign-macos.binlog -v:n
-
-        - template: build-tools/automation/yaml-templates/remove-microbuild-tooling.yaml@xa-yaml
-          parameters:
-            condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
-
-        - script: >
-            mkdir -p $(Build.StagingDirectory)/toolchain &&
-            ln artifacts/android-llvm-toolchain*.zip $(Build.StagingDirectory)/toolchain
-          displayName: copy toolchain artifact
-
-
-      - job: sign_verify
-        displayName: Verify Signing
-        dependsOn: pack_sign
-        condition: and(eq(dependencies.pack_sign.result, 'Succeeded'), eq(variables['MicroBuildSignType'], 'Real'))
-        timeoutInMinutes: 240
-        pool: $(MicroBuildPoolName)
-        steps:
-        - checkout: self
-          submodules: recursive
-
-        - task: DownloadPipelineArtifact@2
-          inputs:
-            artifactName: $(ToolchainArtifactName)
-            downloadPath: $(Build.SourcesDirectory)\artifacts
-
-        - task: MicroBuildCodesignVerify@3
-          displayName: verify signed content
-          inputs:
-            TargetFolders: $(Build.SourcesDirectory)\artifacts
-            ExcludeSNVerify: true
-
+    - template: /build-tools/automation/yaml-templates/stage-package.yml@self
 
     - stage: Compliance
       displayName: Compliance

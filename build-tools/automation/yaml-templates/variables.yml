@@ -1,0 +1,19 @@
+variables:
+- name: BUILD_DIR
+  value: xa-build
+- name: WindowsPoolImage1ESPT
+  value: 1ESPT-Windows2022
+- name: LinuxPoolImage1ESPT
+  value: 1ESPT-Ubuntu22.04
+- name: WindowsPoolImageHosted
+  value: windows-2022
+- name: LinuxPoolImageHosted
+  value: ubuntu-22.04
+- name: MicroBuildPoolName
+  value: VSEngSS-MicroBuild2022-1ES
+- name: NetCorePublicPoolName
+  value: NetCore-Public-XL
+- name: WindowsPoolImageNetCorePublic
+  value: windows.vs2022.amd64.open
+- name: LinuxPoolImageNetCorePublic
+  value: 1es-ubuntu-2004-open
