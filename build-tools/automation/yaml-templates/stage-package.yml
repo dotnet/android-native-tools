@@ -31,7 +31,7 @@ stages:
         outputs:
         - output: pipelineArtifact
           displayName: Upload signing logs
-          condition: succeededOrFailed()
+          condition: and(succeededOrFailed(), eq(variables['MicroBuildSignType'], 'Real'))
           artifactName: sign-macos-binlog-$(System.JobAttempt)
           targetPath: $(Build.StagingDirectory)/binlogs/sign-macos.binlog
           sbomEnabled: false
