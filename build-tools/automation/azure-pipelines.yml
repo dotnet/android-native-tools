@@ -68,11 +68,11 @@ extends:
       jobs:
       - job: release_approval
         displayName: Wait for Approval
-        timeoutInMinutes: 240
+        timeoutInMinutes: 90
         pool: server
         steps:
         - task: ManualValidation@0
-          timeoutInMinutes: 120
+          timeoutInMinutes: 60
           inputs:
             instructions: 'Press "Resume" to create a GitHub release with artifacts produced for this build/tag.'
             onTimeout: reject
@@ -82,7 +82,7 @@ extends:
         displayName: Create GitHub Release
         dependsOn: release_approval
         condition: and(eq(dependencies.release_approval.result, 'Succeeded'), eq(variables['MicroBuildSignType'], 'Real'))
-        timeoutInMinutes: 90
+        timeoutInMinutes: 120
         pool:
           name: Azure Pipelines
           vmImage: macOS-latest
