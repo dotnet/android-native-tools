@@ -61,6 +61,63 @@ extends:
 
     - template: /build-tools/automation/yaml-templates/stage-package.yml@self
 
+    - stage: release
+      displayName: Release
+      dependsOn: package
+      condition: and(eq(dependencies.package.result, 'Succeeded'), eq(variables['MicroBuildSignType'], 'Real'))
+      jobs:
+      - job: release_approval
+        displayName: Wait for Approval
+        timeoutInMinutes: 90
+        pool: server
+        steps:
+        - task: ManualValidation@0
+          timeoutInMinutes: 60
+          inputs:
+            instructions: 'Press "Resume" to create a GitHub release with artifacts produced for this build/tag.'
+            onTimeout: reject
+          continueOnError: true
+
+      - job: create_github_release
+        displayName: Create GitHub Release
+        dependsOn: release_approval
+        condition: and(eq(dependencies.release_approval.result, 'Succeeded'), eq(variables['MicroBuildSignType'], 'Real'))
+        timeoutInMinutes: 120
+        pool:
+          name: Azure Pipelines
+          vmImage: macOS-latest
+          os: macOS
+        workspace:
+          clean: all
+        steps:
+        - checkout: self
+          submodules: recursive
+
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifactName: $(ToolchainArtifactName)
+            downloadPath: $(Build.StagingDirectory)/toolchain-zip
+
+        - task: CmdLine@2
+          displayName: Prepare release artifacts
+          inputs:
+            script: ./prepare-release.sh $(Build.StagingDirectory)/toolchain-zip/android-llvm-toolchain*.zip
+            workingDirectory: $(Build.SourcesDirectory)
+
+        - pwsh: 'gci env: | format-table -autosize -wrap'
+          displayName: Print environment variables
+
+        - task: GitHubRelease@1
+          inputs:
+            gitHubConnection: dotnet
+            repositoryName: $(Build.Repository.Name)
+            action: create
+            target: $(Build.SourceVersion)
+            tagSource: userSpecifiedTag
+            tag: $(GitTagValue)
+            title: android-native-tools $(GitTagValue)
+            assets: $(Build.SourcesDirectory)/android-native-tools-$(GitTagValue).7z
+
     - stage: Compliance
       displayName: Compliance
       dependsOn: package

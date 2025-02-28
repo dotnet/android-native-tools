@@ -38,15 +38,13 @@ as well.
 
   1. Update versions as desired (see `Component_versions`above)
   2. Commit and push the changes
-  3. After the build finishes, visit the Actions tab, find the run
-     corresponding to commit from `2.` above, download the
-     `Xamarin.Android` artifact
-  4. On your local machine, execute the release preparation script
-     (`TAG_NAME` should be Xamarin.Android utilities version in
-     general, but it may contain other bits, as needed):
-```shell
-  ./prepare-release.sh PATH_TO_ARTIFACT_FROM_4 TAG_NAME
-```
-  5. The script will produce a `7-zip` package on your local disk and
-     display instructions how to proceed with the release.
- 
+  3. Find the build pipeline instance you want to create a release for,
+     and approve the "Release" stage. This stage will wait for manual
+     approval for up to two hours, and can be re-ran to trigger a new
+     release workflow after it times out if needed.
+  4. After approving the release stage a new GitHub release should be
+     created with the relevant build artifacts from the pipeline.
+     The tag will be generated based on the binutils version and
+     LLVM version.
+  5. Edit the automatically created GitHub release to fill in any
+     relevent release notes or other information.
