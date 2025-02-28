@@ -76,6 +76,7 @@ extends:
           inputs:
             instructions: 'Press "Resume" to create a GitHub release with artifacts produced for this build/tag.'
             onTimeout: reject
+          continueOnError: true
 
       - job: create_github_release
         displayName: Create GitHub Release
@@ -100,7 +101,7 @@ extends:
         - task: CmdLine@2
           displayName: Prepare release artifacts
           inputs:
-            script: ./prepare-release.sh $(Build.StagingDirectory)/toolchain-zip/$(ToolchainArtifactName)
+            script: ./prepare-release.sh $(Build.StagingDirectory)/toolchain-zip/android-llvm-toolchain*.zip
             workingDirectory: $(Build.SourcesDirectory)
 
         - pwsh: 'gci env: | format-table -autosize -wrap'
