@@ -3,6 +3,7 @@
 #include <unistd.h>
 #endif
 
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <iostream>
