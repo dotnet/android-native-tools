@@ -13,9 +13,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Prepare LLVM checkout
-        run: ./prune-llvm-checkout.sh
-
       - name: Install LLVM build dependencies
         run: >-
           sudo apt-get update;
@@ -58,9 +55,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Prepare LLVM checkout
-        run: ./prune-llvm-checkout.sh
-
       - name: Install Xamarin.Android Utilities build dependencies
         run: >-
           sudo apt-get update;
@@ -99,9 +93,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Prepare LLVM checkout
-        run: ./prune-llvm-checkout.sh
-
       - name: Install LLVM build dependencies
         run: |
           brew update
@@ -136,9 +127,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-
-      - name: Prepare LLVM checkout
-        run: ./prune-llvm-checkout.sh
 
       - name: Install Xamarin.Android Utilities build dependencies
         run: |
@@ -175,9 +163,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Prepare LLVM checkout
-        run: .\prune-llvm-checkout.cmd
-
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
 
@@ -210,9 +195,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-
-      - name: Prepare LLVM checkout
-        run: ./prune-llvm-checkout.sh
 
       - name: Download Linux artifacts
         uses: actions/download-artifact@v4.1.7
