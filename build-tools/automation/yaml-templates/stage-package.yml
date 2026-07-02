@@ -43,6 +43,10 @@ stages:
     - checkout: self
       submodules: recursive
 
+    # Remove the MLIR vscode extension sources, which are not used by our build.
+    - script: rm -rf external/llvm/mlir/utils/vscode
+      displayName: Remove unused MLIR vscode sources
+
     - task: DownloadPipelineArtifact@2
       inputs:
         artifactName: artifacts-linux-unsigned
@@ -113,6 +117,10 @@ stages:
       steps:
       - checkout: self
         submodules: recursive
+
+      # Remove the MLIR vscode extension sources, which are not used by our build.
+      - script: if exist external\llvm\mlir\utils\vscode rmdir /S /Q external\llvm\mlir\utils\vscode
+        displayName: Remove unused MLIR vscode sources
 
       - task: DownloadPipelineArtifact@2
         inputs:

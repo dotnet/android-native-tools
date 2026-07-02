@@ -36,6 +36,10 @@ stages:
     - checkout: self
       submodules: recursive
 
+    # Remove the MLIR vscode extension sources, which are not used by our build.
+    - script: rm -rf external/llvm/mlir/utils/vscode
+      displayName: Remove unused MLIR vscode sources
+
     - script: >-
         sudo apt-get update;
         sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
@@ -104,6 +108,10 @@ stages:
     - checkout: self
       submodules: recursive
 
+    # Remove the MLIR vscode extension sources, which are not used by our build.
+    - script: rm -rf external/llvm/mlir/utils/vscode
+      displayName: Remove unused MLIR vscode sources
+
     - script: |
         brew update
         export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install cmake ninja ccache
@@ -160,6 +168,10 @@ stages:
     steps:
     - checkout: self
       submodules: recursive
+
+    # Remove the MLIR vscode extension sources, which are not used by our build.
+    - script: if exist external\llvm\mlir\utils\vscode rmdir /S /Q external\llvm\mlir\utils\vscode
+      displayName: Remove unused MLIR vscode sources
 
     - script: ./build-xa-utils-azure.cmd
       displayName: Build utilities
