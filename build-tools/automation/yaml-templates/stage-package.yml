@@ -43,6 +43,9 @@ stages:
     - checkout: self
       submodules: recursive
 
+    - script: ./prune-llvm-checkout.sh
+      displayName: Prepare LLVM checkout
+
     - task: DownloadPipelineArtifact@2
       inputs:
         artifactName: artifacts-linux-unsigned
@@ -113,6 +116,9 @@ stages:
       steps:
       - checkout: self
         submodules: recursive
+
+      - script: prune-llvm-checkout.cmd
+        displayName: Prepare LLVM checkout
 
       - task: DownloadPipelineArtifact@2
         inputs:
