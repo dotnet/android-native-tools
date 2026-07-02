@@ -36,6 +36,9 @@ stages:
     - checkout: self
       submodules: recursive
 
+    - script: ./prune-llvm-checkout.sh
+      displayName: Prepare LLVM checkout
+
     - script: >-
         sudo apt-get update;
         sudo apt-get -f -u install cmake ninja-build chrpath texinfo sharutils libffi-dev
@@ -104,6 +107,9 @@ stages:
     - checkout: self
       submodules: recursive
 
+    - script: ./prune-llvm-checkout.sh
+      displayName: Prepare LLVM checkout
+
     - script: |
         brew update
         export HOMEBREW_NO_INSTALL_UPGRADE=1 && brew install cmake ninja ccache
@@ -160,6 +166,9 @@ stages:
     steps:
     - checkout: self
       submodules: recursive
+
+    - script: prune-llvm-checkout.cmd
+      displayName: Prepare LLVM checkout
 
     - script: ./build-xa-utils-azure.cmd
       displayName: Build utilities
