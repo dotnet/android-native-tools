@@ -58,11 +58,35 @@ function prepare()
 		rm "${dest_archive}"
 	fi
 
+	# Combined archive with all operating systems (kept for backwards compatibility).
 	(cd "${ARTIFACTS_DIR}"; 7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on "${dest_archive}" .)
 
 	echo
 	echo Release archive: ${dest_archive}
 	echo
+
+	# Per-OS archives so consumers can download only the toolchain for their host.
+	# Each archive keeps the "<os>/" prefix and the shared version files so that the
+	# extracted layout matches the combined archive.
+	local os
+	local os_archive
+	for os in ${OPERATING_SYSTEMS}; do
+		if [ ! -d "${ARTIFACTS_DIR}/${os}" ]; then
+			die Operating system directory ${ARTIFACTS_DIR}/${os} does not exist
+		fi
+
+		os_archive="${MY_DIR}/${DIST_PACKAGE_NAME_BASE}-${os}-${tag_name}.7z"
+		if [ -f "${os_archive}" ]; then
+			rm "${os_archive}"
+		fi
+
+		(cd "${ARTIFACTS_DIR}"; 7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on "${os_archive}" "${os}" llvm-version.txt version.txt)
+
+		echo
+		echo Release archive: ${os_archive}
+		echo
+	done
+
 	echo Setting variable 'LlvmVersion' to ${llvm_version}
 	echo "##vso[task.setvariable variable=LlvmVersion]${llvm_version}"
 	echo Setting variable 'GitTagValue' to ${tag_name}
@@ -73,7 +97,9 @@ Next steps:
 
   * Go to https://github.com/dotnet/android-native-tools/releases
   * Create new release using the '${tag_name}' tag
-  * Upload ${dest_archive} to that release
+  * Upload the following archives to that release:
+      - ${dest_archive}
+$(for os in ${OPERATING_SYSTEMS}; do echo "      - ${MY_DIR}/${DIST_PACKAGE_NAME_BASE}-${os}-${tag_name}.7z"; done)
 EOF
 }
 
